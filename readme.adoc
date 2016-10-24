@@ -1,0 +1,83 @@
+= Neo4j-GraphQL Extension
+
+NOTE: This is an very early version of GraphQL support for Neo4j.
+
+This implementation provides a GraphQL API to Neo4j, it comes as library but can also be installed as Neo4j server extension
+to act as a GraphQL endpoint.
+
+We want to explore three approaches:
+
+1. read schema / metadata from the database provide GraphQL DataFetcher that generate and run Cypher (WIP)
+2. make the same work with externally configured schema information (JSON) (TBD)
+3. do a direct GraphQL AST to Cypher transformation without bothering with Schema (TBD)
+
+NOTE: Currently only Node queries are supported. Relationship queries are up next.
+
+== Schema
+
+The library samples the existing data and adds one GraphQLObject for each Node-Label with all the properties and their types found as outputs and input-arguments.
+Additional labels on a node are added as GraphQLInterface's.
+
+== Installation
+
+----
+git clone https://github.com/neo4j-contrib/neo4j-graphql
+cd neo4j-graphql
+mvn clean package
+cp target/neo4j-graphql-1.0-SNAPSHOT.jar $NEO4J_HOME/plugins
+echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> $NEO4J_HOME/config/neo4j.conf
+$NEO4J_HOME/bin/neo4j restart
+----
+
+== Usage
+
+Run `:play movies` in your Neo4j Server.
+
+----
+curl  -u neo4j:<password>  -i -XPOST -d'{"query": "query AllPeopleQuery { Person {name,born} } }"}' -H accept:application/json -H content-type:application/json http://localhost:7474/graphql/
+
+
+HTTP/1.1 200 OK
+Date: Mon, 24 Oct 2016 21:40:15 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: *
+Transfer-Encoding: chunked
+Server: Jetty(9.2.9.v20150224)
+
+{"data":{"Person":[{"name":"Michael Sheen","born":1969},{"name":"Jack Nicholson","born":1937},{"name":"Nathan Lane","born":1956},{"name":"Philip Seymour Hoffman","born":1967},{"name":"Noah Wyle","born":1971},{"name":"Rosie O'Donnell","born":1962},{"name":"Greg Kinnear","born":1963},{"name":"Susan Sarandon","born":1946},{"name":"Takeshi Kitano","born":1947},{"name":"Gary Sinise","born":1955},{"name":"John Goodman","born":1960},{"name":"Christina Ricci","born":1980},{"name":"Jay Mohr","born":1970},{"name":"Ben Miles","born":1967},{"name":"Carrie Fisher","born":1956},{"name":"Christopher Guest","born":1948},{"name
+...
+----
+
+----
+curl  -u neo4j:<password> -i -XPOST -d'{"query":"query PersonQuery($name:String!) { Person(name:$name) {name,born} }", "variables":{"name":"Kevin Bacon"}}' -H content-type:application/json http://localhost:7474/graphql/
+
+HTTP/1.1 200 OK
+Date: Mon, 24 Oct 2016 21:40:38 GMT
+Content-Type: application/json
+Access-Control-Allow-Origin: *
+Transfer-Encoding: chunked
+Server: Jetty(9.2.9.v20150224)
+
+{"data":{"Person":[{"name":"Kevin Bacon","born":1958}]}}
+----
+
+== Next Steps
+
+* relationship support
+* pagination support
+* aggregation support
+* output GraphQL schema as JSON
+
+== Resources
+
+* https://github.com/graphql-java/graphql-java[GraphQL-Java] which we use in this project
+
+
+* https://github.com/solidsnack/GraphpostgresQL[GraphQL for Postgres] as an inspiration of schema -> native queries
+* https://github.com/jhwoodward/neo4j-graphQL[Schema Based GraphQL to Cypher in JavaScript]
+* https://github.com/jameskyburz/graphqlcypherquery[GraphQL to Cypher translator (w/o schema)]
+** https://github.com/JamesKyburz/graphql2cypher[GraphQL parser to Cypher]
+
+* https://neo4j.com/blog/cypher-graphql-neo4j-3-1-preview/[GraphQL inspired Cypher features] Map projections and Pattern comprehensions
+* https://github.com/facebook/dataloader
+
