@@ -1,7 +1,6 @@
 package org.neo4j.graphql;
 
 import graphql.ExecutionResult;
-import graphql.GraphQL;
 import graphql.schema.GraphQLSchema;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -30,29 +29,13 @@ import static org.neo4j.helpers.collection.MapUtil.map;
 public class GraphQLResource {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static GraphQL graphql;
     private final Log log;
     private final GraphDatabaseService db;
 
     public GraphQLResource(@Context LogProvider provider, @Context GraphDatabaseService db) {
         this.db = db;
         this.log = provider.getLog(GraphQLResource.class);
-        if (graphql == null) {
-            GraphQLSchema graphQLSchema = MetaData.buildSchema(db);
-            log.info(MetaData.getAllTypes().values().toString());
-//            logSchema(log, graphQLSchema);
-            graphql = new GraphQL(graphQLSchema);
-        }
     }
-
-    private void logSchema(Log log, GraphQLSchema graphQLSchema) {
-        // todo provide / log as JSON
-        log.bulk(l -> {
-            l.info(graphQLSchema.getQueryType().toString());
-            graphQLSchema.getAllTypesAsList().forEach(t -> l.info(t.toString()));
-        });
-    }
-
 
     @Path("/")
     @OPTIONS
@@ -86,7 +69,7 @@ public class GraphQLResource {
         String query = (String) params.get("query");
 
         Map<String, Object> variables = getVariables(params);
-        ExecutionResult executionResult = graphql.execute(query, db, variables);
+        ExecutionResult executionResult = GraphSchema.getGraphQL(db).execute(query, db, variables);
 
         Map<String, Object> result = new LinkedHashMap<>();
         if (!executionResult.getErrors().isEmpty()) {

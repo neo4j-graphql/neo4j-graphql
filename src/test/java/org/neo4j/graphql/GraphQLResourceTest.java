@@ -2,6 +2,8 @@ package org.neo4j.graphql;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 import org.neo4j.harness.junit.Neo4jRule;
 import org.neo4j.test.server.HTTP;
 
@@ -11,6 +13,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
@@ -22,6 +25,7 @@ public class GraphQLResourceTest {
     @Rule
     public Neo4jRule neo4j = new Neo4jRule()
             .withExtension("/graphql", GraphQLResource.class)
+            .withProcedure(GraphQLProcedure.class)
             .withFixture("CREATE (:Person {name:'Kevin Bacon',born:1958})-[:ACTED_IN]->(:Movie {title:'Apollo 13',released:1995}),(:Person {name:'Meg Ryan',born:1961})");
 
     @Test
@@ -74,5 +78,28 @@ public class GraphQLResourceTest {
         List<Map> data = result.get("data").get("Person");
         assertEquals(1,data.size());
         assertEquals("Meg Ryan",data.get(0).get("name"));
+    }
+
+    @Test
+    public void testProcedureCall() throws Exception {
+        String query = "query AllPeopleQuery { Person(born:1961) {name,born} }";
+        GraphDatabaseService db = neo4j.getGraphDatabaseService();
+        Result result = db.execute("CALL graphql.execute({query},{})",map("query",query));
+        assertEquals(true,result.hasNext());
+        List<Map>  data = (List<Map>) ((Map) result.next().get("result")).get("Person");
+        assertEquals(1,data.size());
+        assertEquals("Meg Ryan",data.get(0).get("name"));
+        assertEquals(false,result.hasNext());
+        result.close();
+    }
+    @Test
+    public void testProcedureCallFail() throws Exception {
+        try {
+            GraphDatabaseService db = neo4j.getGraphDatabaseService();
+            Result result = db.execute("CALL graphql.execute('foo',{})");
+            fail("Procedure call should fail");
+        } catch(Exception e) {
+            assertEquals(true,e.getMessage().contains("InvalidSyntaxError"));
+        }
     }
 }
