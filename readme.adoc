@@ -66,7 +66,7 @@ query AllPeopleQuery {
 }
 ----
 
-image::graphiql.jpg[width=400]
+image::graphiql.jpg[width=600]
 
 You can also use variables or query the schema:
 
@@ -114,6 +114,22 @@ query PersonQuery($name: String!) {
 # variables
 {"name":"Keanu Reeves"}
 ----
+
+== Procedure
+
+This library also comes with a User Defined Procedure to execute graphql:
+
+[source,cypher]
+----
+WITH '{ Person(born: 1961) { name, born } }' as query, {} as params
+
+CALL graphql.execute(query,params) YIELD result
+
+UNWIND result.Person as p
+RETURN p.name, p.born
+----
+
+image::graphql.execute.jpg[width=600]
 
 == CURL
 
