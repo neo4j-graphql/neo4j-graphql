@@ -38,10 +38,84 @@ $NEO4J_HOME/bin/neo4j restart
 
 == Usage
 
-Run `:play movies` in your Neo4j Server.
+Run `:play movies` in your Neo4j Server, click the statement and run it to insert the basic movie graph.
 
+== GraphiQL
+
+Get GraphiQL electron app from: https://github.com/skevy/graphiql-app
+
+If your Neo4j Server runs with auth enabled, add the appropriate Basic-Auth header in the "Edit HTTP Headers" screen.
+
+----
+echo "Authorization: Basic $(echo -n "neo4j:<password>" | base64)"
+----
+
+And then run a query like:
+
+----
+query AllPeopleQuery {
+  Person(name:"Kevin Bacon") {
+    name
+    born
+    ACTED_IN_Movie {
+      title
+      released
+      tagline
+    }
+  }
+}
+----
 
 image::graphiql.jpg[width=400]
+
+You can also use variables or query the schema:
+
+.Which types are in the schema
+----
+{
+  __schema {
+    types {
+      name
+      kind
+      description
+    }
+  }
+}
+----
+
+or
+
+.Which types are available for querying
+----
+{
+  __schema {
+    queryType {
+      fields { name, description }
+    }
+  }
+}
+----
+
+and then query for real data
+
+----
+# query
+query PersonQuery($name: String!) {
+  Person(name: $name) {
+    name
+    born
+    ACTED_IN_Movie {
+      title
+      released
+      tagline
+    }
+  }
+}
+# variables
+{"name":"Keanu Reeves"}
+----
+
+== CURL
 
 Query the Schema
 ----
@@ -99,15 +173,6 @@ Server: Jetty(9.2.9.v20150224)
 {"data":{"Person":[{"name":"Tom Hanks","born":1956,"ACTED_IN_Movie":[{"title":"Charlie Wilson's War","released":2007},{"title":"A League of Their Own","released":1992},{"title":"The Polar Express","released":2004},{"title":"The Green Mile","released":1999},{"title":"Cast Away","released":2000},{"title":"Apollo 13","released":1995},{"title":"The Da Vinci Code","released":2006},{"title":"Cloud Atlas","released":2012},{"title":"Joe Versus the Volcano","released":1990},{"title":"Sleepless in Seattle","released":1993},{"title":"You've Got Mail","released":1998},{"title":"That Thing You Do","released":1996}]}]}}
 ----
 
-
-== Next Steps
-
-* relationship support (done first level)
-* support for `edges`, `node` special keywords
-* pagination support
-* aggregation support
-* output GraphQL schema as JSON
-
 == Resources
 
 * https://github.com/graphql-java/graphql-java[GraphQL-Java] which we use in this project
@@ -120,6 +185,9 @@ Server: Jetty(9.2.9.v20150224)
 
 * https://neo4j.com/blog/cypher-graphql-neo4j-3-1-preview/[GraphQL inspired Cypher features] Map projections and Pattern comprehensions
 * https://github.com/facebook/dataloader
+
+* https://github.com/skevy/graphiql-app[GraphiQL Electron App]
+* http://graphql.org/learn/serving-over-http/[Serving over HTTP]
 
 ////
 echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
