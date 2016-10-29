@@ -40,6 +40,25 @@ $NEO4J_HOME/bin/neo4j restart
 
 Run `:play movies` in your Neo4j Server.
 
+
+image::graphiql.jpg[width=400]
+
+Query the Schema
+----
+curl  -u neo4j:<password> -i -XPOST -d'{"query": "query {__schema {types {kind, name, description}}}"}' -H accept:application/json -H content-type:application/json http://localhost:7474/graphql/
+
+{"data":{"__schema":{"types":[{"kind":"OBJECT","name":"QueryType","description":null},{"kind":"OBJECT","name":"Movie","description":"Movie-Node"},....
+----
+
+----
+query {__schema {queryType {
+  kind,description,fields {
+    name
+  }
+}}}
+----
+
+
 ----
 curl  -u neo4j:<password>  -i -XPOST -d'{"query": "query AllPeopleQuery { Person {name,born} } }"}' -H accept:application/json -H content-type:application/json http://localhost:7474/graphql/
 
@@ -83,7 +102,8 @@ Server: Jetty(9.2.9.v20150224)
 
 == Next Steps
 
-* relationship support
+* relationship support (done first level)
+* support for `edges`, `node` special keywords
 * pagination support
 * aggregation support
 * output GraphQL schema as JSON
@@ -101,3 +121,7 @@ Server: Jetty(9.2.9.v20150224)
 * https://neo4j.com/blog/cypher-graphql-neo4j-3-1-preview/[GraphQL inspired Cypher features] Map projections and Pattern comprehensions
 * https://github.com/facebook/dataloader
 
+////
+echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
+"Authorization: Basic bmVvNGo6dGVzdA=="
+////
