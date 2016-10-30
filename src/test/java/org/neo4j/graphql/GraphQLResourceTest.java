@@ -86,7 +86,9 @@ public class GraphQLResourceTest {
         GraphDatabaseService db = neo4j.getGraphDatabaseService();
         Result result = db.execute("CALL graphql.execute({query},{})",map("query",query));
         assertEquals(true,result.hasNext());
-        List<Map>  data = (List<Map>) ((Map) result.next().get("result")).get("Person");
+        Map<String, Object> row = result.next();
+        System.out.println("row = " + row);
+        List<Map>  data = (List<Map>) ((Map) row.get("result")).get("Person");
         assertEquals(1,data.size());
         assertEquals("Meg Ryan",data.get(0).get("name"));
         assertEquals(false,result.hasNext());

@@ -44,11 +44,11 @@ public class MetaDataTest {
     public void sampleRelationships() throws Exception {
         try (Transaction tx = db.beginTx()) {
             MetaData person = MetaData.from(db, label("Person"));
-            MetaData.RelationshipInfo LIVES_ON_Location = MetaData.RelationshipInfo.from("LIVES_ON", "Location", false, true);
+            RelationshipInfo LIVES_ON_Location = new RelationshipInfo("LIVES_ON", "Location", true);
             assertEquals(map("LIVES_ON_Location", LIVES_ON_Location), person.relationships);
             MetaData location = MetaData.from(db, label("Location"));
-            MetaData.RelationshipInfo Person_LIVES_ON = MetaData.RelationshipInfo.from("LIVES_ON", "Person", true, false);
-            MetaData.RelationshipInfo User_LIVES_ON = MetaData.RelationshipInfo.from("LIVES_ON", "User", true, false);
+            RelationshipInfo Person_LIVES_ON = new RelationshipInfo("LIVES_ON", "Person", false).update(true);
+            RelationshipInfo User_LIVES_ON = new RelationshipInfo("LIVES_ON", "User", false).update(true);
             assertEquals(map("Person_LIVES_ON", Person_LIVES_ON,"User_LIVES_ON", User_LIVES_ON), location.relationships);
             tx.success();
         }
