@@ -13,7 +13,7 @@ object GraphSchema {
 
     @JvmStatic fun getGraphQL(db: GraphDatabaseService): GraphQL {
         if (graphql == null) {
-            val graphQLSchema = MetaData.buildSchema(db)
+            val graphQLSchema = GraphQLSchemaBuilder.buildSchema(db)
             graphql = GraphQL(graphQLSchema)
         }
         return graphql!!

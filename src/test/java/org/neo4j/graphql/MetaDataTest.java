@@ -31,7 +31,7 @@ public class MetaDataTest {
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         db.execute("CREATE (earth:Location {name:'Earth'}) WITH earth UNWIND range(1,5) as id CREATE (:User:Person {name:'John '+id, id:id, age:id})-[:LIVES_ON]->(earth)").close();
-        GraphQLSchema graphQLSchema = MetaData.buildSchema(db);
+        GraphQLSchema graphQLSchema = GraphQLSchemaBuilder.buildSchema(db);
         graphql = new GraphQL(graphQLSchema);
     }
 
@@ -43,10 +43,10 @@ public class MetaDataTest {
     @Test
     public void sampleRelationships() throws Exception {
         try (Transaction tx = db.beginTx()) {
-            MetaData person = MetaData.from(db, label("Person"));
+            MetaData person = GraphSchemaScanner.from(db, label("Person"));
             RelationshipInfo LIVES_ON_Location = new RelationshipInfo("LIVES_ON", "Location", true);
             assertEquals(map("LIVES_ON_Location", LIVES_ON_Location), person.relationships);
-            MetaData location = MetaData.from(db, label("Location"));
+            MetaData location = GraphSchemaScanner.from(db, label("Location"));
             RelationshipInfo Person_LIVES_ON = new RelationshipInfo("LIVES_ON", "Person", false).update(true);
             RelationshipInfo User_LIVES_ON = new RelationshipInfo("LIVES_ON", "User", false).update(true);
             assertEquals(map("Person_LIVES_ON", Person_LIVES_ON,"User_LIVES_ON", User_LIVES_ON), location.relationships);
