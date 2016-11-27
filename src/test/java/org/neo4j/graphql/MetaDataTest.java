@@ -60,6 +60,16 @@ public class MetaDataTest {
         Map<String, List<Map>> result = executeQuery("query UserQuery { User {id,name,age} User {age,name}}", map());
         assertEquals(2*5, result.get("User").size());
     }
+    @Test
+    public void allUsersSort() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query UserSortQuery { User(orderBy:[name_desc,age_desc]) {name,age}}", map());
+        List<Map> users = result.get("User");
+        int size = users.size();
+        assertEquals(5, size);
+        for (int i = 0; i < size; i++) {
+            assertEquals(5L-i,users.get(i).get("age"));
+        }
+    }
 
     @Test
     public void allLocationsQuery() throws Exception {
@@ -181,6 +191,7 @@ public class MetaDataTest {
         Map location = (Map) user.get("LIVES_ON_Location");
         assertEquals("Berlin", location.get("name"));
     }
+
     @Test
     public void locationWithUsersQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query LocationWithUserQuery { Location {name, User_LIVES_ON {name,age} } }", map());
@@ -191,6 +202,18 @@ public class MetaDataTest {
         List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("User_LIVES_ON");
         assertEquals(5, people.size());
         people.forEach((p) -> assertEquals(true, p.get("name").toString().startsWith("John")));
+    }
+    @Test
+    public void locationWithUsersSortQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query LocationWithUserQuery { Location {name, User_LIVES_ON(orderBy:[age_desc]) {name,age} } }", map());
+        List<Map> locations = result.get("Location");
+        Map location = locations.get(0);
+        List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("User_LIVES_ON");
+        int size = people.size();
+        assertEquals(5, size);
+        for (int i = 0; i < size; i++) {
+            assertEquals(5L-i,people.get(i).get("age"));
+        }
     }
     @Test
     public void locationWithPeopleQuery() throws Exception {
@@ -234,12 +257,12 @@ public class MetaDataTest {
     }
 
     private Map<String,List<Map>> executeQuery(String query, Map<String, Object> arguments) {
-//        System.out.println("query = " + query);
+        System.out.println("query = " + query);
         ExecutionResult result = graphql.execute(query, db, arguments);
         Object data = result.getData();
-//        System.out.println("data = " + data);
+        System.out.println("data = " + data);
         List<GraphQLError> errors = result.getErrors();
-//        System.out.println("errors = " + errors);
+        System.out.println("errors = " + errors);
         return (Map<String,List<Map>>) result.getData();
     }
 

@@ -83,6 +83,7 @@ class GraphQLSchemaBuilder {
                 .description(md.type + " " + name + " " + label)
                 .argument(propertiesAsArguments(labelMd))
                 .argument(propertiesAsListArguments(labelMd))
+                .argument(orderByArgument(labelMd))
                 .type(if (multi) GraphQLList(GraphQLTypeReference(label)) else GraphQLTypeReference(label))
                 .build()
     }
@@ -167,6 +168,7 @@ class GraphQLSchemaBuilder {
                             .type(GraphQLList(toGraphQL(md)))
                             .argument(propertiesAsArguments(md))
                             .argument(propertiesAsListArguments(md))
+                            .argument(orderByArgument(md))
                             //                            .fetchField();
                             .dataFetcher({ env -> fetchGraphData(md, env) }).build()
                 }
@@ -191,6 +193,13 @@ class GraphQLSchemaBuilder {
         return md.properties.entries.map {
             newArgument().name(it.key).description(it.key + " of " + md.type).type(graphQlInType(it.value)).build()
         }
+    }
+    internal fun orderByArgument(md: MetaData): GraphQLArgument {
+        return newArgument().name("orderBy")
+                .type(GraphQLList(GraphQLEnumType("_${md.type}Ordering","Ordering Enum for ${md.type}",
+                        md.properties.keys.flatMap { listOf(
+                                GraphQLEnumValueDefinition(it+"_asc","Ascending sort for $it",Pair(it,true)),
+                                GraphQLEnumValueDefinition(it+"_desc","Descending sort for $it",Pair(it,false))) }))).build();
     }
     internal fun propertiesAsListArguments(md: MetaData): List<GraphQLArgument> {
         return md.properties.entries.map {

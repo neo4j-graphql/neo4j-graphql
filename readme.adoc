@@ -133,6 +133,47 @@ RETURN p.name, p.born
 
 image::graphql.execute.jpg[width=600]
 
+== Examples
+
+Some more examples
+
+.Relationship Argument
+----
+query MoviePersonQuery {
+  Movie {
+    title
+    Person_ACTED_IN(name:"Tom Hanks") {
+      name
+    }
+  }
+}
+----
+
+.Nested Relationships
+----
+query PersonMoviePersonQuery {
+  Person {
+    name
+    ACTED_IN_Movie {
+      title
+      Person_ACTED_IN {
+        name
+      }
+    }
+  }
+}
+----
+
+.Sorting
+----
+query PersonQuery {
+  Person(orderBy: [age_asc, name_desc]) {
+    name
+    born
+  }
+}
+----
+
 == CURL
 
 Query the Schema
@@ -217,7 +258,7 @@ echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 
 * Non-Null and Nullable Input and Output Types
 * https://www.reindex.io/docs/graphql-api/connections/#connection-arguments[Pagination]: Skip and Limit (first,last,after,before,skip,limit)
-* https://www.reindex.io/docs/graphql-api/connections/#orderby[orderBy] with enum _PersonOrdering { NAME_ASC,NAME_DESC,... }
+* √ https://www.reindex.io/docs/graphql-api/connections/#orderby[orderBy] with enum _PersonOrdering { name_asc,name_desc,... }
 * https://www.reindex.io/docs/graphql-api/connections/#filtering[Filtering] with support of a object argument for an input-argument-field, with key=comparator, and value compare-value +
   `(status: {eq/neq:true}, createdAt: { gte: "2016-01-01", lt: "2016-02-01"}, tags: {isNull:false, includes/excludes: "foo"})`
 * How to handle Geospatial and other complex input types
@@ -225,5 +266,5 @@ echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 * Add `extensions` result value for query statistics or query plan, depending on directives given, e.g. contain the generated cypher query as well
 * @skip, @include directives, check if they are handled by the library
 * handle nested relationships as optional or non-optional (perhaps via nullable?) or directive
-* project non-found nested results as null vs. map with null-value entries
+* √ project non-found nested results as null vs. map with null-value entries
 * https://facebook.github.io/relay/docs/graphql-connections.html#content[Connection] add support for edges / nodes special properties
