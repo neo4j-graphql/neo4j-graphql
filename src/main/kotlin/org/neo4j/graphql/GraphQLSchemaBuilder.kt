@@ -163,6 +163,7 @@ class GraphQLSchemaBuilder {
                             .name(md.type)
                             .type(GraphQLList(toGraphQL(md)))
                             .argument(propertiesAsArguments(md))
+                            .argument(propertiesAsListArguments(md))
                             //                            .fetchField();
                             .dataFetcher({ env -> fetchGraphData(md, env) }).build()
                 }
@@ -186,6 +187,11 @@ class GraphQLSchemaBuilder {
     internal fun propertiesAsArguments(md: MetaData): List<GraphQLArgument> {
         return md.properties.entries.map {
             newArgument().name(it.key).description(it.key + " of " + md.type).type(graphQlInType(it.value)).build()
+        }
+    }
+    internal fun propertiesAsListArguments(md: MetaData): List<GraphQLArgument> {
+        return md.properties.entries.map {
+            newArgument().name(it.key+"s").description(it.key + "s is list variant of "+it.key + " of " + md.type).type(GraphQLList(graphQlInType(it.value))).build()
         }
     }
 }

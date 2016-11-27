@@ -6,6 +6,7 @@ import graphql.GraphQLError;
 import graphql.schema.GraphQLSchema;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
@@ -81,6 +82,13 @@ public class MetaDataTest {
         assertEquals("Earth", result.get("Loc").get(0).get("name"));
     }
 
+    @Test @Ignore("seems not to be supported in the graphql library")
+    public void fragmentTest() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query LocationQuery { Location { ...name } }\nfragment name on Location { name } ", map());
+        assertEquals(1, result.get("Locaction").size());
+        assertEquals("Earth", result.get("Locaction").get(0).get("name"));
+    }
+
     @Test
     public void singleUserWithLocationQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,LIVES_ON_Location {name} } }", map());
@@ -91,6 +99,7 @@ public class MetaDataTest {
         Map location = (Map) user.get("LIVES_ON_Location");
         assertEquals("Earth", location.get("name"));
     }
+
     @Test
     public void usersWithLocationQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User {name,LIVES_ON_Location {name} } }", map());
@@ -131,6 +140,7 @@ public class MetaDataTest {
         assertEquals("John 2", users.get(0).get("name"));
         assertEquals(2L, users.get(0).get("id"));
     }
+
     @Test
     public void oneUserQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query UserQuery { User(id:3) {id,name,age} }", map());
@@ -138,6 +148,18 @@ public class MetaDataTest {
         assertEquals(1, users.size());
         assertEquals("John 3", users.get(0).get("name"));
         assertEquals(3L, users.get(0).get("id"));
+    }
+
+    @Test
+    public void manyUsersQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query UserQuery { User(ids:[3,4]) {id,name,age} }", map());
+        List<Map> users = result.get("User");
+        assertEquals(2, users.size());
+        Map john3 = users.get(0);
+        assertEquals("John 3", john3.get("name"));
+        assertEquals(3L, john3.get("id"));
+        Map john4 = users.get(1);
+        assertEquals(4L, john4.get("id"));
     }
 
     private Map<String,List<Map>> executeQuery(String query, Map<String, Object> arguments) {

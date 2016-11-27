@@ -9,7 +9,7 @@ class Cypher30Generator {
         val variable = name
         val md = metaData(name)
         return "MATCH (`$variable`:`$name`) \n" +
-                where(field, variable) +
+                where(field, variable, md) +
                 optionalMatches(md, variable, field.selectionSet.selections) +
                 " RETURN " + projection(field, variable, md)
     }
@@ -35,12 +35,22 @@ class Cypher30Generator {
 
     private fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)!!
 
-    private fun where(field: Field, variable: String): String {
+    private fun where(field: Field, variable: String, md: MetaData): String {
         if (field.arguments.isEmpty()) return ""
         return " WHERE " +
-                field.arguments.map { "`${variable}`.`${it.name}` = ${formatValue(it.value)} " }
-                        .joinToString(" AND \n")
+                field.arguments.map {
+                    val name = it.name
+                    if (isPlural(name) && it.value is ArrayValue && md.properties.containsKey(singular(name)))
+                        "`${variable}`.`${singular(name)}` IN ${formatValue(it.value)} "
+                    else
+                        "`${variable}`.`$name` = ${formatValue(it.value)} "
+                }
+                .joinToString(" AND \n")
     }
+
+    private fun isPlural(name: String) = name.endsWith("s")
+
+    private fun singular(name: String) = name.substring(0, name.length - 1)
 
     private fun formatValue(value: Value?): String =
             when (value) {
