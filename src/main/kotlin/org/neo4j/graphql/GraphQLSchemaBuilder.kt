@@ -133,10 +133,10 @@ class GraphQLSchemaBuilder {
     private fun graphQlOutType(type: Class<*>): GraphQLOutputType {
         if (type == String::class.java) return GraphQLString
         if (Number::class.java.isAssignableFrom(type)) {
-            if (type == Double::class.java || type == Float::class.java) return Scalars.GraphQLFloat
+            if (type == Double::class.java || type == Double::class.javaObjectType || type == Float::class.java || type == Float::class.javaObjectType) return Scalars.GraphQLFloat
             return Scalars.GraphQLLong
         }
-        if (type == Boolean::class.java) return Scalars.GraphQLBoolean
+        if (type == Boolean::class.java || type == Boolean::class.javaObjectType) return Scalars.GraphQLBoolean
         if (type.javaClass.isArray) {
             return GraphQLList(graphQlOutType(type.componentType))
         }
@@ -146,10 +146,10 @@ class GraphQLSchemaBuilder {
     private fun graphQlInType(type: Class<*>): GraphQLInputType {
         if (type == String::class.java) return GraphQLString
         if (Number::class.java.isAssignableFrom(type)) {
-            if (type == Double::class.java || type == Float::class.java) return Scalars.GraphQLFloat
+            if (type == Double::class.java || type == Double::class.javaObjectType || type == Float::class.java || type == Float::class.javaObjectType) return Scalars.GraphQLFloat
             return Scalars.GraphQLLong
         }
-        if (type == Boolean::class.java) return Scalars.GraphQLBoolean
+        if (type == Boolean::class.java || type == Boolean::class.javaObjectType) return Scalars.GraphQLBoolean
         if (type.javaClass.isArray) {
             return GraphQLList(graphQlInType(type.componentType))
         }

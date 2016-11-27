@@ -31,7 +31,7 @@ public class MetaDataTest {
     @Before
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        db.execute("CREATE (earth:Location {name:'Earth'}) WITH earth UNWIND range(1,5) as id CREATE (:User:Person {name:'John '+id, id:id, age:id})-[:LIVES_ON]->(earth)").close();
+        db.execute("CREATE (berlin:Location {name:'Berlin',longitude:13.4, latitude: 52.5}) WITH berlin UNWIND range(1,5) as id CREATE (:User:Person {name:'John '+id, id:id, age:id})-[:LIVES_ON]->(berlin)").close();
         GraphQLSchema graphQLSchema = GraphQLSchemaBuilder.buildSchema(db);
         graphql = new GraphQL(graphQLSchema);
     }
@@ -65,28 +65,43 @@ public class MetaDataTest {
     public void allLocationsQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query LocationQuery { Location {name} }", map());
         assertEquals(1, result.get("Location").size());
-        assertEquals("Earth", result.get("Location").get(0).get("name"));
+        assertEquals("Berlin", result.get("Location").get(0).get("name"));
     }
 
     @Test
     public void fieldAliasQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query LocationQuery { Location { loc : name} }", map());
         assertEquals(1, result.get("Location").size());
-        assertEquals("Earth", result.get("Location").get(0).get("loc"));
+        assertEquals("Berlin", result.get("Location").get(0).get("loc"));
+    }
+
+    @Test
+    public void geoLocationLatitudeQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query LocationQuery { Location(latitude:52.5) { name} }", map());
+        assertEquals(1, result.get("Location").size());
+        assertEquals("Berlin", result.get("Location").get(0).get("name"));
+    }
+
+    @Ignore("TODO figure out how to denote location input arguments")
+    @Test
+    public void geoLocationQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query LocationQuery { Location(location : {latitude:52.5,longitude:13.4}) { name} }", map());
+        assertEquals(1, result.get("Location").size());
+        assertEquals("Berlin", result.get("Location").get(0).get("name"));
     }
 
     @Test
     public void typeAliasQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query LocationQuery { Loc: Location { name} }", map());
         assertEquals(1, result.get("Loc").size());
-        assertEquals("Earth", result.get("Loc").get(0).get("name"));
+        assertEquals("Berlin", result.get("Loc").get(0).get("name"));
     }
 
     @Test @Ignore("seems not to be supported in the graphql library")
     public void fragmentTest() throws Exception {
         Map<String, List<Map>> result = executeQuery("query LocationQuery { Location { ...name } }\nfragment name on Location { name } ", map());
         assertEquals(1, result.get("Locaction").size());
-        assertEquals("Earth", result.get("Locaction").get(0).get("name"));
+        assertEquals("Berlin", result.get("Locaction").get(0).get("name"));
     }
 
     @Test
@@ -97,7 +112,7 @@ public class MetaDataTest {
         Map user = users.get(0);
         assertEquals("John 3", user.get("name"));
         Map location = (Map) user.get("LIVES_ON_Location");
-        assertEquals("Earth", location.get("name"));
+        assertEquals("Berlin", location.get("name"));
     }
 
     @Test
@@ -108,7 +123,7 @@ public class MetaDataTest {
         Map user = users.get(0);
         assertEquals("John 1", user.get("name"));
         Map location = (Map) user.get("LIVES_ON_Location");
-        assertEquals("Earth", location.get("name"));
+        assertEquals("Berlin", location.get("name"));
     }
     @Test
     public void locationWithUsersQuery() throws Exception {
@@ -116,7 +131,7 @@ public class MetaDataTest {
         List<Map> locations = result.get("Location");
         assertEquals(1, locations.size());
         Map location = locations.get(0);
-        assertEquals("Earth", location.get("name"));
+        assertEquals("Berlin", location.get("name"));
         List<Map> people = (List<Map>) location.get("User_LIVES_ON");
         assertEquals(5, people.size());
         people.forEach((p) -> assertEquals(true, p.get("name").toString().startsWith("John")));
@@ -127,7 +142,7 @@ public class MetaDataTest {
         List<Map> locations = result.get("Location");
         assertEquals(1, locations.size());
         Map location = locations.get(0);
-        assertEquals("Earth", location.get("name"));
+        assertEquals("Berlin", location.get("name"));
         List<Map> people = (List<Map>) location.get("Person_LIVES_ON");
         assertEquals(5, people.size());
         people.forEach((p) -> assertEquals(true, p.get("name").toString().startsWith("John")));
