@@ -71,7 +71,8 @@ class Cypher30Generator {
     private fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet): List<Pair<String, String>> {
         return selectionSet.selections.filter { it is Field }.map {
             val f = it as Field
-            val alias = f.alias ?: f.name
+//            val alias = f.alias ?: f.name // alias is handled in graphql layer
+            val alias = f.name
             val info = md.relationshipFor(f.name) // todo correct medatadata of
 
             if (info == null) {

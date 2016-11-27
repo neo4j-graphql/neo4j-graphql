@@ -59,11 +59,26 @@ public class MetaDataTest {
         Map<String, List<Map>> result = executeQuery("query UserQuery { User {id,name,age} User {age,name}}", map());
         assertEquals(2*5, result.get("User").size());
     }
+
     @Test
     public void allLocationsQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query LocationQuery { Location {name} }", map());
         assertEquals(1, result.get("Location").size());
         assertEquals("Earth", result.get("Location").get(0).get("name"));
+    }
+
+    @Test
+    public void fieldAliasQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query LocationQuery { Location { loc : name} }", map());
+        assertEquals(1, result.get("Location").size());
+        assertEquals("Earth", result.get("Location").get(0).get("loc"));
+    }
+
+    @Test
+    public void typeAliasQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query LocationQuery { Loc: Location { name} }", map());
+        assertEquals(1, result.get("Loc").size());
+        assertEquals("Earth", result.get("Loc").get(0).get("name"));
     }
 
     @Test
