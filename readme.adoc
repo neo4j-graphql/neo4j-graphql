@@ -22,8 +22,10 @@ Apache License v2
 == Schema
 
 The library samples the existing data and adds one GraphQLObject for each Node-Label with all the properties and their types found as outputs and input-arguments.
+
 Relationship information is collected with direction, type, end-node-labels and degree (to determine single element or collection result).
 // Additional labels on a node are added as GraphQLInterface's.
+Each relationship-type and end-node label is added as a virtual property to the node type, named `TYPE_Label` for outgoing and `Label_TYPE` for incoming relationships.
 
 == Installation
 
@@ -205,7 +207,20 @@ Server: Jetty(9.2.9.v20150224)
 * https://github.com/skevy/graphiql-app[GraphiQL Electron App]
 * http://graphql.org/learn/serving-over-http/[Serving over HTTP]
 
+* https://facebook.github.io/graphq[GraphQL Specification]
 ////
 echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 "Authorization: Basic bmVvNGo6dGVzdA=="
 ////
+
+== TODO
+
+* Non-Null and Nullable Input and Output Types
+* Skip and Limit
+* How to handle Geospatial and other complex input types
+* Support for Directives, e.g. to specify the cypher compiler or runtime? or special handling for certain fields or types
+* Add `extensions` result value for query statistics or query plan, depending on directives given, e.g. contain the generated cypher query as well
+* @skip, @include directives, check if they are handled by the library
+* handle nested relationships as optional or non-optional (perhaps via nullable?) or directive
+* project non-found nested results as null vs. map with null-value entries
+* add support for edges / nodes special properties

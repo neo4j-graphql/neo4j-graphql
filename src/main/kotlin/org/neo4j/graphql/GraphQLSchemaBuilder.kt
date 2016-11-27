@@ -69,6 +69,7 @@ class GraphQLSchemaBuilder {
     }
 
     private fun newReferenceField(md: MetaData, name: String, label: String, multi: Boolean): GraphQLFieldDefinition {
+        val labelMd = GraphSchemaScanner.getMetaData(label)!!
         return newFieldDefinition()
                 .name(name)
                 /*
@@ -80,6 +81,8 @@ class GraphQLSchemaBuilder {
             })
 */
                 .description(md.type + " " + name + " " + label)
+                .argument(propertiesAsArguments(labelMd))
+                .argument(propertiesAsListArguments(labelMd))
                 .type(if (multi) GraphQLList(GraphQLTypeReference(label)) else GraphQLTypeReference(label))
                 .build()
     }

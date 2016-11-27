@@ -17,20 +17,27 @@ class Cypher30Generator {
     private fun optionalMatches(metaData: MetaData, variable: String, selections: Iterable<Selection>) =
             selections.map {
                 when (it) {
-                    is Field -> formatField(metaData, variable, it)
+                    is Field -> formatNestedRelationshipMatch(metaData, variable, it)
                     else -> ""
                 }
             }.joinToString("\n")
 
-    private fun formatField(md: MetaData, variable: String, field: Field): String {
+    private fun formatNestedRelationshipMatch(md: MetaData, variable: String, field: Field): String {
         val fieldName = field.name
+        val fieldVariable = variable + "_" + fieldName;
         val info = md.relationshipFor(fieldName) ?: return ""
 
         val arrowLeft = if (!info.out) "<" else ""
         val arrowRight = if (info.out) ">" else ""
-        return " OPTIONAL MATCH (`$variable`)$arrowLeft-[:`${info.type}`]-$arrowRight(`$fieldName`:`${info.label}`) \n"
-        // todo handle conditions on related elements after optional match
-        //TODO                    query += addWhere(field, variable);
+
+        val fieldMetaData = GraphSchemaScanner.getMetaData(info.label)!!
+
+        val result = " OPTIONAL MATCH (`$variable`)$arrowLeft-[:`${info.type}`]-$arrowRight(`$fieldVariable`:`${info.label}`)" +
+                where(field,fieldVariable, fieldMetaData) + "\n"
+        return result +
+                if (field.selectionSet.selections.isNotEmpty())
+                    optionalMatches(fieldMetaData,fieldVariable,field.selectionSet.selections)
+                else ""
     }
 
     private fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)!!
@@ -75,7 +82,7 @@ class Cypher30Generator {
     private fun projectMap(field: Field, variable: String, md: MetaData): String {
         val selectionSet = field.selectionSet ?: return ""
 
-        return "{"+projectSelectionFields(md, variable, selectionSet).map{ "`${it.first}` : ${it.second}" }.joinToString(", ")+"}";
+        return "CASE `$variable` WHEN null THEN null ELSE {"+projectSelectionFields(md, variable, selectionSet).map{ "`${it.first}` : ${it.second}" }.joinToString(", ")+"} END";
     }
 
     private fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet): List<Pair<String, String>> {
@@ -90,7 +97,8 @@ class Cypher30Generator {
             } else {
                 if (f.selectionSet == null) null // todo
                 else {
-                    val map = projectMap(f, f.name, metaData(info.label))
+                    val fieldVariable = variable + "_" + f.name
+                    val map = projectMap(f, fieldVariable, metaData(info.label))
                     Pair(alias, if (info.multi) "collect($map)" else map)
                 }
             }

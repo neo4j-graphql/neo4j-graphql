@@ -68,6 +68,14 @@ public class MetaDataTest {
         assertEquals("Berlin", result.get("Location").get(0).get("name"));
     }
 
+    @Test @Ignore("does not work in library")
+    public void skipDirective() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query LocationQuery { Location {name @skip(if: true) } }", map());
+        System.out.println("result = " + result);
+        assertEquals(1, result.get("Location").size());
+        assertEquals(false, result.get("Location").get(0).containsKey("name"));
+    }
+
     @Test
     public void fieldAliasQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query LocationQuery { Location { loc : name} }", map());
@@ -80,6 +88,18 @@ public class MetaDataTest {
         Map<String, List<Map>> result = executeQuery("query LocationQuery { Location(latitude:52.5) { name} }", map());
         assertEquals(1, result.get("Location").size());
         assertEquals("Berlin", result.get("Location").get(0).get("name"));
+    }
+
+    @Test
+    public void locationNameQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query LocationQuery { Location(name:\"Berlin\") { name} }", map());
+        assertEquals(1, result.get("Location").size());
+        assertEquals("Berlin", result.get("Location").get(0).get("name"));
+    }
+    @Test
+    public void locationNameNotMatchQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query LocationQuery { Location(name:\"Bärlin\") { name} }", map());
+        assertEquals(0, result.get("Location").size());
     }
 
     @Ignore("TODO figure out how to denote location input arguments")
@@ -116,6 +136,42 @@ public class MetaDataTest {
     }
 
     @Test
+    public void singleUserWithLocationNameQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,LIVES_ON_Location(name:\"Berlin\") {name} } }", map());
+        List<Map> users = result.get("User");
+        assertEquals(1, users.size());
+        Map user = users.get(0);
+        assertEquals("John 3", user.get("name"));
+        Map location = (Map) user.get("LIVES_ON_Location");
+        assertEquals("Berlin", location.get("name"));
+    }
+
+    @Test
+    public void singleUserWithLocationNameNoMatchQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,LIVES_ON_Location(name:\"Bärlin\") {name} } }", map());
+        List<Map> users = result.get("User");
+        assertEquals(1, users.size());
+        Map user = users.get(0);
+        assertEquals("John 3", user.get("name"));
+        Map location = (Map) user.get("LIVES_ON_Location");
+        assertEquals(null, location);
+    }
+
+    @Test
+    public void singleUserWithLocationUserQuery2ndDegree() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationWithUserQuery { User(id:3) {name,LIVES_ON_Location { name, User_LIVES_ON { name } } } }", map());
+        List<Map> users = result.get("User");
+        assertEquals(1, users.size());
+        Map user = users.get(0);
+        assertEquals("John 3", user.get("name"));
+        Map location = (Map) user.get("LIVES_ON_Location");
+        assertEquals("Berlin", location.get("name"));
+        List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("User_LIVES_ON");
+        assertEquals(5, people.size());
+        people.forEach((p) -> assertEquals(true, p.get("name").toString().startsWith("John")));
+    }
+
+    @Test
     public void usersWithLocationQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User {name,LIVES_ON_Location {name} } }", map());
         List<Map> users = result.get("User");
@@ -132,7 +188,7 @@ public class MetaDataTest {
         assertEquals(1, locations.size());
         Map location = locations.get(0);
         assertEquals("Berlin", location.get("name"));
-        List<Map> people = (List<Map>) location.get("User_LIVES_ON");
+        List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("User_LIVES_ON");
         assertEquals(5, people.size());
         people.forEach((p) -> assertEquals(true, p.get("name").toString().startsWith("John")));
     }
@@ -178,12 +234,12 @@ public class MetaDataTest {
     }
 
     private Map<String,List<Map>> executeQuery(String query, Map<String, Object> arguments) {
-        System.out.println("query = " + query);
+//        System.out.println("query = " + query);
         ExecutionResult result = graphql.execute(query, db, arguments);
         Object data = result.getData();
-        System.out.println("data = " + data);
+//        System.out.println("data = " + data);
         List<GraphQLError> errors = result.getErrors();
-        System.out.println("errors = " + errors);
+//        System.out.println("errors = " + errors);
         return (Map<String,List<Map>>) result.getData();
     }
 
