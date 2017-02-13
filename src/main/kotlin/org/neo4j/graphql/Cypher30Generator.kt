@@ -3,8 +3,13 @@ package org.neo4j.graphql
 import graphql.language.*
 import java.util.*
 
+
 class Cypher30Generator {
 
+    companion object {
+        val COMPILED = "compiledExperimentalFeatureNotSupportedForProductionUse"
+        val DEFAULT_CYPHER_VERSION = "3.0"
+    }
     fun generateQueryForField(field: Field): String {
         val name = field.name
         val variable = name
@@ -13,6 +18,7 @@ class Cypher30Generator {
         return "MATCH (`$variable`:`$name`) \n" +
                 where(field, variable, md, orderBys) +
                 optionalMatches(md, variable, field.selectionSet.selections, orderBys) +
+                // TODO order within each
                 orderBy(orderBys) +
                 "\nRETURN " + projection(field, variable, md)
 

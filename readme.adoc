@@ -38,6 +38,27 @@ echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> $NEO4J_HOM
 $NEO4J_HOME/bin/neo4j restart
 ----
 
+== Features
+
+[options=header,cols="a,2a,3m"]
+|===
+| name | information | example
+| entities | each node label represented as entity | { User {name,age} }
+| multi entities | multiple entities per query turned into `UNION` | { User {name,age} City {name,geo} }
+| properties (out) | via sampling property names and types are determined | { City {name,geo} }
+| properties (in) | all properties can be used as filtering (exact/list) input parameters, will be turned into Cypher parameters | { City(name:"Berlin") {name,geo} }
+| parameters | passed through as Cypher parameters | query UserQuery ($name: String!) { User(name:$name) {name,age} }
+| relationships (out) | via a `RELTYPE_Label` nested field | { User { name, LIVES_IN_City {name} } }
+| relationships (in) | via a `Label_RELTYPE` nested field | { City { name, User_LIVES_IN { name } } }
+| ordering | via an extra `orderBy` input field | query UserSortQuery { User(orderBy:[name_desc,age_desc]) {name,age}}
+| directive | directives control cypher prefixes, *note that directives have to be set at the first entity* |
+| directive - query plan | `@profile / @explain` will be returned in extra field `extensions` | query UserQuery { User @profile {name} }
+
+// | directive - version | set cypher version to use `@version(3.0,3.1,3.2)` | query UserQuery { User @version(3.0) {name} }
+// | directive - compiled runtime  | force compiled runtime to be used | query UserQuery { User @compile {name} }
+| extensions | extra information returned | fields are: columns, query, warnings, plan, type READ_ONLY/READ_WRITE,
+|===
+
 == Usage
 
 Run `:play movies` in your Neo4j Server, click the statement and run it to insert the basic movie graph.
@@ -261,10 +282,12 @@ echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 * √ https://www.reindex.io/docs/graphql-api/connections/#orderby[orderBy] with enum _PersonOrdering { name_asc,name_desc,... }
 * https://www.reindex.io/docs/graphql-api/connections/#filtering[Filtering] with support of a object argument for an input-argument-field, with key=comparator, and value compare-value +
   `(status: {eq/neq:true}, createdAt: { gte: "2016-01-01", lt: "2016-02-01"}, tags: {isNull:false, includes/excludes: "foo"})`
+* Handle result aggregation.
 * How to handle Geospatial and other complex input types
-* Support for Directives, e.g. to specify the cypher compiler or runtime? or special handling for certain fields or types
-* Add `extensions` result value for query statistics or query plan, depending on directives given, e.g. contain the generated cypher query as well
+* √ Support for Directives, e.g. to specify the cypher compiler or runtime? or special handling for certain fields or types
+* √ Add `extensions` result value for query statistics or query plan, depending on directives given, e.g. contain the generated cypher query as well
 * @skip, @include directives, check if they are handled by the library
 * handle nested relationships as optional or non-optional (perhaps via nullable?) or directive
 * √ project non-found nested results as null vs. map with null-value entries
 * https://facebook.github.io/relay/docs/graphql-connections.html#content[Connection] add support for edges / nodes special properties
+* Support 3.1 via pattern comprehensions and map projections

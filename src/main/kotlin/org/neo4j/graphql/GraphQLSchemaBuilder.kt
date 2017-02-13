@@ -2,12 +2,17 @@ package org.neo4j.graphql
 
 import graphql.Scalars
 import graphql.Scalars.GraphQLString
+import graphql.introspection.Introspection
+import graphql.language.Directive
 import graphql.schema.*
 import graphql.schema.GraphQLArgument.newArgument
 import graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 import graphql.schema.GraphQLObjectType.newObject
 import org.neo4j.graphdb.GraphDatabaseService
+import org.neo4j.graphdb.Result
+import org.neo4j.graphql.Cypher30Generator.Companion.DEFAULT_CYPHER_VERSION
 import org.neo4j.helpers.collection.Iterators
+import java.util.*
 
 class GraphQLSchemaBuilder {
 
@@ -116,46 +121,67 @@ class GraphQLSchemaBuilder {
     }
 
     companion object {
+        class GraphQLSchemaWithDirectives(queryType: GraphQLObjectType, mutationType: GraphQLObjectType, dictionary: Set<GraphQLType>, newDirectives : List<GraphQLDirective>)
+            : GraphQLSchema(queryType, mutationType, dictionary) {
+
+            val myDirectives : List<GraphQLDirective>
+            init {
+                this.myDirectives = newDirectives + super.getDirectives();
+            }
+            override fun getDirectives(): List<GraphQLDirective> {
+                return myDirectives
+            }
+        }
+
         @JvmStatic fun buildSchema(db: GraphDatabaseService): GraphQLSchema {
             GraphSchemaScanner.databaseSchema(db)
 
-            var schema = GraphQLSchema.Builder()
+            val myBuilder = GraphQLSchemaBuilder()
+            val mutationType: GraphQLObjectType = newObject().name("MutationType").build()
 
-            val builder = GraphQLSchemaBuilder()
+            val queryType = newObject().name("QueryType")
+                    .fields(myBuilder.queryFields(GraphSchemaScanner.allMetaDatas()))
+                    .build()
 
+            val dictionary = myBuilder.graphQlTypes(GraphSchemaScanner.allMetaDatas())
 
-
-            val mutationType: GraphQLObjectType? = null
-            //        schema = schema.mutation(mutationType);
-
-            val queryType = newObject().name("QueryType").fields(builder.queryFields(GraphSchemaScanner.allMetaDatas())).build()
-            schema = schema.query(queryType)
-
-            return schema.build(builder.graphQlTypes(GraphSchemaScanner.allMetaDatas()))
+            // todo this was missing, it was only called by the builder: SchemaUtil().replaceTypeReferences(graphQLSchema)
+            val schema = GraphQLSchema.Builder().mutation(mutationType).query(queryType).build(dictionary)
+            return GraphQLSchemaWithDirectives(schema.queryType, schema.mutationType, schema.dictionary, graphQLDirectives())
         }
+
+        private fun graphQLDirectives() = listOf<GraphQLDirective>(
+                newDirective("profile", "Enable query profiling"),
+                newDirective("explain", "Enable query explanation"),
+                newDirective("compile", "Enable query compilation"),
+                newDirective("version", "Specify Cypher version", GraphQLArgument("version","Cypher Version (3.0, 3.1, 3.2)", GraphQLString,DEFAULT_CYPHER_VERSION))
+        )
+
+        private fun newDirective(name: String, desc: String, vararg arguments: GraphQLArgument) =
+                GraphQLDirective(name, desc, EnumSet.of(Introspection.DirectiveLocation.QUERY), listOf(*arguments), true, false, true)
     }
     private fun graphQlOutType(type: Class<*>): GraphQLOutputType {
+        if (type.isArray) {
+            return GraphQLList(graphQlOutType(type.componentType))
+        }
         if (type == String::class.java) return GraphQLString
-        if (Number::class.java.isAssignableFrom(type)) {
+        if (type == Boolean::class.java || type == Boolean::class.javaObjectType) return Scalars.GraphQLBoolean
+        if (Number::class.java.isAssignableFrom(type) || type.isPrimitive) {
             if (type == Double::class.java || type == Double::class.javaObjectType || type == Float::class.java || type == Float::class.javaObjectType) return Scalars.GraphQLFloat
             return Scalars.GraphQLLong
-        }
-        if (type == Boolean::class.java || type == Boolean::class.javaObjectType) return Scalars.GraphQLBoolean
-        if (type.javaClass.isArray) {
-            return GraphQLList(graphQlOutType(type.componentType))
         }
         throw IllegalArgumentException("Unknown field type " + type)
     }
 
     private fun graphQlInType(type: Class<*>): GraphQLInputType {
+        if (type.isArray) {
+            return GraphQLList(graphQlInType(type.componentType))
+        }
         if (type == String::class.java) return GraphQLString
-        if (Number::class.java.isAssignableFrom(type)) {
+        if (type == Boolean::class.java || type == Boolean::class.javaObjectType) return Scalars.GraphQLBoolean
+        if (Number::class.java.isAssignableFrom(type) || type.isPrimitive) {
             if (type == Double::class.java || type == Double::class.javaObjectType || type == Float::class.java || type == Float::class.javaObjectType) return Scalars.GraphQLFloat
             return Scalars.GraphQLLong
-        }
-        if (type == Boolean::class.java || type == Boolean::class.javaObjectType) return Scalars.GraphQLBoolean
-        if (type.javaClass.isArray) {
-            return GraphQLList(graphQlInType(type.componentType))
         }
         throw IllegalArgumentException("Unknown field type " + type)
     }
@@ -175,14 +201,44 @@ class GraphQLSchemaBuilder {
     }
 
     private fun fetchGraphData(md: MetaData, env: DataFetchingEnvironment): List<Map<String, Any>> {
-        val db = env.context as GraphDatabaseService
+        val ctx = env.context as GraphQLContext
+        val db = ctx.db
         return env.fields
-                .map { Cypher30Generator().generateQueryForField(it) }
-                .flatMap({ query ->
+                .map { it to Cypher30Generator().generateQueryForField(it) }
+                .flatMap({ pair ->
+                    val (field, query) = pair
+                    val directives = field.directives.associate { it.name to it }
+                    val statement = applyDirectivesToStatement(query, directives)
                     val parameters = env.arguments
-                    val result = db.execute(query, parameters)
-                    Iterators.asList(result)
+                    val result = db.execute(statement, parameters)
+                    val list = Iterators.asList(result)
+                    storeResultMetaData(ctx, query, result, directives)
+                    list
                 })
+    }
+
+    private fun applyDirectivesToStatement(query: String, directives: Map<String, Directive>) :String {
+        val parts = mutableListOf<String>()
+//        if (directives.containsKey("cypher"))  { parts.add(directives.get("cypher").arguments.first().value.toString())  }
+        if (directives.containsKey("compile")) { parts.add("runtime="+Cypher30Generator.COMPILED)  }
+        if (directives.containsKey("explain")) { parts.add("explain")  }
+        if (directives.containsKey("profile")) { parts.remove("explain"); parts.add("profile")  }
+
+        return if (parts.isEmpty()) query else parts.joinToString(" ","cypher "," ") + query;
+    }
+
+    // todo make it dependenden on directive
+    private fun storeResultMetaData(ctx: GraphQLContext, query: String, result: Result, directives: Map<String, Directive>) {
+        ctx.store("type", result.queryExecutionType.queryType().name) // todo other query type information
+        if (directives.containsKey("explain") || directives.containsKey("profile")) {
+            ctx.store("columns", result.columns())
+            ctx.store("query", query)
+            ctx.store("warnings", result.notifications.map { "${it.severity.name}-${it.code}(${it.position.line}:${it.position.column}) ${it.title}:\n${it.description}" })
+            ctx.store("plan", result.executionPlanDescription.toString())
+        }
+        if (result.queryStatistics.containsUpdates()) {
+            ctx.store("stats", result.queryStatistics.toString()) // todo other query type information
+        }
     }
 
     fun graphQlTypes(metaDatas: Iterable<MetaData>): Set<GraphQLType> {

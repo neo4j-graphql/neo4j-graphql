@@ -4,17 +4,22 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.schema.GraphQLSchema;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.logging.FormattedLogProvider;
+import org.neo4j.logging.Log;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.graphdb.Label.label;
 import static org.neo4j.helpers.collection.MapUtil.map;
@@ -26,12 +31,13 @@ import static org.neo4j.helpers.collection.MapUtil.map;
 public class MetaDataTest {
 
     private GraphDatabaseService db;
+    private static Log log = FormattedLogProvider.toPrintWriter(new PrintWriter(System.out)).getLog(MetaDataTest.class);
     private GraphQL graphql;
 
     @Before
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        db.execute("CREATE (berlin:Location {name:'Berlin',longitude:13.4, latitude: 52.5}) WITH berlin UNWIND range(1,5) as id CREATE (:User:Person {name:'John '+id, id:id, age:id})-[:LIVES_ON]->(berlin)").close();
+        db.execute("CREATE (berlin:Location {name:'Berlin',longitude:13.4, latitude: 52.5, coord:[13.4,52.5]}) WITH berlin UNWIND range(1,5) as id CREATE (:User:Person {name:'John '+id, id:id, age:id})-[:LIVES_ON]->(berlin)").close();
         GraphQLSchema graphQLSchema = GraphQLSchemaBuilder.buildSchema(db);
         graphql = new GraphQL(graphQLSchema);
     }
@@ -60,6 +66,30 @@ public class MetaDataTest {
         Map<String, List<Map>> result = executeQuery("query UserQuery { User {id,name,age} User {age,name}}", map());
         assertEquals(2*5, result.get("User").size());
     }
+    @Test
+    public void profileQuery() throws Exception {
+        Map<String, Object> result = getBacklog("query UserQuery { User @profile {name} }", map());
+        assertEquals(true, result.get("plan").toString().contains("Total database accesses"));
+    }
+
+    @Test
+    public void explainQuery() throws Exception {
+        Map<String, Object> result = getBacklog("query UserQuery { User @explain {name} }", map());
+        assertEquals(true, result.get("plan").toString().contains("Estimated Rows"));
+    }
+
+    @Test @Ignore
+    public void compileQuery() throws Exception {
+        Map<String, Object> result = getBacklog("query UserQuery { User @compile {name} }", map());
+        assertEquals("READ_ONLY", result.get("type"));
+    }
+
+    @Test @Ignore
+    public void versionQuery() throws Exception {
+        ExecutionResult result = getResult("query UserQuery { User @version(version:\"3.1\") {name} }", map());
+        assertEquals(asList(), result.getErrors());
+    }
+
     @Test
     public void allUsersSort() throws Exception {
         Map<String, List<Map>> result = executeQuery("query UserSortQuery { User(orderBy:[name_desc,age_desc]) {name,age}}", map());
@@ -143,6 +173,19 @@ public class MetaDataTest {
         assertEquals("John 3", user.get("name"));
         Map location = (Map) user.get("LIVES_ON_Location");
         assertEquals("Berlin", location.get("name"));
+    }
+
+    @Test
+    public void singleUserWithLocationUserQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,LIVES_ON_Location {name, User_LIVES_ON {name} } } }", map());
+        List<Map> users = result.get("User");
+        assertEquals(1, users.size());
+        Map user = users.get(0);
+        assertEquals("John 3", user.get("name"));
+        Map location = (Map) user.get("LIVES_ON_Location");
+        assertEquals("Berlin", location.get("name"));
+        List<Map> usersInLocation = (List<Map>) location.get("User_LIVES_ON");
+        assertEquals(5, usersInLocation.size());
     }
 
     @Test
@@ -257,13 +300,31 @@ public class MetaDataTest {
     }
 
     private Map<String,List<Map>> executeQuery(String query, Map<String, Object> arguments) {
+        return (Map<String,List<Map>>) getResult(query, arguments).getData();
+    }
+
+    @NotNull
+    private ExecutionResult getResult(String query, Map<String, Object> arguments) {
+        GraphQLContext ctx = new GraphQLContext(db,log, map());
+        return executeQuery(query, arguments, ctx);
+    }
+
+    private Map<String, Object> getBacklog(String query, Map<String, Object> arguments) {
+        GraphQLContext ctx = new GraphQLContext(db,log, map());
+        executeQuery(query, arguments, ctx);
+        return ctx.getBackLog();
+    }
+
+    @NotNull
+    private ExecutionResult executeQuery(String query, Map<String, Object> arguments, GraphQLContext ctx) {
         System.out.println("query = " + query);
-        ExecutionResult result = graphql.execute(query, db, arguments);
+        ExecutionResult result = graphql.execute(query, ctx, arguments);
         Object data = result.getData();
         System.out.println("data = " + data);
         List<GraphQLError> errors = result.getErrors();
         System.out.println("errors = " + errors);
-        return (Map<String,List<Map>>) result.getData();
+        System.out.println("extensions = " + ctx.getBackLog());
+        return result;
     }
 
 }
