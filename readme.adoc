@@ -9,11 +9,12 @@ to act as a GraphQL endpoint.
 
 We want to explore three approaches:
 
-1. read schema / metadata from the database provide GraphQL DataFetcher that generate and run Cypher (WIP)
-2. make the same work with externally configured schema information (JSON) (TBD)
+1. read schema / metadata from the database provide GraphQL DataFetcher that generate and run Cypher (WIP) √
+2. make the same work with externally configured schema information (using IDL) √
 3. do a direct GraphQL AST to Cypher transformation without bothering with Schema (TBD)
 
-NOTE: Currently only Node and simple Relationship queries are supported. Deeper Relationship queries and aggregations are up next.
+NOTE: Currently only Node and simple Relationship queries are supported.
+Deeper Relationship queries and aggregations are up next.
 
 == License
 
@@ -28,6 +29,8 @@ Relationship information is collected with direction, type, end-node-labels and 
 Each relationship-type and end-node label is added as a virtual property to the node type, named `TYPE_Label` for outgoing and `Label_TYPE` for incoming relationships.
 
 == Installation
+
+The current version of this extension works with Neo4j 3.0 and 3.1
 
 ----
 git clone https://github.com/neo4j-contrib/neo4j-graphql
@@ -57,6 +60,7 @@ $NEO4J_HOME/bin/neo4j restart
 // | directive - version | set cypher version to use `@version(3.0,3.1,3.2)` | query UserQuery { User @version(3.0) {name} }
 // | directive - compiled runtime  | force compiled runtime to be used | query UserQuery { User @compile {name} }
 | extensions | extra information returned | fields are: columns, query, warnings, plan, type READ_ONLY/READ_WRITE,
+| IDL | define schema via IDL | :POST /graphql/idl "type Person {name: String!, born: Int}"
 |===
 
 == Usage
@@ -140,7 +144,7 @@ query PersonQuery($name: String!) {
 
 == Procedure
 
-This library also comes with a User Defined Procedure to execute graphql:
+This library also comes with a User Defined Procedure to execute GraphQL:
 
 [source,cypher]
 ----
@@ -197,7 +201,18 @@ query PersonQuery {
 
 == CURL
 
-Query the Schema
+=== POST IDL
+_(Optional if no data in database)_
+
+----
+curl  -u neo4j:<password> -i -XPOST -d'type Person { name: String, born: Int }' http://localhost:7474/graphql/idl/
+
+{Person=MetaData{type='Person', ids=[], indexed=[], properties={name=PropertyType(name=String, array=false, nonNull=false), born=PropertyType(name=Int, array=false, nonNull=false)}, labels=[], relationships={}}}
+----
+
+
+=== Query the Schema
+
 ----
 curl  -u neo4j:<password> -i -XPOST -d'{"query": "query {__schema {types {kind, name, description}}}"}' -H accept:application/json -H content-type:application/json http://localhost:7474/graphql/
 
@@ -212,6 +227,7 @@ query {__schema {queryType {
 }}}
 ----
 
+=== Get All People
 
 ----
 curl  -u neo4j:<password>  -i -XPOST -d'{"query": "query AllPeopleQuery { Person {name,born} } }"}' -H accept:application/json -H content-type:application/json http://localhost:7474/graphql/
@@ -228,6 +244,8 @@ Server: Jetty(9.2.9.v20150224)
 ...
 ----
 
+=== Get one Person by name with Parameter
+
 ----
 curl  -u neo4j:<password> -i -XPOST -d'{"query":"query PersonQuery($name:String!) { Person(name:$name) {name,born} }", "variables":{"name":"Kevin Bacon"}}' -H content-type:application/json http://localhost:7474/graphql/
 
@@ -240,6 +258,8 @@ Server: Jetty(9.2.9.v20150224)
 
 {"data":{"Person":[{"name":"Kevin Bacon","born":1958}]}}
 ----
+
+=== Get one Person by name literal with related movies
 
 ----
 curl  -u neo4j:<password> -i -XPOST -d'{"query":"query PersonQuery { Person(name:\"Tom Hanks\") {name, born, ACTED_IN_Movie {title, released} } }"}' -H content-type:application/json http://localhost:7474/graphql/
