@@ -2,15 +2,17 @@ package org.neo4j.graphql
 
 import graphql.language.*
 import org.neo4j.graphdb.GraphDatabaseService
+import org.neo4j.kernel.internal.Version
 
 abstract class CypherGenerator {
     companion object {
+        val VERSION = Version.getNeo4jVersion()
         val DEFAULT_CYPHER_VERSION = "3.1"
 
         fun instance(db: GraphDatabaseService) : CypherGenerator {
             try {
-                val first = db.execute("CYPHER 3.1 RETURN true as version").columnAs<Boolean>("version").next()
-                if (first) return Cypher31Generator()
+                // val first = db.execute("CYPHER 3.1 RETURN true as version").columnAs<Boolean>("version").next()
+                if (VERSION.startsWith("3.1")) return Cypher31Generator()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
