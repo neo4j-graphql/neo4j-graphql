@@ -27,7 +27,7 @@ class GraphQLProcedure {
         val result = GraphSchema.getGraphQL(db!!).execute(query, ctx, variables)
 
         if (result.errors.isEmpty()) {
-            return Stream.of(GraphQLResult(result.data as Map<String, Any>))
+            return Stream.of(GraphQLResult(result.getData()))
         }
         if (ctx.backLog.isNotEmpty()) {
             // todo report metadata

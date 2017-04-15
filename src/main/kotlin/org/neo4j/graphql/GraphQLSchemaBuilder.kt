@@ -75,6 +75,7 @@ class GraphQLSchemaBuilder {
 
     private fun newReferenceField(md: MetaData, name: String, label: String, multi: Boolean): GraphQLFieldDefinition {
         val labelMd = GraphSchemaScanner.getMetaData(label)!!
+        val graphQLType: GraphQLOutputType = if (multi) GraphQLList(GraphQLTypeReference(label)) else GraphQLTypeReference(label)
         return newFieldDefinition()
                 .name(name)
                 /*
@@ -89,7 +90,7 @@ class GraphQLSchemaBuilder {
                 .argument(propertiesAsArguments(labelMd))
                 .argument(propertiesAsListArguments(labelMd))
                 .argument(orderByArgument(labelMd))
-                .type(if (multi) GraphQLList(GraphQLTypeReference(label)) else GraphQLTypeReference(label))
+                .type(graphQLType)
                 .build()
     }
 
@@ -201,7 +202,7 @@ class GraphQLSchemaBuilder {
     }
 
     private fun fetchGraphData(md: MetaData, env: DataFetchingEnvironment): List<Map<String, Any>> {
-        val ctx = env.context as GraphQLContext
+        val ctx = env.getContext<GraphQLContext>()
         val db = ctx.db
         return env.fields
                 .map { it to Cypher30Generator().generateQueryForField(it) }

@@ -93,6 +93,18 @@ class Cypher30Generator {
                 else -> "" // todo raise exception ?
             }
 
+    // todo levels top-down and then reverse, pass in a level parameter that controls at which level values are aggregated / collected
+    // if there is nothing at that level just return null or an empty string to abort or compute max-depth upfront (perhaps best to be explicit)
+    /*
+    MATCH (`Person`:`Person`)
+
+
+OPTIONAL MATCH (`Person`)-[:`ACTED_IN`]->(`Person_ACTED_IN_Movie`:`Movie`)
+
+OPTIONAL MATCH (`Person_ACTED_IN_Movie`)<-[:`ACTED_IN`]-(`Person_ACTED_IN_Movie_Person_ACTED_IN`:`Person`)
+
+RETURN `Person`.`name` AS `name`, collect(CASE `Person_ACTED_IN_Movie` WHEN null THEN null ELSE {`title` : `Person_ACTED_IN_Movie`.`title`, `Person_ACTED_IN` : collect(CASE `Person_ACTED_IN_Movie_Person_ACTED_IN` WHEN null THEN null ELSE {`name` : `Person_ACTED_IN_Movie_Person_ACTED_IN`.`name`} END)} END) AS `ACTED_IN_Movie`
+     */
     private fun projection(field: Field, variable: String, md: MetaData): String {
         val selectionSet = field.selectionSet ?: return ""
 

@@ -55,7 +55,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
         val ctx = GraphQLContext(db, log)
         val executionResult = GraphSchema.getGraphQL(db).execute(query, ctx, variables)
 
-        val result = linkedMapOf("data" to executionResult.data)
+        val result = linkedMapOf("data" to executionResult.getData<Any>())
         if (executionResult.errors.isNotEmpty()) {
             log.error("Errors: {}", executionResult.errors)
             result.put("errors", executionResult.errors)
