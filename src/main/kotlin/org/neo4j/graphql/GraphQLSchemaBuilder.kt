@@ -10,7 +10,7 @@ import graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 import graphql.schema.GraphQLObjectType.newObject
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.Result
-import org.neo4j.graphql.Cypher30Generator.Companion.DEFAULT_CYPHER_VERSION
+import org.neo4j.graphql.CypherGenerator.Companion.DEFAULT_CYPHER_VERSION
 import org.neo4j.helpers.collection.Iterators
 import java.util.*
 
@@ -155,7 +155,7 @@ class GraphQLSchemaBuilder {
                 newDirective("profile", "Enable query profiling"),
                 newDirective("explain", "Enable query explanation"),
                 newDirective("compile", "Enable query compilation"),
-                newDirective("version", "Specify Cypher version", GraphQLArgument("version","Cypher Version (3.0, 3.1, 3.2)", GraphQLString,DEFAULT_CYPHER_VERSION))
+                newDirective("version", "Specify Cypher version", GraphQLArgument("version","Cypher Version (3.0, 3.1, 3.2)", GraphQLString, DEFAULT_CYPHER_VERSION))
         )
 
         private fun newDirective(name: String, desc: String, vararg arguments: GraphQLArgument) =
@@ -206,15 +206,18 @@ class GraphQLSchemaBuilder {
                 }
     }
 
+
     private fun fetchGraphData(md: MetaData, env: DataFetchingEnvironment): List<Map<String, Any>> {
         val ctx = env.getContext<GraphQLContext>()
         val db = ctx.db
+        val generator = CypherGenerator.instance(db)
         return env.fields
-                .map { it to Cypher30Generator().generateQueryForField(it) }
+                .map { it to generator.generateQueryForField(it) }
                 .flatMap({ pair ->
                     val (field, query) = pair
                     val directives = field.directives.associate { it.name to it }
-                    val statement = applyDirectivesToStatement(query, directives)
+                    val statement = applyDirectivesToStatement(generator, query, directives)
+                    println(statement)
                     val parameters = env.arguments
                     val result = db.execute(statement, parameters)
                     val list = Iterators.asList(result)
@@ -223,10 +226,10 @@ class GraphQLSchemaBuilder {
                 })
     }
 
-    private fun applyDirectivesToStatement(query: String, directives: Map<String, Directive>) :String {
+    private fun applyDirectivesToStatement(generator: CypherGenerator, query: String, directives: Map<String, Directive>) :String {
         val parts = mutableListOf<String>()
 //        if (directives.containsKey("cypher"))  { parts.add(directives.get("cypher").arguments.first().value.toString())  }
-        if (directives.containsKey("compile")) { parts.add("runtime="+Cypher30Generator.COMPILED)  }
+        if (directives.containsKey("compile")) { parts.add("runtime="+generator.compiled())  }
         if (directives.containsKey("explain")) { parts.add("explain")  }
         if (directives.containsKey("profile")) { parts.remove("explain"); parts.add("profile")  }
 

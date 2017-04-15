@@ -1,15 +1,25 @@
 package org.neo4j.graphql
 
 import graphql.language.*
-import java.util.*
+import org.neo4j.graphdb.GraphDatabaseService
 
-
-class Cypher30Generator {
-
+abstract class CypherGenerator {
     companion object {
-        val COMPILED = "compiledExperimentalFeatureNotSupportedForProductionUse"
-        val DEFAULT_CYPHER_VERSION = "3.0"
+        val DEFAULT_CYPHER_VERSION = "3.1"
+
+        fun instance(db: GraphDatabaseService) : CypherGenerator {
+            try {
+                val first = db.execute("CYPHER 3.1 RETURN true as version").columnAs<Boolean>("version").next()
+                if (first) return Cypher31Generator()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            return Cypher30Generator()
+        }
     }
+
+    abstract fun compiled() : String
+
     fun generateQueryForField(field: Field): String {
         val name = field.name
         val variable = name
@@ -24,9 +34,9 @@ class Cypher30Generator {
 
     }
 
-    private fun orderBy(orderBys: MutableList<String>) = if (orderBys.isEmpty()) "" else orderBys.joinToString(",", "\nWITH * ORDER BY ")
+    protected fun orderBy(orderBys:List<String>) = if (orderBys.isEmpty()) "" else orderBys.joinToString(",", "\nWITH * ORDER BY ")
 
-    private fun optionalMatches(metaData: MetaData, variable: String, selections: Iterable<Selection>, orderBys: MutableList<String>) =
+    open protected fun optionalMatches(metaData: MetaData, variable: String, selections: Iterable<Selection>, orderBys: MutableList<String>) =
             selections.map {
                 when (it) {
                     is Field -> formatNestedRelationshipMatch(metaData, variable, it, orderBys)
@@ -34,27 +44,31 @@ class Cypher30Generator {
                 }
             }.joinToString("\n")
 
-    private fun formatNestedRelationshipMatch(md: MetaData, variable: String, field: Field, orderBys: MutableList<String>): String {
+    protected fun attr(variable: String, field: String) = "`$variable`.`$field`"
+
+    open protected fun formatNestedRelationshipMatch(md: MetaData, variable: String, field: Field, orderBys: MutableList<String>): String {
         val fieldName = field.name
-        val fieldVariable = variable + "_" + fieldName;
         val info = md.relationshipFor(fieldName) ?: return ""
+        val fieldVariable = variable + "_" + fieldName;
 
         val arrowLeft = if (!info.out) "<" else ""
         val arrowRight = if (info.out) ">" else ""
 
         val fieldMetaData = GraphSchemaScanner.getMetaData(info.label)!!
 
-        val result = "\nOPTIONAL MATCH (`$variable`)$arrowLeft-[:`${info.type}`]-$arrowRight(`$fieldVariable`:`${info.label}`)" +
-                where(field, fieldVariable, fieldMetaData, orderBys) + "\n"
+        val pattern = "(`$variable`)$arrowLeft-[:`${info.type}`]-$arrowRight(`$fieldVariable`:`${info.label}`)"
+        val where = where(field, fieldVariable, fieldMetaData, orderBys)
+
+        val result = "\nOPTIONAL MATCH $pattern $where\n"
         return result +
                 if (field.selectionSet.selections.isNotEmpty())
                     optionalMatches(fieldMetaData, fieldVariable, field.selectionSet.selections, orderBys)
                 else ""
     }
 
-    private fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)!!
+    protected fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)!!
 
-    private fun where(field: Field, variable: String, md: MetaData, orderBys: MutableList<String>): String {
+    protected fun where(field: Field, variable: String, md: MetaData, orderBys: MutableList<String>): String {
         val predicates = field.arguments.mapNotNull {
             val name = it.name
             if (name == "orderBy") {
@@ -65,12 +79,13 @@ class Cypher30Generator {
                     }
                 }
                 null
-            };
+            }
             else
                 if (isPlural(name) && it.value is ArrayValue && md.properties.containsKey(singular(name)))
                     "`${variable}`.`${singular(name)}` IN ${formatValue(it.value)} "
                 else
                     "`${variable}`.`$name` = ${formatValue(it.value)} "
+            // todo directives for more complex filtering
         }.joinToString(" AND \n")
         return if (predicates.isBlank()) "" else " WHERE " + predicates;
     }
@@ -105,19 +120,19 @@ OPTIONAL MATCH (`Person_ACTED_IN_Movie`)<-[:`ACTED_IN`]-(`Person_ACTED_IN_Movie_
 
 RETURN `Person`.`name` AS `name`, collect(CASE `Person_ACTED_IN_Movie` WHEN null THEN null ELSE {`title` : `Person_ACTED_IN_Movie`.`title`, `Person_ACTED_IN` : collect(CASE `Person_ACTED_IN_Movie_Person_ACTED_IN` WHEN null THEN null ELSE {`name` : `Person_ACTED_IN_Movie_Person_ACTED_IN`.`name`} END)} END) AS `ACTED_IN_Movie`
      */
-    private fun projection(field: Field, variable: String, md: MetaData): String {
+    open protected fun projection(field: Field, variable: String, md: MetaData): String {
         val selectionSet = field.selectionSet ?: return ""
 
         return projectSelectionFields(md, variable, selectionSet).map{ "${it.second} AS `${it.first}`" }.joinToString(", ");
     }
 
-    private fun projectMap(field: Field, variable: String, md: MetaData): String {
+    open protected fun projectMap(field: Field, variable: String, md: MetaData): String {
         val selectionSet = field.selectionSet ?: return ""
 
         return "CASE `$variable` WHEN null THEN null ELSE {"+projectSelectionFields(md, variable, selectionSet).map{ "`${it.first}` : ${it.second}" }.joinToString(", ")+"} END";
     }
 
-    private fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet): List<Pair<String, String>> {
+    open protected fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet): List<Pair<String, String>> {
         return selectionSet.selections.filterIsInstance<Field>().map { f ->
 //            val alias = f.alias ?: f.name // alias is handled in graphql layer
             val alias = f.name
@@ -135,4 +150,61 @@ RETURN `Person`.`name` AS `name`, collect(CASE `Person_ACTED_IN_Movie` WHEN null
             }
         }.filterNotNull()
     }
+
+}
+class Cypher31Generator : CypherGenerator() {
+    override fun compiled() = "compiledExperimentalFeatureNotSupportedForProductionUse"
+
+
+    override fun projectMap(field: Field, variable: String, md: MetaData): String {
+        val selectionSet = field.selectionSet ?: return ""
+
+        return "`$variable` {"+projectSelectionFields(md, variable, selectionSet).map{
+            if (it.second == attr(variable, it.first)) ".`${it.first}`"
+            else "`${it.first}` : ${it.second}"
+        }.joinToString(", ")+"}";
+    }
+
+    override fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet): List<Pair<String, String>> {
+        return selectionSet.selections.filterIsInstance<Field>().map { f ->
+//            val alias = f.alias ?: f.name // alias is handled in graphql layer
+            val field = f.name
+            val info = md.relationshipFor(field) // todo correct medatadata of
+
+            if (info == null) {
+                Pair(field, attr(variable, field))
+            } else {
+                if (f.selectionSet == null) null // todo
+                else {
+                    val fieldVariable = variable + "_" + field
+                    val map = projectMap(f, fieldVariable, metaData(info.label))
+                    Pair(field, if (info.multi) "collect($map)" else map)
+                }
+            }
+        }.filterNotNull()
+    }
+
+    override protected fun formatNestedRelationshipMatch(md: MetaData, variable: String, field: Field, orderBys: MutableList<String>): String {
+        val fieldName = field.name
+        val info = md.relationshipFor(fieldName) ?: return ""
+        val fieldVariable = variable + "_" + fieldName;
+
+        val arrowLeft = if (!info.out) "<" else ""
+        val arrowRight = if (info.out) ">" else ""
+
+        val fieldMetaData = GraphSchemaScanner.getMetaData(info.label)!!
+
+        val pattern = "(`$variable`)$arrowLeft-[:`${info.type}`]-$arrowRight(`$fieldVariable`:`${info.label}`)"
+        val where = where(field, fieldVariable, fieldMetaData, orderBys)
+
+        val result = "\nOPTIONAL MATCH $pattern $where\n"
+        return result +
+                if (field.selectionSet.selections.isNotEmpty())
+                    optionalMatches(fieldMetaData, fieldVariable, field.selectionSet.selections, orderBys)
+                else ""
+    }
+
+}
+class Cypher30Generator : CypherGenerator() {
+    override fun compiled() = "compiled"
 }
