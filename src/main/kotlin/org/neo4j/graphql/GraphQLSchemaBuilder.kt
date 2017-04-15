@@ -1,7 +1,7 @@
 package org.neo4j.graphql
 
 import graphql.Scalars
-import graphql.Scalars.GraphQLString
+import graphql.Scalars.*
 import graphql.introspection.Introspection
 import graphql.language.Directive
 import graphql.schema.*
@@ -94,7 +94,7 @@ class GraphQLSchemaBuilder {
                 .build()
     }
 
-    private fun newField(md: MetaData, name: String, type: Class<*>): GraphQLFieldDefinition {
+    private fun newField(md: MetaData, name: String, type: MetaData.PropertyType): GraphQLFieldDefinition {
         return newFieldDefinition()
                 .name(name)
                 /*
@@ -161,30 +161,35 @@ class GraphQLSchemaBuilder {
         private fun newDirective(name: String, desc: String, vararg arguments: GraphQLArgument) =
                 GraphQLDirective(name, desc, EnumSet.of(Introspection.DirectiveLocation.QUERY), listOf(*arguments), true, false, true)
     }
-    private fun graphQlOutType(type: Class<*>): GraphQLOutputType {
-        if (type.isArray) {
-            return GraphQLList(graphQlOutType(type.componentType))
+    private fun graphQlOutType(type: MetaData.PropertyType): GraphQLOutputType {
+        var outType : GraphQLOutputType = graphQLType(type)
+        if (type.array) {
+            outType = GraphQLList(outType)
         }
-        if (type == String::class.java) return GraphQLString
-        if (type == Boolean::class.java || type == Boolean::class.javaObjectType) return Scalars.GraphQLBoolean
-        if (Number::class.java.isAssignableFrom(type) || type.isPrimitive) {
-            if (type == Double::class.java || type == Double::class.javaObjectType || type == Float::class.java || type == Float::class.javaObjectType) return Scalars.GraphQLFloat
-            return Scalars.GraphQLLong
-        }
-        throw IllegalArgumentException("Unknown field type " + type)
+        if (type.nonNull)
+            outType = GraphQLNonNull(outType)
+        return outType
     }
 
-    private fun graphQlInType(type: Class<*>): GraphQLInputType {
-        if (type.isArray) {
-            return GraphQLList(graphQlInType(type.componentType))
+    private fun graphQLType(type: MetaData.PropertyType): GraphQLScalarType {
+        return when (type.name) {
+            "String" -> GraphQLString
+            "Boolean" -> GraphQLBoolean
+            "Number" -> GraphQLFloat
+            "Float" -> GraphQLFloat
+            "Int" -> GraphQLLong
+            else -> throw IllegalArgumentException("Unknown field type " + type)
         }
-        if (type == String::class.java) return GraphQLString
-        if (type == Boolean::class.java || type == Boolean::class.javaObjectType) return Scalars.GraphQLBoolean
-        if (Number::class.java.isAssignableFrom(type) || type.isPrimitive) {
-            if (type == Double::class.java || type == Double::class.javaObjectType || type == Float::class.java || type == Float::class.javaObjectType) return Scalars.GraphQLFloat
-            return Scalars.GraphQLLong
+    }
+
+    private fun graphQlInType(type: MetaData.PropertyType): GraphQLInputType {
+        var inType : GraphQLInputType = graphQLType(type)
+        if (type.array) {
+            inType = GraphQLList(inType)
         }
-        throw IllegalArgumentException("Unknown field type " + type)
+        if (type.nonNull)
+            inType = GraphQLNonNull(inType)
+        return inType
     }
 
     fun queryFields(metaDatas: Iterable<MetaData>): List<GraphQLFieldDefinition> {

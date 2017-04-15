@@ -18,4 +18,5 @@ object GraphSchema {
         }
         return graphql!!
     }
+
 }

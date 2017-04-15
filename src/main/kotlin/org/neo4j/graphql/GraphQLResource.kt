@@ -4,7 +4,6 @@ import org.codehaus.jackson.map.ObjectMapper
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.logging.Log
 import org.neo4j.logging.LogProvider
-import java.io.IOException
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.HttpHeaders
@@ -46,6 +45,20 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     @Produces(MediaType.APPLICATION_JSON)
     fun executeOperation(body: String): Response {
         return executeQuery(parseMap(body))
+    }
+
+    @Path("/idl")
+    @POST
+    fun storeIdl(schema: String): Response {
+        val metaDatas = GraphSchemaScanner.storeIdl(db, schema)
+        return Response.ok().entity(metaDatas.toString()).build() // todo JSON
+    }
+
+    @Path("/idl")
+    @DELETE
+    fun deleteIdl(): Response {
+        GraphSchemaScanner.deleteIdl(db)
+        return Response.ok().build() // todo JSON
     }
 
     private fun executeQuery(params: Map<String, Any>): Response {

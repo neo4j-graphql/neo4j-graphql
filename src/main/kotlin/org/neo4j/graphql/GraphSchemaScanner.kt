@@ -5,6 +5,9 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.helpers.collection.Iterators
+import org.neo4j.kernel.impl.core.GraphProperties
+import org.neo4j.kernel.impl.core.NodeManager
+import org.neo4j.kernel.internal.GraphDatabaseAPI
 import java.util.*
 
 class GraphSchemaScanner {
@@ -14,29 +17,74 @@ class GraphSchemaScanner {
         val DENSE_NODE = 50
 
         @JvmStatic fun from(db: GraphDatabaseService, label: Label): MetaData {
-            val metaData = MetaData(label)
+            val metaData = MetaData(label.name())
             inspectIndexes(metaData, db, label)
             sampleNodes(metaData, db, label)
             return metaData
         }
 
-        fun databaseSchema(db: GraphDatabaseService) {
-            allTypes.clear()
-
+        fun storeIdl(db: GraphDatabaseService, schema: String) : Map<String, MetaData> {
             val tx = db.beginTx()
             try {
-                for (label in db.allLabels) {
-                    allTypes.put(label.name(), from(db, label))
-                }
+                val metaDatas = IDLParser.parse(schema)
+                graphProperties(db).setProperty("graphql.idl", schema)
+                tx.success()
+                return metaDatas
+            } finally {
+                tx.close()
+            }
+        }
+
+        private fun graphProperties(db: GraphDatabaseService): GraphProperties {
+            val nodeManager = (db as (GraphDatabaseAPI)).getDependencyResolver().resolveDependency(NodeManager::class.java)
+            val props = nodeManager.newGraphProperties();
+            return props
+        }
+
+        fun deleteIdl(db: GraphDatabaseService) {
+            val tx = db.beginTx()
+            try {
+                graphProperties(db).removeProperty("graphql.idl")
                 tx.success()
             } finally {
                 tx.close()
             }
+
+        }
+        fun readIdl(db: GraphDatabaseService) : Map<String, MetaData>? {
+            val tx = db.beginTx()
+            try {
+                val schema = graphProperties(db).getProperty("graphql.idl", null) as String?
+                val metaDatas = if (schema == null) null else IDLParser.parse(schema)
+                tx.success()
+                return metaDatas
+            } finally {
+                tx.close()
+            }
+        }
+
+        fun databaseSchema(db: GraphDatabaseService) {
+            allTypes.clear()
+                val tx = db.beginTx()
+                try {
+                    for (label in db.allLabels) {
+                        allTypes.put(label.name(), from(db, label))
+                    }
+                    tx.success()
+                } finally {
+                    tx.close()
+                }
 /*todo doesn't work like this
     db.beginTx().use { tx :Transaction ->
         tx.success()
     }
 */
+            if (allTypes.isEmpty()) {
+                val idlMetaData = readIdl(db)
+                if (idlMetaData != null) {
+                    allTypes.putAll(idlMetaData)
+                }
+            }
         }
 
         fun allTypes(): Map<String, MetaData> = allTypes
@@ -77,24 +125,14 @@ class GraphSchemaScanner {
                 val typeName = type.name()
                 if (out != null) {
                     if (!dense || node.getDegree(type, Direction.OUTGOING) < DENSE_NODE) {
-                        val outName = typeName + "_"
-                        labelsFor(out.endNode) { label ->
-                            md.relationships.getOrPut(outName + label)
-                            { RelationshipInfo(typeName, label, true) }
-                                    .update(itOut.hasNext())
-                        }
+                        labelsFor(out.endNode) { label -> md.mergeRelationship(typeName,label,true,itOut.hasNext()) }
                     }
                 }
                 val itIn = node.getRelationships(Direction.INCOMING, type).iterator()
                 val `in` = Iterators.firstOrNull(itIn)
                 if (`in` != null) {
                     if (!dense || node.getDegree(type, Direction.INCOMING) < DENSE_NODE) {
-                        val inName = "_" + typeName
-                        labelsFor(`in`.startNode) { label ->
-                            md.relationships.getOrPut(label + inName)
-                            { RelationshipInfo(typeName, label, false) }
-                                    .update(itIn.hasNext())
-                        }
+                        labelsFor(`in`.startNode) { label -> md.mergeRelationship(typeName,label,false,itIn.hasNext()) }
                     }
                 }
             }
