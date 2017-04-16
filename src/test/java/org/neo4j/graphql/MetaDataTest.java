@@ -11,6 +11,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.impl.proc.Procedures;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.FormattedLogProvider;
 import org.neo4j.logging.Log;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -37,6 +39,7 @@ public class MetaDataTest {
     @Before
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(Procedures.class).registerFunction(GraphQLProcedure.class);
         db.execute("CREATE (berlin:Location {name:'Berlin',longitude:13.4, latitude: 52.5, coord:[13.4,52.5]}) WITH berlin UNWIND range(1,5) as id CREATE (:User:Person {name:'John '+id, id:id, age:id})-[:LIVES_ON]->(berlin)").close();
         GraphQLSchema graphQLSchema = GraphQLSchemaBuilder.buildSchema(db);
         graphql = new GraphQL(graphQLSchema);

@@ -210,14 +210,14 @@ class GraphQLSchemaBuilder {
     private fun fetchGraphData(md: MetaData, env: DataFetchingEnvironment): List<Map<String, Any>> {
         val ctx = env.getContext<GraphQLContext>()
         val db = ctx.db
-        val generator = CypherGenerator.instance(db)
+        val generator = CypherGenerator.instance()
         return env.fields
                 .map { it to generator.generateQueryForField(it) }
                 .flatMap({ pair ->
                     val (field, query) = pair
                     val directives = field.directives.associate { it.name to it }
                     val statement = applyDirectivesToStatement(generator, query, directives)
-                    println(statement)
+//                    println(statement)
                     val parameters = env.arguments
                     val result = db.execute(statement, parameters)
                     val list = Iterators.asList(result)
