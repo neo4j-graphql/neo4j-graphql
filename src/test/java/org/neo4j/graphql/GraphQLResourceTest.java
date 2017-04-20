@@ -112,4 +112,27 @@ public class GraphQLResourceTest {
             assertEquals(true,e.getMessage().contains("InvalidSyntaxError"));
         }
     }
+
+    @Test
+    public void testPostIdl() throws Exception {
+
+        String endPoint = new URL( serverURI, "idl" ).toString();
+
+        String schema = "type Person {  name: String born: Int movies: [Movie] @out(name:\"ACTED_IN\") }" +
+                        "type Movie  {  title: String released: Int tagline: String actors: [Person] @in(name:\"ACTED_IN\") }";
+
+        System.out.println( "endPoint = " + endPoint );
+        HTTP.Response response = HTTP.POST( endPoint, HTTP.RawPayload.rawPayload(schema));
+
+        assertEquals(200, response.status());
+
+        System.out.println( "response.content().toString() = " + response.rawContent() );
+
+        response = HTTP.POST(serverURI.toString(), map("query", "{ Person { name, born, movies { title actors { name }  } } }"));
+
+        Map<String, Object>  data = response.content();
+
+        System.out.println( "data = " + data );
+
+    }
 }

@@ -60,6 +60,16 @@ fieldName(arg1:SomeType={one:1} @argDirective(a1:${'$'}v1)):[Elm] @fieldDirectiv
         assert(md.properties.keys == setOf("name"))
     }
 
+    val simple = """type Person { name: String }"""
+
+    @Test
+    fun veryVerySimple() {
+        val metaDatas = IDLParser.parse(simple)
+        // todo handle enums ?
+        println(metaDatas)
+
+    }
+
     val starWars = """
 enum Episode { NEWHOPE, EMPIRE, JEDI }
 

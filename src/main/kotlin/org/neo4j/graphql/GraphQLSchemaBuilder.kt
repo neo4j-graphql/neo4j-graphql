@@ -152,6 +152,8 @@ class GraphQLSchemaBuilder {
         }
 
         private fun graphQLDirectives() = listOf<GraphQLDirective>(
+                newFieldDirective("in", "Relationship coming in"),
+                newFieldDirective("out", "Relationship going out"),
                 newDirective("profile", "Enable query profiling"),
                 newDirective("explain", "Enable query explanation"),
                 newDirective("compile", "Enable query compilation"),
@@ -160,6 +162,9 @@ class GraphQLSchemaBuilder {
 
         private fun newDirective(name: String, desc: String, vararg arguments: GraphQLArgument) =
                 GraphQLDirective(name, desc, EnumSet.of(Introspection.DirectiveLocation.QUERY), listOf(*arguments), true, false, true)
+
+        private fun newFieldDirective(name: String, desc: String, vararg arguments: GraphQLArgument) =
+                GraphQLDirective(name, desc, EnumSet.of(Introspection.DirectiveLocation.FIELD), listOf(*arguments), true, false, true)
     }
     private fun graphQlOutType(type: MetaData.PropertyType): GraphQLOutputType {
         var outType : GraphQLOutputType = graphQLType(type)
