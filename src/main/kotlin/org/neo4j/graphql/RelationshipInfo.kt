@@ -1,6 +1,6 @@
 package org.neo4j.graphql
 
-class RelationshipInfo(val type: String, val label: String, val out: Boolean = true) {
+class RelationshipInfo(val fieldName: String, val type: String, val label: String, val out: Boolean = true) {
 
     var multi: Boolean = false
 
@@ -15,12 +15,13 @@ class RelationshipInfo(val type: String, val label: String, val out: Boolean = t
 
         val that = other as RelationshipInfo
 
-        return out == that.out && label == that.label && type == that.type
+        return out == that.out && label == that.label && type == that.type && fieldName == that.fieldName
     }
 
     override fun hashCode(): Int {
         var result = label.hashCode()
         result = 31 * result + type.hashCode()
+        result = 31 * result + fieldName.hashCode()
         result = 31 * result + if (out) 1 else 0
         return result
     }

@@ -54,12 +54,12 @@ public class MetaDataTest {
     public void sampleRelationships() throws Exception {
         try (Transaction tx = db.beginTx()) {
             MetaData person = GraphSchemaScanner.from(db, label("Person"));
-            RelationshipInfo LIVES_ON_Location = new RelationshipInfo("LIVES_ON", "Location", true);
-            assertEquals(map("LIVES_ON_Location", LIVES_ON_Location), person.relationships);
+            RelationshipInfo LIVES_ON_Location = new RelationshipInfo("location","LIVES_ON", "Location", true);
+            assertEquals(map("location", LIVES_ON_Location), person.relationships);
             MetaData location = GraphSchemaScanner.from(db, label("Location"));
-            RelationshipInfo Person_LIVES_ON = new RelationshipInfo("LIVES_ON", "Person", false).update(true);
-            RelationshipInfo User_LIVES_ON = new RelationshipInfo("LIVES_ON", "User", false).update(true);
-            assertEquals(map("Person_LIVES_ON", Person_LIVES_ON,"User_LIVES_ON", User_LIVES_ON), location.relationships);
+            RelationshipInfo Person_LIVES_ON = new RelationshipInfo("people","LIVES_ON", "Person", false).update(true);
+            RelationshipInfo User_LIVES_ON = new RelationshipInfo("users","LIVES_ON", "User", false).update(true);
+            assertEquals(map("people", Person_LIVES_ON,"users", User_LIVES_ON), location.relationships);
             tx.success();
         }
     }
@@ -107,6 +107,12 @@ public class MetaDataTest {
     @Test
     public void allLocationsQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query LocationQuery { Location {name} }", map());
+        assertEquals(1, result.get("Location").size());
+        assertEquals("Berlin", result.get("Location").get(0).get("name"));
+    }
+    @Test
+    public void allLocationsQueryNoQueryName() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ Location {name} }", map());
         assertEquals(1, result.get("Location").size());
         assertEquals("Berlin", result.get("Location").get(0).get("name"));
     }

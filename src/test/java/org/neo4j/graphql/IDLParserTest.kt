@@ -101,4 +101,58 @@ type Droid implements Character {
         assert(md.labels == setOf("Character"))
         assert(md.properties.keys == setOf("id", "name", "homePlanet"))
     }
+
+    //  # (direction: Direction = OUT, type: String =  "ACTED_IN"): [Movie]
+    //   # (direction: Direction = IN, type: String = "ACTED_IN"): [Person]
+    //
+
+    val moviesSchema = """
+enum Direction {
+   OUT, IN, BOTH
+}
+
+type Person {
+   name: String!
+   born: Int
+   movies: [Movie] @out(name:"ACTED_IN")
+}
+
+type Movie {
+    title: String!
+    released: Int
+    tagline: String
+    actors: [Person] @in(name:"ACTED_IN")
+}
+"""
+
+
+
+    /*
+    Person(name = "Tom Hanks") {
+      born
+      movies {
+        title
+        released
+        tagline
+        actors {
+            name
+        }
+      }
+    }
+     */
+    @Test
+    fun moviesSchema() {
+        val metaDatas = IDLParser.parse(moviesSchema)
+        // todo handle enums ?
+        println(metaDatas)
+        println(metaDatas.keys)
+        assert(setOf("Movie","Person") == metaDatas.keys)
+        val md = metaDatas["Movie"]!!
+        println(md.properties.keys)
+        assert(md.properties.keys == setOf("title","released","tagline"))
+        assert(md.relationships.keys == setOf("actors"))
+        println(md.relationships.values)
+        assert(md.relationships.values.iterator().next() == RelationshipInfo("actors","ACTED_IN","Person",false))
+    }
+
 }

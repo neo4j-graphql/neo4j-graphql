@@ -125,14 +125,14 @@ class GraphSchemaScanner {
                 val typeName = type.name()
                 if (out != null) {
                     if (!dense || node.getDegree(type, Direction.OUTGOING) < DENSE_NODE) {
-                        labelsFor(out.endNode) { label -> md.mergeRelationship(typeName,label,true,itOut.hasNext()) }
+                        labelsFor(out.endNode) { label -> md.mergeRelationship(typeName,typeName,label,true,itOut.hasNext()) }
                     }
                 }
                 val itIn = node.getRelationships(Direction.INCOMING, type).iterator()
                 val `in` = Iterators.firstOrNull(itIn)
                 if (`in` != null) {
                     if (!dense || node.getDegree(type, Direction.INCOMING) < DENSE_NODE) {
-                        labelsFor(`in`.startNode) { label -> md.mergeRelationship(typeName,label,false,itIn.hasNext()) }
+                        labelsFor(`in`.startNode) { label -> md.mergeRelationship(typeName,typeName,label,false,itIn.hasNext()) }
                     }
                 }
             }

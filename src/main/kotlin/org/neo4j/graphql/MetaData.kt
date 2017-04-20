@@ -48,9 +48,9 @@ class MetaData(label: String) {
         properties.put(name, type)
     }
 
-    fun mergeRelationship(typeName:String, label:String, out:Boolean = true, multi : Boolean = false) : RelationshipInfo {
-        val name = if (out) "${typeName}_$label" else "${label}_${typeName}"
-        return relationships.getOrPut(name) { RelationshipInfo(typeName, label, out) }.update(multi)
+    fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean = true, multi : Boolean = false) : RelationshipInfo {
+//        val name = if (out) "${typeName}_$label" else "${label}_${typeName}"
+        return relationships.getOrPut(fieldName) { RelationshipInfo(fieldName, typeName, label, out) }.update(multi)
     }
 
     fun relationshipFor(fieldName: String) = relationships[fieldName]
