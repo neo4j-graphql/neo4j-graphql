@@ -64,17 +64,6 @@ class GraphSchemaScanner {
         }
 
         fun databaseSchema(db: GraphDatabaseService) {
-//            allTypes.clear()
-//                val tx = db.beginTx()
-//                try {
-//                    for (label in db.allLabels) {
-//                        allTypes.put(label.name(), from(db, label))
-//                    }
-//                    tx.success()
-//                } finally {
-//                    tx.close()
-//                }
-
             if (allTypes.isEmpty()) {
                 val idlMetaData = readIdl(db)
                 if (idlMetaData != null) {

@@ -113,32 +113,4 @@ public class GraphQLResourceTest {
             assertEquals(true,e.getMessage().contains("InvalidSyntaxError"));
         }
     }
-
-    @Test
-    public void testPostIdlAndQueryAgainstIt() throws Exception {
-
-        String idlEndpoint = new URL( serverURI, "idl" ).toString();
-
-        String schema = "type Person {  name: String born: Int movies: [Movie] @out(name:\"ACTED_IN\") }" +
-                        "type Movie  {  title: String released: Int tagline: String actors: [Person] @in(name:\"ACTED_IN\") }";
-
-        HTTP.Response schemaResponse = HTTP.POST( idlEndpoint, HTTP.RawPayload.rawPayload(schema));
-
-        assertEquals(200, schemaResponse.status());
-
-        HTTP.Response queryResponse = HTTP.POST(serverURI.toString(), map("query", "{ Person(name: \"Kevin Bacon\") { born, movies { title released tagline actors { name }  } } }"));
-
-        Map<String, Map<String,List<Map>>> result = queryResponse.content();
-        List<Map> data = result.get("data").get("Person");
-
-        Map kevinBacon = data.get( 0 );
-        assertEquals(1958, kevinBacon.get( "born" ));
-
-        Map apollo13 = ((List<Map>) kevinBacon.get( "movies" )).get( 0 );
-        assertEquals("Apollo 13", apollo13.get( "title" ) );
-        assertEquals(1995, apollo13.get( "released" ) );
-
-        assertEquals("Kevin Bacon", ((List<Map>)apollo13.get( "actors" )).get( 0 ).get( "name" ));
-
-    }
 }

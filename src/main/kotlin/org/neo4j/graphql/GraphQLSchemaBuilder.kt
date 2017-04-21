@@ -138,7 +138,19 @@ class GraphQLSchemaBuilder {
             GraphSchemaScanner.databaseSchema(db)
 
             val myBuilder = GraphQLSchemaBuilder()
-            val mutationType: GraphQLObjectType = newObject().name("MutationType").build()
+            val arguments = listOf(GraphQLArgument("name", GraphQLString), GraphQLArgument("born", GraphQLInt))
+
+            val mutationType: GraphQLObjectType = newObject().name("MutationType")
+                    .field(GraphQLFieldDefinition("createPerson", "...", GraphQLInt, DataFetcher({
+                        val statement = "CREATE (:Person{name: {name}, born: {born} })"
+                        val db = it.getContext<GraphQLContext>().db
+                        val params = mapOf<String, Any>("name" to it.getArgument("name"), "born" to it.getArgument("born"))
+
+                        val result = db.execute(statement, params)
+                        result.queryStatistics.nodesCreated
+                    }), arguments, ""))
+
+                    .build()
 
             val queryType = newObject().name("QueryType")
                     .fields(myBuilder.queryFields(GraphSchemaScanner.allMetaDatas()))
