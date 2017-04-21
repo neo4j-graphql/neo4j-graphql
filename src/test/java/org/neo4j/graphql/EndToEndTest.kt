@@ -1,13 +1,14 @@
 package org.neo4j.graphql
 
 import junit.framework.Assert.assertEquals
+import org.codehaus.jackson.map.ObjectMapper
 import org.junit.*
 import org.neo4j.harness.ServerControls
 import org.neo4j.harness.TestServerBuilders
 import org.neo4j.test.server.HTTP
 import java.net.URL
 
-class EndToEnd {
+class EndToEndTest {
 
     private var neo4j: ServerControls? = null
     private var serverURI: URL? = null
@@ -54,9 +55,12 @@ class EndToEnd {
 
         val mutation = """
         mutation {
-            createPerson(name: "Kevin Bacon" born: 1958 )
-            createMovie(title: "Apollo 13" released: 1995 )
-            addPersonMovies(name:"Kevin Bacon", movies:["Apollo 13", "The Matrix"])
+            kb: createPerson(name: "Kevin Bacon" born: 1958 )
+            mr: createPerson(name: "Meg Ryan" born: 1961 )
+            a13: createMovie(title: "Apollo 13" released: 1995 tagline: "..." )
+            matrix: createMovie(title: "The Matrix" released: 2001 tagline: "Cypher, not as good as GraphQL" )
+            kb_matrix: addPersonMovies(name:"Kevin Bacon" movies:["Apollo 13", "The Matrix"])
+            mr_a13: addPersonMovies(name:"Meg Ryan" movies:["Apollo 13"])
         }
         """
 
@@ -75,6 +79,7 @@ class EndToEnd {
                         tagline
                         actors {
                             name
+                            born
                         }
                      }
                  }
@@ -83,9 +88,10 @@ class EndToEnd {
 
         val queryResponse = HTTP.POST(serverURI!!.toString(), mapOf("query" to query))
 
+        println(ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(queryResponse.content()))
+
         val result = queryResponse.content<Map<String, Map<String, List<Map<*, *>>>>>()
 
-        println("result = " + result)
 
         val data = result["data"]!!["Person"]!!
 
