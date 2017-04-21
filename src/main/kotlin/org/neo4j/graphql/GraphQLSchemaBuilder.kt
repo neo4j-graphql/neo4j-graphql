@@ -139,7 +139,7 @@ class GraphQLSchemaBuilder {
 
             val myBuilder = GraphQLSchemaBuilder()
 
-            val mutationFields = GraphSchemaScanner.allMetaDatas().map { myBuilder.mutationField(it) }
+            val mutationFields = GraphSchemaScanner.allMetaDatas().flatMap { myBuilder.relationshipMutationFields(it) + myBuilder.mutationField(it) }
 
             val mutationType: GraphQLObjectType = newObject().name("MutationType")
                     .fields(mutationFields)
@@ -233,6 +233,38 @@ class GraphQLSchemaBuilder {
 
                 }
                 .build()
+
+    }
+    fun idProperty(md: MetaData) : Pair<String,MetaData.PropertyType> = md.properties.entries.filter { it.value.nonNull }.map{ it.key to it.value }.get(0)
+    fun relationshipMutationFields(metaData: MetaData) : List<GraphQLFieldDefinition> {
+        val idProperty = idProperty(metaData)
+        return  metaData.relationships.values.map {  rel ->
+            val targetMeta = GraphSchemaScanner.getMetaData(rel.label)!!
+            val targetIdProperty = idProperty(targetMeta)
+            GraphQLFieldDefinition.newFieldDefinition()
+                    .name("add" + metaData.type+ rel.fieldName.capitalize())
+                    .description("Adds rel.fieldName.capitalize() to ${metaData.type} entity")
+                    .type(GraphQLInt)
+                    .argument(metaData.properties.map { GraphQLArgument(idProperty.first, graphQlInType(idProperty.second)) })
+                    .argument(metaData.properties.map { GraphQLArgument(rel.fieldName, GraphQLList(graphQlInType(targetIdProperty.second))) })
+                    .dataFetcher { env ->
+                        val statement = """MATCH (from:`${metaData.type}` {`${idProperty.first}`:{source}})
+                                           UNWIND {targets} AS target
+                                           MATCH (to:`${targetMeta.type}` { `${targetIdProperty.first}`: target})
+                                           MERGE (from)-[:`${rel.type}`]->(to)"""
+
+                        println("statement = ${statement}")
+                        val db = env.getContext<GraphQLContext>().db
+
+                        val params = mapOf<String,Any>("source" to env.getArgument<Any>(idProperty.first), "targets" to  env.getArgument<Any>(rel.fieldName))
+
+                        val result = db.execute(statement, params)
+                        result.queryStatistics.nodesCreated
+
+                    }
+                    .build()
+        }
+
 
     }
 
