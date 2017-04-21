@@ -138,18 +138,11 @@ class GraphQLSchemaBuilder {
             GraphSchemaScanner.databaseSchema(db)
 
             val myBuilder = GraphQLSchemaBuilder()
-            val arguments = listOf(GraphQLArgument("name", GraphQLString), GraphQLArgument("born", GraphQLInt))
+
+            val mutationFields = GraphSchemaScanner.allMetaDatas().map { myBuilder.mutationField(it) }
 
             val mutationType: GraphQLObjectType = newObject().name("MutationType")
-                    .field(GraphQLFieldDefinition("createPerson", "...", GraphQLInt, DataFetcher({
-                        val statement = "CREATE (:Person{name: {name}, born: {born} })"
-                        val db = it.getContext<GraphQLContext>().db
-                        val params = mapOf<String, Any>("name" to it.getArgument("name"), "born" to it.getArgument("born"))
-
-                        val result = db.execute(statement, params)
-                        result.queryStatistics.nodesCreated
-                    }), arguments, ""))
-
+                    .fields(mutationFields)
                     .build()
 
             val queryType = newObject().name("QueryType")
@@ -221,6 +214,26 @@ class GraphQLSchemaBuilder {
                             //                            .fetchField();
                             .dataFetcher({ env -> fetchGraphData(md, env) }).build()
                 }
+    }
+
+    fun mutationField(metaDatas: MetaData) : GraphQLFieldDefinition {
+        return GraphQLFieldDefinition.newFieldDefinition()
+                .name("create" + metaDatas.type)
+                .description("Creates a ${metaDatas.type} entity")
+                .type(GraphQLInt)
+                .argument(metaDatas.properties.map { GraphQLArgument(it.key, graphQlInType(it.value)) })
+                .dataFetcher { env ->
+                    val statement = "CREATE (node:${metaDatas.type}) SET node = {properties}"
+                    val db = env.getContext<GraphQLContext>().db
+
+                    val params = mapOf<String,Any>("properties" to metaDatas.properties.keys.associate { it to env.getArgument<Any>(it) })
+
+                    val result = db.execute(statement, params)
+                    result.queryStatistics.nodesCreated
+
+                }
+                .build()
+
     }
 
 
