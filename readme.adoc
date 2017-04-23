@@ -5,7 +5,7 @@ image:https://travis-ci.org/neo4j-contrib/neo4j-graphql.svg?branch=master["Build
 NOTE: This is an very early version of GraphQL support for Neo4j.
 
 This implementation provides a GraphQL API to Neo4j, it comes as library but can also be installed as Neo4j server extension
-to act as a GraphQL endpoint.
+to act as a GraphQL endpoint. It turns GraphQL queries and mutations into Cypher statements and executes them on Neo4j.
 
 We want to explore three approaches:
 
@@ -13,8 +13,6 @@ We want to explore three approaches:
 2. make the same work with externally configured schema information (using IDL) √
 3. do a direct GraphQL AST to Cypher transformation without bothering with Schema (TBD)
 
-NOTE: Currently only Node and simple Relationship queries are supported.
-Deeper Relationship queries and aggregations are up next.
 
 == License
 
@@ -22,11 +20,27 @@ Apache License v2
 
 == Schema
 
+=== IDL
+
+You can post GraphQL IDL schema to the `/graphql/idl` endpoint which is parsed and stored in the graph.
+That schema is then used as graphql-schema for validating and executing queries.
+
+Also mutations for each type are created, which return the executed graph operations.
+e.g.
+
+* `createMovie(title: String!, released: Int, tagline: String)` and
+* `addMoviePersons(title: String!, persons:[String]!)`
+
+Those mutations then allow you to create graph data with GraphQL.
+
+=== Schema from Graph
+
 The library samples the existing data and adds one GraphQLObject for each Node-Label with all the properties and their types found as outputs and input-arguments.
 
 Relationship information is collected with direction, type, end-node-labels and degree (to determine single element or collection result).
 // Additional labels on a node are added as GraphQLInterface's.
-Each relationship-type and end-node label is added as a virtual property to the node type, named `TYPE_Label` for outgoing and `Label_TYPE` for incoming relationships.
+Each relationship-type virtual property to the node type, named `aType` for `A_TYPE`.
+// Each relationship-type and end-node label is added as a virtual property to the node type, named `TYPE_Label` for outgoing and `Label_TYPE` for incoming relationships.
 
 == Installation
 
@@ -61,6 +75,7 @@ $NEO4J_HOME/bin/neo4j restart
 // | directive - compiled runtime  | force compiled runtime to be used | query UserQuery { User @compile {name} }
 | extensions | extra information returned | fields are: columns, query, warnings, plan, type READ_ONLY/READ_WRITE,
 | IDL | define schema via IDL | :POST /graphql/idl "type Person {name: String!, born: Int}"
+| Mutations | mutations are created from the schema | "create" mutations for each type and relationship
 |===
 
 == Usage
@@ -84,7 +99,7 @@ query AllPeopleQuery {
   Person(name:"Kevin Bacon") {
     name
     born
-    ACTED_IN_Movie {
+    actedIn {
       title
       released
       tagline
@@ -131,7 +146,7 @@ query PersonQuery($name: String!) {
   Person(name: $name) {
     name
     born
-    ACTED_IN_Movie {
+    actedIn {
       title
       released
       tagline
@@ -167,7 +182,7 @@ Some more examples
 query MoviePersonQuery {
   Movie {
     title
-    Person_ACTED_IN(name:"Tom Hanks") {
+    actedIn(name:"Tom Hanks") {
       name
     }
   }
@@ -179,9 +194,9 @@ query MoviePersonQuery {
 query PersonMoviePersonQuery {
   Person {
     name
-    ACTED_IN_Movie {
+    actedIn {
       title
-      Person_ACTED_IN {
+      actedIn {
         name
       }
     }
@@ -262,7 +277,7 @@ Server: Jetty(9.2.9.v20150224)
 === Get one Person by name literal with related movies
 
 ----
-curl  -u neo4j:<password> -i -XPOST -d'{"query":"query PersonQuery { Person(name:\"Tom Hanks\") {name, born, ACTED_IN_Movie {title, released} } }"}' -H content-type:application/json http://localhost:7474/graphql/
+curl  -u neo4j:<password> -i -XPOST -d'{"query":"query PersonQuery { Person(name:\"Tom Hanks\") {name, born, actedIn {title, released} } }"}' -H content-type:application/json http://localhost:7474/graphql/
 HTTP/1.1 200 OK
 Date: Tue, 25 Oct 2016 03:17:08 GMT
 Content-Type: application/json
@@ -270,7 +285,7 @@ Access-Control-Allow-Origin: *
 Transfer-Encoding: chunked
 Server: Jetty(9.2.9.v20150224)
 
-{"data":{"Person":[{"name":"Tom Hanks","born":1956,"ACTED_IN_Movie":[{"title":"Charlie Wilson's War","released":2007},{"title":"A League of Their Own","released":1992},{"title":"The Polar Express","released":2004},{"title":"The Green Mile","released":1999},{"title":"Cast Away","released":2000},{"title":"Apollo 13","released":1995},{"title":"The Da Vinci Code","released":2006},{"title":"Cloud Atlas","released":2012},{"title":"Joe Versus the Volcano","released":1990},{"title":"Sleepless in Seattle","released":1993},{"title":"You've Got Mail","released":1998},{"title":"That Thing You Do","released":1996}]}]}}
+{"data":{"Person":[{"name":"Tom Hanks","born":1956,"actedIn":[{"title":"Charlie Wilson's War","released":2007},{"title":"A League of Their Own","released":1992},{"title":"The Polar Express","released":2004},{"title":"The Green Mile","released":1999},{"title":"Cast Away","released":2000},{"title":"Apollo 13","released":1995},{"title":"The Da Vinci Code","released":2006},{"title":"Cloud Atlas","released":2012},{"title":"Joe Versus the Volcano","released":1990},{"title":"Sleepless in Seattle","released":1993},{"title":"You've Got Mail","released":1998},{"title":"That Thing You Do","released":1996}]}]}}
 ----
 
 == Resources

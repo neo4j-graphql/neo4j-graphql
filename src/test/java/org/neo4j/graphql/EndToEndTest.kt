@@ -93,17 +93,19 @@ class EndToEndTest {
         val result = queryResponse.content<Map<String, Map<String, List<Map<*, *>>>>>()
 
 
-        val data = result["data"]!!["Person"]!!
+        val data = result["data"]!!["Person"]
 
-        assertEquals(1, data.size.toLong())
-        val kevinBacon = data.get(0)
+        assertEquals(1, data?.size)
+
+        val kevinBacon = data!!.get(0)
         assertEquals(1958, kevinBacon["born"])
 
-        val apollo13 = (kevinBacon["movies"] as List<Map<*, *>>)[0]
-        assertEquals("Apollo 13", apollo13["title"])
-        assertEquals(1995, apollo13["released"])
+        val movies = (kevinBacon["movies"] as List<Map<*, *>>)
+        assertEquals(setOf("Apollo 13","The Matrix"), movies.map { it["title"] }.toSet())
+        assertEquals(setOf(1995,2001), movies.map { it["released"] }.toSet())
 
-        assertEquals("Kevin Bacon", (apollo13["actors"] as List<Map<*, *>>)[0]["name"])
+        val apollo13 = movies.find { it["title"] == "Apollo 13" }!!
+        assertEquals(setOf("Kevin Bacon","Meg Ryan"), (apollo13["actors"] as List<Map<*, *>>).map{ it["name"]}.toSet())
 
     }
 

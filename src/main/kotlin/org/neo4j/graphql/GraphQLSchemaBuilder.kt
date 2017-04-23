@@ -235,12 +235,15 @@ class GraphQLSchemaBuilder {
                 .build()
 
     }
-    fun idProperty(md: MetaData) : Pair<String,MetaData.PropertyType> = md.properties.entries.filter { it.value.nonNull }.map{ it.key to it.value }.get(0)
+    fun idProperty(md: MetaData) : Pair<String,MetaData.PropertyType>? = md.properties.entries.filter { it.value.nonNull }.map{ it.toPair() }.firstOrNull()
+
     fun relationshipMutationFields(metaData: MetaData) : List<GraphQLFieldDefinition> {
         val idProperty = idProperty(metaData)
-        return  metaData.relationships.values.map {  rel ->
+        return  metaData.relationships.values.mapNotNull {  rel ->
             val targetMeta = GraphSchemaScanner.getMetaData(rel.label)!!
             val targetIdProperty = idProperty(targetMeta)
+            if (idProperty == null || targetIdProperty == null) null
+            else
             GraphQLFieldDefinition.newFieldDefinition()
                     .name("add" + metaData.type+ rel.fieldName.capitalize())
                     .description("Adds rel.fieldName.capitalize() to ${metaData.type} entity")

@@ -12,6 +12,7 @@ import java.util.*
 
 class GraphSchemaScanner {
     companion object {
+        fun fieldName(type: String) : String = type.split("_").mapIndexed { i, s -> if (i==0) s.toLowerCase() else s.toLowerCase().capitalize()  }.joinToString("")
         internal val allTypes = LinkedHashMap<String, MetaData>()
 
         val DENSE_NODE = 50
@@ -64,11 +65,13 @@ class GraphSchemaScanner {
         }
 
         fun databaseSchema(db: GraphDatabaseService) {
+            allTypes.clear();
+            val idlMetaData = readIdl(db)
+            if (idlMetaData != null) {
+                allTypes.putAll(idlMetaData)
+            }
             if (allTypes.isEmpty()) {
-                val idlMetaData = readIdl(db)
-                if (idlMetaData != null) {
-                    allTypes.putAll(idlMetaData)
-                }
+                allTypes.putAll(sampleDataBase(db))
             }
         }
 
@@ -85,6 +88,17 @@ class GraphSchemaScanner {
                     if (index.isConstraintIndex) md.addIdProperty(s)
                     md.addIndexedProperty(s)
                 }
+            }
+        }
+
+        private fun sampleDataBase(db: GraphDatabaseService): Map<String, MetaData> {
+            val tx = db.beginTx()
+            try {
+                val result = db.allLabels.associate { label -> label.name() to from(db,label) }
+                tx.success()
+                return result
+            } finally {
+                tx.close()
             }
         }
 
@@ -108,16 +122,17 @@ class GraphSchemaScanner {
                 val itOut = node.getRelationships(Direction.OUTGOING, type).iterator()
                 val out = Iterators.firstOrNull(itOut)
                 val typeName = type.name()
+                val fieldName = fieldName(typeName) // todo handle end-label
                 if (out != null) {
                     if (!dense || node.getDegree(type, Direction.OUTGOING) < DENSE_NODE) {
-                        labelsFor(out.endNode) { label -> md.mergeRelationship(typeName,typeName,label,true,itOut.hasNext()) }
+                        labelsFor(out.endNode) { label -> md.mergeRelationship(typeName, fieldName,label,true,itOut.hasNext()) }
                     }
                 }
                 val itIn = node.getRelationships(Direction.INCOMING, type).iterator()
                 val `in` = Iterators.firstOrNull(itIn)
                 if (`in` != null) {
                     if (!dense || node.getDegree(type, Direction.INCOMING) < DENSE_NODE) {
-                        labelsFor(`in`.startNode) { label -> md.mergeRelationship(typeName,typeName,label,false,itIn.hasNext()) }
+                        labelsFor(`in`.startNode) { label -> md.mergeRelationship(typeName, fieldName,label,false,itIn.hasNext()) }
                     }
                 }
             }

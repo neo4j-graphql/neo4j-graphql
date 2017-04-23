@@ -40,7 +40,7 @@ public class MetaDataTest {
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(Procedures.class).registerFunction(GraphQLProcedure.class);
-        db.execute("CREATE (berlin:Location {name:'Berlin',longitude:13.4, latitude: 52.5, coord:[13.4,52.5]}) WITH berlin UNWIND range(1,5) as id CREATE (:User:Person {name:'John '+id, id:id, age:id})-[:LIVES_ON]->(berlin)").close();
+        db.execute("CREATE (berlin:Location {name:'Berlin',longitude:13.4, latitude: 52.5, coord:[13.4,52.5]}) WITH berlin UNWIND range(1,5) as id CREATE (:User {name:'John '+id, id:id, age:id})-[:LIVES_IN]->(berlin)").close();
         GraphQLSchema graphQLSchema = GraphQLSchemaBuilder.buildSchema(db);
         graphql = new GraphQL(graphQLSchema);
     }
@@ -53,13 +53,12 @@ public class MetaDataTest {
     @Test
     public void sampleRelationships() throws Exception {
         try (Transaction tx = db.beginTx()) {
-            MetaData person = GraphSchemaScanner.from(db, label("Person"));
-            RelationshipInfo LIVES_ON_Location = new RelationshipInfo("location","LIVES_ON", "Location", true);
-            assertEquals(map("location", LIVES_ON_Location), person.relationships);
+            MetaData person = GraphSchemaScanner.from(db, label("User"));
+            RelationshipInfo livesInLocation = new RelationshipInfo("livesIn","LIVES_IN", "Location", true);
+            assertEquals(map("livesIn", livesInLocation), person.relationships);
             MetaData location = GraphSchemaScanner.from(db, label("Location"));
-            RelationshipInfo Person_LIVES_ON = new RelationshipInfo("people","LIVES_ON", "Person", false).update(true);
-            RelationshipInfo User_LIVES_ON = new RelationshipInfo("users","LIVES_ON", "User", false).update(true);
-            assertEquals(map("people", Person_LIVES_ON,"users", User_LIVES_ON), location.relationships);
+            RelationshipInfo personLivesIn = new RelationshipInfo("livesIn","LIVES_IN", "User", false).update(true);
+            assertEquals(map("livesIn", personLivesIn), location.relationships);
             tx.success();
         }
     }
@@ -175,92 +174,92 @@ public class MetaDataTest {
 
     @Test
     public void singleUserWithLocationQuery() throws Exception {
-        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,LIVES_ON_Location {name} } }", map());
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,livesIn {name} } }", map());
         List<Map> users = result.get("User");
         assertEquals(1, users.size());
         Map user = users.get(0);
         assertEquals("John 3", user.get("name"));
-        Map location = (Map) user.get("LIVES_ON_Location");
+        Map location = (Map) user.get("livesIn");
         assertEquals("Berlin", location.get("name"));
     }
 
     @Test
     public void singleUserWithLocationUserQuery() throws Exception {
-        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,LIVES_ON_Location {name, User_LIVES_ON {name} } } }", map());
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,livesIn {name, livesIn {name} } } }", map());
         List<Map> users = result.get("User");
         assertEquals(1, users.size());
         Map user = users.get(0);
         assertEquals("John 3", user.get("name"));
-        Map location = (Map) user.get("LIVES_ON_Location");
+        Map location = (Map) user.get("livesIn");
         assertEquals("Berlin", location.get("name"));
-        List<Map> usersInLocation = (List<Map>) location.get("User_LIVES_ON");
+        List<Map> usersInLocation = (List<Map>) location.get("livesIn");
         assertEquals(5, usersInLocation.size());
     }
 
     @Test
     public void singleUserWithLocationNameQuery() throws Exception {
-        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,LIVES_ON_Location(name:\"Berlin\") {name} } }", map());
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,livesIn(name:\"Berlin\") {name} } }", map());
         List<Map> users = result.get("User");
         assertEquals(1, users.size());
         Map user = users.get(0);
         assertEquals("John 3", user.get("name"));
-        Map location = (Map) user.get("LIVES_ON_Location");
+        Map location = (Map) user.get("livesIn");
         assertEquals("Berlin", location.get("name"));
     }
 
     @Test
     public void singleUserWithLocationNameNoMatchQuery() throws Exception {
-        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,LIVES_ON_Location(name:\"Bärlin\") {name} } }", map());
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User(id:3) {name,livesIn(name:\"Bärlin\") {name} } }", map());
         List<Map> users = result.get("User");
         assertEquals(1, users.size());
         Map user = users.get(0);
         assertEquals("John 3", user.get("name"));
-        Map location = (Map) user.get("LIVES_ON_Location");
+        Map location = (Map) user.get("livesIn");
         assertEquals(null, location);
     }
 
     @Test
     public void singleUserWithLocationUserQuery2ndDegree() throws Exception {
-        Map<String, List<Map>> result = executeQuery("query UserWithLocationWithUserQuery { User(id:3) {name,LIVES_ON_Location { name, User_LIVES_ON { name } } } }", map());
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationWithUserQuery { User(id:3) {name,livesIn { name, livesIn { name } } } }", map());
         List<Map> users = result.get("User");
         assertEquals(1, users.size());
         Map user = users.get(0);
         assertEquals("John 3", user.get("name"));
-        Map location = (Map) user.get("LIVES_ON_Location");
+        Map location = (Map) user.get("livesIn");
         assertEquals("Berlin", location.get("name"));
-        List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("User_LIVES_ON");
+        List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("livesIn");
         assertEquals(5, people.size());
         people.forEach((p) -> assertEquals(true, p.get("name").toString().startsWith("John")));
     }
 
     @Test
     public void usersWithLocationQuery() throws Exception {
-        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User {name,LIVES_ON_Location {name} } }", map());
+        Map<String, List<Map>> result = executeQuery("query UserWithLocationQuery { User {name,livesIn {name} } }", map());
         List<Map> users = result.get("User");
         assertEquals(5, users.size());
         Map user = users.get(0);
         assertEquals("John 1", user.get("name"));
-        Map location = (Map) user.get("LIVES_ON_Location");
+        Map location = (Map) user.get("livesIn");
         assertEquals("Berlin", location.get("name"));
     }
 
     @Test
     public void locationWithUsersQuery() throws Exception {
-        Map<String, List<Map>> result = executeQuery("query LocationWithUserQuery { Location {name, User_LIVES_ON {name,age} } }", map());
+        Map<String, List<Map>> result = executeQuery("query LocationWithUserQuery { Location {name, livesIn {name,age} } }", map());
         List<Map> locations = result.get("Location");
         assertEquals(1, locations.size());
         Map location = locations.get(0);
         assertEquals("Berlin", location.get("name"));
-        List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("User_LIVES_ON");
+        List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("livesIn");
         assertEquals(5, people.size());
         people.forEach((p) -> assertEquals(true, p.get("name").toString().startsWith("John")));
     }
     @Test
     public void locationWithUsersSortQuery() throws Exception {
-        Map<String, List<Map>> result = executeQuery("query LocationWithUserQuery { Location {name, User_LIVES_ON(orderBy:[age_desc]) {name,age} } }", map());
+        Map<String, List<Map>> result = executeQuery("query LocationWithUserQuery { Location {name, livesIn(orderBy:[age_desc]) {name,age} } }", map());
         List<Map> locations = result.get("Location");
         Map location = locations.get(0);
-        List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("User_LIVES_ON");
+        List<Map<String,Object>> people = (List<Map<String,Object>>) location.get("livesIn");
         int size = people.size();
         assertEquals(5, size);
         for (int i = 0; i < size; i++) {
@@ -269,12 +268,12 @@ public class MetaDataTest {
     }
     @Test
     public void locationWithPeopleQuery() throws Exception {
-        Map<String, List<Map>> result = executeQuery("query LocationWithPersonQuery { Location {name, Person_LIVES_ON {name,age} } }", map());
+        Map<String, List<Map>> result = executeQuery("query LocationWithPersonQuery { Location {name, livesIn {name,age} } }", map());
         List<Map> locations = result.get("Location");
         assertEquals(1, locations.size());
         Map location = locations.get(0);
         assertEquals("Berlin", location.get("name"));
-        List<Map> people = (List<Map>) location.get("Person_LIVES_ON");
+        List<Map> people = (List<Map>) location.get("livesIn");
         assertEquals(5, people.size());
         people.forEach((p) -> assertEquals(true, p.get("name").toString().startsWith("John")));
     }
