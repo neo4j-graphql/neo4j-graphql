@@ -121,7 +121,85 @@ RETURN `Person`.`name` AS `name`,
 
     @Test
     @Throws(Exception::class)
-    fun cypherDirective() {
+    fun cypherDirectiveScalar() {
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: String
+            born: Int
+            score: Int @cypher(statement: "WITH {this} AS this RETURN 2")
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val selectionSet = SelectionSet(listOf<Selection>(Field("score")))
+
+        val field = Field("Person", selectionSet)
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Person`:`Person`)
+RETURN graphql.run('WITH {this} AS this RETURN 2', {this:Person}, false) AS `score`""",  query)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun cypherDirectiveScalarArray() {
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: String
+            born: Int
+            scores: [Int] @cypher(statement: "WITH {this} AS this RETURN range(0,5)")
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val selectionSet = SelectionSet(listOf<Selection>(Field("colleagues", SelectionSet(listOf(Field("name"), Field("born"))))))
+
+        val field = Field("Person", selectionSet)
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Person`:`Person`)
+RETURN graphql.run('WITH {this} AS this RETURN range(0,5)', {this:Person}, true) AS `scores`""",  query)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun cypherDirectiveTypedValue() {
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: String
+            born: Int
+            bestFriend: Person @cypher(statement: "WITH {this} AS this RETURN this")
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val selectionSet = SelectionSet(listOf<Selection>(Field("bestFriend", SelectionSet(listOf(Field("name"), Field("born"))))))
+
+        val field = Field("Person", selectionSet)
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Person`:`Person`)
+RETURN head([ x IN graphql.run('WITH {this} AS this RETURN this', {this:Person}, true) | `x` {.`name`, .`born`} ]) AS `bestFriend`""",  query)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun cypherDirectiveTypedArray() {
         val metaData = IDLParser.parse("""
         type Person {
             name: String

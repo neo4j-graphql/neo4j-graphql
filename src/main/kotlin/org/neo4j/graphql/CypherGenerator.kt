@@ -92,8 +92,8 @@ class Cypher31Generator : CypherGenerator() {
             if (!cypherStatement.isNullOrEmpty()) {
                 val cypherFragment = "graphql.run('$cypherStatement', {this:$variable}, $expectMultipleValues)"
                 if(expectMultipleValues) {
-                    val (result, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f)
-                    Pair(field, result) // TODO escape cypher statement quotes
+                    val (patternComp, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f)
+                    Pair(field, patternComp) // TODO escape cypher statement quotes
                 } else {
                     Pair(field, cypherFragment) // TODO escape cypher statement quotes
                 }
