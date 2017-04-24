@@ -92,7 +92,7 @@ class Cypher31Generator : CypherGenerator() {
             if (!cypherStatement.isNullOrEmpty()) {
                 val cypherFragment = "graphql.run('$cypherStatement', {this:$variable}, $expectMultipleValues)"
                 if(expectMultipleValues) {
-                    val (result, _) = formatCypherDirectivePatternComprehension(md, variable, cypherFragment, f)
+                    val (result, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f)
                     Pair(field, result) // TODO escape cypher statement quotes
                 } else {
                     Pair(field, cypherFragment) // TODO escape cypher statement quotes
@@ -120,7 +120,7 @@ class Cypher31Generator : CypherGenerator() {
         }.joinToString(",\n","RETURN ")
     }
 
-    fun formatCypherDirectivePatternComprehension(md: MetaData, variable: String, cypherFragment: String, field: Field): Pair<String,String> {
+    fun formatCypherDirectivePatternComprehension(md: MetaData, cypherFragment: String, field: Field): Pair<String,String> {
         val fieldName = field.name
         val info = md.relationshipFor(fieldName) ?: return Pair("","")
         val fieldMetaData = GraphSchemaScanner.getMetaData(info.label)!!

@@ -90,7 +90,6 @@ RETURN `Person`.`name` AS `name`,
     @Test
     @Throws(Exception::class)
     fun matchRelationship() {
-
         val metaData = IDLParser.parse("""
         type Person {
             name: String
@@ -118,6 +117,32 @@ RETURN `Person`.`name` AS `name`,
 RETURN `Person`.`name` AS `name`,
 `Person`.`born` AS `born`,
 [ (`Person`)-[:`ACTED_IN`]->(`Person_movies`:`Movie`)  | `Person_movies` {.`title`}] AS `movies`""",  query)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun cypherDirective() {
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: String
+            born: Int
+            colleagues: [Person] @cypher(statement: "WITH {this} AS this RETURN this")
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val selectionSet = SelectionSet(listOf<Selection>(Field("colleagues", SelectionSet(listOf(Field("name"), Field("born"))))))
+
+        val field = Field("Person", selectionSet)
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Person`:`Person`)
+RETURN [ x IN graphql.run('WITH {this} AS this RETURN this', {this:Person}, true) | `x` {.`name`, .`born`} ] AS `colleagues`""",  query)
     }
 
 }
