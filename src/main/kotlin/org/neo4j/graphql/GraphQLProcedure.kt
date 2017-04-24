@@ -37,6 +37,14 @@ class GraphQLProcedure {
         val errors = result.errors.joinToString("\n")
         throw RuntimeException("Error executing GraphQL Query:\n $errors")
     }
+
+    @UserFunction("graphql.run")
+    fun run(@Name("query") query: String, @Name("variables") variables : Map<String,Any>): Any {
+        val result = db!!.execute(query, variables)
+        val firstColumn = result.columns()[0]
+        return result.columnAs<Any>(firstColumn).next()!!
+    }
+
     @UserFunction("graphql.sortColl")
     fun sortColl(@Name("coll") coll : java.util.List<Map<String,Any>>,
                  @Name("orderFields", defaultValue = "[]") orderFields : java.util.List<String>,

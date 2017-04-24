@@ -83,17 +83,22 @@ class Cypher31Generator : CypherGenerator() {
 
     fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String,Boolean>>): List<Pair<String, String>> {
         return selectionSet.selections.filterIsInstance<Field>().mapNotNull { f ->
-//            val alias = f.alias ?: f.name // alias is handled in graphql layer
             val field = f.name
-            val info = md.relationshipFor(field) // todo correct medatadata of
+            val relationship = md.relationshipFor(field) // todo correct medatadata of
 
-            if (info == null) {
-                Pair(field, attr(variable, field))
+            if (relationship == null) {
+                val cypherStatement = md.cypherFor(field)
+                if (cypherStatement.isNullOrEmpty()) {
+                    Pair(field, attr(variable, field))
+                } else {
+                    Pair(field, "graphql.run('$cypherStatement', {this:$variable})") // TODO escape cypher statement quotes
+                }
+
             } else {
                 if (f.selectionSet == null) null // todo
                 else {
                     val (patternComp, fieldVariable) = formatPatternComprehension(md,variable,f, orderBys) // metaData(info.label)
-                    Pair(field, if (info.multi) patternComp else "head(${patternComp})")
+                    Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
                 }
             }
         }

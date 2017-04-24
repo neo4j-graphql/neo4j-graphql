@@ -23,6 +23,7 @@ class MetaData(label: String) {
     val properties = LinkedHashMap<String, PropertyType>()
     val labels = LinkedHashSet<String>()
     @JvmField val relationships: MutableMap<String, RelationshipInfo> = LinkedHashMap()
+    val cypher = LinkedHashMap<String, String>()
 
     override fun toString(): String {
         return "MetaData{type='$type', ids=$ids, indexed=$indexed, properties=$properties, labels=$labels, relationships=$relationships}"
@@ -48,12 +49,18 @@ class MetaData(label: String) {
         properties.put(name, type)
     }
 
+    fun addCypher(name: String, statement: String) {
+        cypher.put(name, statement)
+    }
+
     fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean = true, multi : Boolean = false) : RelationshipInfo {
 //        val name = if (out) "${typeName}_$label" else "${label}_${typeName}"
         return relationships.getOrPut(fieldName) { RelationshipInfo(fieldName, typeName, label, out) }.update(multi)
     }
 
     fun relationshipFor(fieldName: String) = relationships[fieldName]
+
+    fun cypherFor(fieldName: String) = cypher[fieldName]
 
     data class PropertyType(val name: String, val array: Boolean = false, val nonNull: Boolean = false) {
         fun isBasic() : Boolean = basicTypes.contains(name)

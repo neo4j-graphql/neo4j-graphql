@@ -33,6 +33,8 @@ object IDLParser {
                     val type = typeFromIDL(child.type)
                     if (type.isBasic()) {
                         metaData.addProperty(fieldName, type)
+
+                        child.directives.filter { it.name == "cypher" }.map { (it.arguments[0].value as StringValue).value}.forEach { metaData.addCypher(fieldName, it)}
                     } else {
                         val out = child.directives.filter { it.name == "in" }.isEmpty()
                         val relationshipType = child.directives.filter { it.name == "in" || it.name == "out" }.map { (it.arguments[0].value as StringValue).value}.firstOrNull() ?: fieldName

@@ -1,6 +1,7 @@
 package org.neo4j.graphql
 
 import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertNull
 import org.codehaus.jackson.map.ObjectMapper
 import org.junit.*
 import org.neo4j.harness.ServerControls
@@ -20,6 +21,7 @@ class EndToEndTest {
                 .newInProcessBuilder()
                 .withExtension("/graphql", GraphQLResource::class.java)
                 .withProcedure(GraphQLProcedure::class.java)
+                .withFunction(GraphQLProcedure::class.java)
                 .newServer()
         serverURI = URL(neo4j!!.httpURI().toURL(), "graphql/")
     }
@@ -40,6 +42,7 @@ class EndToEndTest {
             name: String!
             born: Int
             movies: [Movie] @out(name:"ACTED_IN")
+            totalMoviesCount: Int @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
         }
 
         type Movie  {
@@ -73,6 +76,7 @@ class EndToEndTest {
             query {
                 Person(name: "Kevin Bacon") {
                     born,
+                    totalMoviesCount
                     movies {
                         title
                         released
@@ -92,6 +96,7 @@ class EndToEndTest {
 
         val result = queryResponse.content<Map<String, Map<String, List<Map<*, *>>>>>()
 
+        assertNull(result["errors"])
 
         val data = result["data"]!!["Person"]
 
@@ -99,6 +104,7 @@ class EndToEndTest {
 
         val kevinBacon = data!!.get(0)
         assertEquals(1958, kevinBacon["born"])
+        assertEquals(2, kevinBacon["totalMoviesCount"])
 
         val movies = (kevinBacon["movies"] as List<Map<*, *>>)
         assertEquals(setOf("Apollo 13","The Matrix"), movies.map { it["title"] }.toSet())
