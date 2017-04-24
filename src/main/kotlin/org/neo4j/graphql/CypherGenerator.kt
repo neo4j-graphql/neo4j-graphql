@@ -73,11 +73,11 @@ class Cypher31Generator : CypherGenerator() {
             }
             else
                 if (isPlural(name) && it.value is ArrayValue && md.properties.containsKey(singular(name)))
-                    "`${variable}`.`${singular(name)}` IN ${formatValue(it.value)} "
+                    "`${variable}`.`${singular(name)}` IN ${formatValue(it.value)}"
                 else
-                    "`${variable}`.`$name` = ${formatValue(it.value)} "
+                    "`${variable}`.`$name` = ${formatValue(it.value)}"
             // todo directives for more complex filtering
-        }.joinToString(" AND \n")
+        }.joinToString("\nAND ")
         return if (predicates.isBlank()) "" else "WHERE " + predicates;
     }
 
