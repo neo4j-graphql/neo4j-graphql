@@ -78,7 +78,7 @@ class Cypher31Generator : CypherGenerator() {
                     "`${variable}`.`$name` = ${formatValue(it.value)} "
             // todo directives for more complex filtering
         }.joinToString(" AND \n")
-        return if (predicates.isBlank()) "" else " WHERE " + predicates;
+        return if (predicates.isBlank()) "" else "WHERE " + predicates;
     }
 
     fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String,Boolean>>): List<Pair<String, String>> {
@@ -87,7 +87,7 @@ class Cypher31Generator : CypherGenerator() {
 
             val cypherStatement = md.cypherFor(field)
 
-            var expectMultipleValues = md.properties[field]?.array?:true
+            val expectMultipleValues = md.properties[field]?.array?:true
 
             if (!cypherStatement.isNullOrEmpty()) {
                 val cypherFragment = "graphql.run('$cypherStatement', {this:$variable}, $expectMultipleValues)"
@@ -157,11 +157,15 @@ class Cypher31Generator : CypherGenerator() {
         val variable = name
         val md = metaData(name)
         val orderBys = mutableListOf<Pair<String,Boolean>>()
-        return "MATCH (`$variable`:`$name`) \n" +
-                where(field, variable, md, orderBys) +
-                nestedPatterns(md, variable, field.selectionSet, orderBys) +
-                orderBys.map{ "${it.first} ${if (it.second) "asc" else "desc"}"}.joinNonEmpty(",", "\nORDER BY ");
-//                "\nRETURN *" // + projection(field, variable, md)
+
+        val parts = listOf(
+                "MATCH (`$variable`:`$name`)",
+                where(field, variable, md, orderBys),
+                nestedPatterns(md, variable, field.selectionSet, orderBys),
+                orderBys.map { "${it.first} ${if (it.second) "asc" else "desc"}" }.joinNonEmpty(",", "\nORDER BY ")
+        )
+
+        return parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
 
     }
 
@@ -258,13 +262,15 @@ class Cypher30Generator : CypherGenerator() {
         val variable = name
         val md = metaData(name)
         val orderBys = mutableListOf<String>()
+
         return "MATCH (`$variable`:`$name`) \n" +
                 where(field, variable, md, orderBys) +
                 optionalMatches(md, variable, field.selectionSet.selections, orderBys) +
                 // TODO order within each
                 orderBy(orderBys) +
-                "\nRETURN " + projection(field, variable, md)
-
+                " \nRETURN " + projection(field, variable, md)
     }
+
+
 
 }
