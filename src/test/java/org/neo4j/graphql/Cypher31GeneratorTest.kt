@@ -71,7 +71,9 @@ RETURN `Person`.`name` AS `name`""",  query)
         val generator = Cypher31Generator()
 
         val selectionSet = SelectionSet(listOf<Selection>(Field("name"), Field("born")))
-        val arguments = listOf(Argument("name", StringValue("Michael Hunger")), Argument("born", IntValue(BigInteger.valueOf(1960))))
+        val arguments = listOf(
+                Argument("names", ArrayValue(listOf(StringValue("Michael Hunger"), StringValue("Will Lyon")))),
+                Argument("born", IntValue(BigInteger.valueOf(1960))))
 
         val field = Field("Person", arguments, selectionSet)
 
@@ -79,7 +81,7 @@ RETURN `Person`.`name` AS `name`""",  query)
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-WHERE `Person`.`name` = "Michael Hunger"
+WHERE `Person`.`name` IN ["Michael Hunger","Will Lyon"]
 AND `Person`.`born` = 1960
 RETURN `Person`.`name` AS `name`,
 `Person`.`born` AS `born`""",  query)
