@@ -84,21 +84,24 @@ class Cypher31Generator : CypherGenerator() {
     fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String,Boolean>>): List<Pair<String, String>> {
         return selectionSet.selections.filterIsInstance<Field>().mapNotNull { f ->
             val field = f.name
-            val relationship = md.relationshipFor(field) // todo correct medatadata of
 
-            if (relationship == null) {
-                val cypherStatement = md.cypherFor(field)
-                if (cypherStatement.isNullOrEmpty()) {
+            val cypherStatement = md.cypherFor(field)
+
+            var expectMultipleValues = md.properties[field]?.array?:true
+
+            if (!cypherStatement.isNullOrEmpty()) {
+                Pair(field, "graphql.run('$cypherStatement', {this:$variable}, $expectMultipleValues)") // TODO escape cypher statement quotes
+            } else {
+                val relationship = md.relationshipFor(field) // todo correct medatadata of
+
+                if (relationship == null) {
                     Pair(field, attr(variable, field))
                 } else {
-                    Pair(field, "graphql.run('$cypherStatement', {this:$variable})") // TODO escape cypher statement quotes
-                }
-
-            } else {
-                if (f.selectionSet == null) null // todo
-                else {
-                    val (patternComp, fieldVariable) = formatPatternComprehension(md,variable,f, orderBys) // metaData(info.label)
-                    Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
+                    if (f.selectionSet == null) null // todo
+                    else {
+                        val (patternComp, fieldVariable) = formatPatternComprehension(md,variable,f, orderBys) // metaData(info.label)
+                        Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
+                    }
                 }
             }
         }
@@ -124,7 +127,7 @@ class Cypher31Generator : CypherGenerator() {
         val pattern = "(`$variable`)$arrowLeft-[:`${info.type}`]-$arrowRight(`$fieldVariable`:`${info.label}`)"
         val orderBys2 = mutableListOf<Pair<String,Boolean>>()
         val where = where(field, fieldVariable, fieldMetaData, orderBys2)
-        val projection = projectMap(field, fieldVariable, fieldMetaData, orderBysIgnore)
+        val projection = projectMap(field, fieldVariable, fieldMetaData, orderBysIgnore) // [x IN graph.run ... | x {.name, .age } ] as recommendedMovie if it's a relationship/entity Person / Movie
         var result = "[ $pattern $where | $projection]"
         if (orderBys2.isNotEmpty()) result = "graphql.sortColl($result,${orderBys2.map { "${if (it.second) "^" else ""}'${it.first}'" }.joinNonEmpty(",","[","]")})"
         return Pair(result,fieldVariable)

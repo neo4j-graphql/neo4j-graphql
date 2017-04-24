@@ -283,7 +283,7 @@ class GraphQLSchemaBuilder {
                     val (field, query) = pair
                     val directives = field.directives.associate { it.name to it }
                     val statement = applyDirectivesToStatement(generator, query, directives)
-//                    println(statement)
+                    println(statement)
                     val parameters = env.arguments
                     val result = db.execute(statement, parameters)
                     val list = Iterators.asList(result)

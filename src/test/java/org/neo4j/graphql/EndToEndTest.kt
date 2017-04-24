@@ -43,6 +43,7 @@ class EndToEndTest {
             born: Int
             movies: [Movie] @out(name:"ACTED_IN")
             totalMoviesCount: Int @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
+            recommendedColleagues: [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) RETURN other")
         }
 
         type Movie  {
@@ -77,6 +78,9 @@ class EndToEndTest {
                 Person(name: "Kevin Bacon") {
                     born,
                     totalMoviesCount
+                    recommendedColleagues {
+                        name
+                    }
                     movies {
                         title
                         released

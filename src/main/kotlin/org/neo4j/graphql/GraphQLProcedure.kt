@@ -39,10 +39,16 @@ class GraphQLProcedure {
     }
 
     @UserFunction("graphql.run")
-    fun run(@Name("query") query: String, @Name("variables") variables : Map<String,Any>): Any {
+    fun run(@Name("query") query: String, @Name("variables") variables : Map<String,Any>, @Name("expectMultipleValues") expectMultipleValues : Boolean) : Any {
         val result = db!!.execute(query, variables)
+
         val firstColumn = result.columns()[0]
-        return result.columnAs<Any>(firstColumn).next()!!
+
+        if(expectMultipleValues) {
+            return result.columnAs<Any>(firstColumn).asSequence().toList()
+        } else {
+            return result.columnAs<Any>(firstColumn).next()!!
+        }
     }
 
     @UserFunction("graphql.sortColl")
