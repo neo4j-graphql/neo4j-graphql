@@ -85,4 +85,37 @@ RETURN `Person`.`name` AS `name`,
 `Person`.`born` AS `born`""",  query)
     }
 
+    @Test
+    @Throws(Exception::class)
+    fun matchRelationship() {
+
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: String
+            born: Int
+            movies: [Movie] @out(name: "ACTED_IN")
+        }
+
+        type Movie {
+            title: String
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val selectionSet = SelectionSet(listOf<Selection>(Field("name"), Field("born"), Field("movies", SelectionSet(listOf(Field("title"))))))
+
+        val field = Field("Person", selectionSet)
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Person`:`Person`)
+RETURN `Person`.`name` AS `name`,
+`Person`.`born` AS `born`,
+[ (`Person`)-[:`ACTED_IN`]->(`Person_movies`:`Movie`)  | `Person_movies` {.`title`}] AS `movies`""",  query)
+    }
+
 }
