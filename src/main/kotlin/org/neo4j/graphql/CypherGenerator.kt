@@ -90,7 +90,13 @@ class Cypher31Generator : CypherGenerator() {
             var expectMultipleValues = md.properties[field]?.array?:true
 
             if (!cypherStatement.isNullOrEmpty()) {
-                Pair(field, "graphql.run('$cypherStatement', {this:$variable}, $expectMultipleValues)") // TODO escape cypher statement quotes
+                val cypherFragment = "graphql.run('$cypherStatement', {this:$variable}, $expectMultipleValues)"
+                if(expectMultipleValues) {
+                    val (result, _) = formatCypherDirectivePatternComprehension(md, variable, cypherFragment, f)
+                    Pair(field, result) // TODO escape cypher statement quotes
+                } else {
+                    Pair(field, cypherFragment) // TODO escape cypher statement quotes
+                }
             } else {
                 val relationship = md.relationshipFor(field) // todo correct medatadata of
 
@@ -112,6 +118,21 @@ class Cypher31Generator : CypherGenerator() {
             val (fieldName, projection) = pair
             "$projection AS `$fieldName`"
         }.joinToString(",\n","RETURN ")
+    }
+
+    fun formatCypherDirectivePatternComprehension(md: MetaData, variable: String, cypherFragment: String, field: Field): Pair<String,String> {
+        val fieldName = field.name
+        val info = md.relationshipFor(fieldName) ?: return Pair("","")
+        val fieldVariable = "x";
+
+        val fieldMetaData = GraphSchemaScanner.getMetaData(info.label)!!
+
+        val pattern = "x IN $cypherFragment"
+
+        val projection = projectMap(field, fieldVariable, fieldMetaData, mutableListOf<Pair<String, Boolean>>()) // [x IN graph.run ... | x {.name, .age } ] as recommendedMovie if it's a relationship/entity Person / Movie
+        var result = "[ $pattern | $projection]"
+
+        return Pair(result,fieldVariable)
     }
 
     fun formatPatternComprehension(md: MetaData, variable: String, field: Field, orderBysIgnore: MutableList<Pair<String,Boolean>>): Pair<String,String> {
