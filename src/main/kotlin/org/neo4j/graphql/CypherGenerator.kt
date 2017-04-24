@@ -105,7 +105,7 @@ class Cypher31Generator : CypherGenerator() {
                 } else {
                     if (f.selectionSet == null) null // todo
                     else {
-                        val (patternComp, fieldVariable) = formatPatternComprehension(md,variable,f, orderBys) // metaData(info.label)
+                        val (patternComp, _) = formatPatternComprehension(md,variable,f, orderBys) // metaData(info.label)
                         Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
                     }
                 }
@@ -123,16 +123,14 @@ class Cypher31Generator : CypherGenerator() {
     fun formatCypherDirectivePatternComprehension(md: MetaData, variable: String, cypherFragment: String, field: Field): Pair<String,String> {
         val fieldName = field.name
         val info = md.relationshipFor(fieldName) ?: return Pair("","")
-        val fieldVariable = "x";
-
         val fieldMetaData = GraphSchemaScanner.getMetaData(info.label)!!
 
         val pattern = "x IN $cypherFragment"
 
-        val projection = projectMap(field, fieldVariable, fieldMetaData, mutableListOf<Pair<String, Boolean>>()) // [x IN graph.run ... | x {.name, .age } ] as recommendedMovie if it's a relationship/entity Person / Movie
-        var result = "[ $pattern | $projection]"
+        val projection = projectMap(field, "x", fieldMetaData, mutableListOf<Pair<String, Boolean>>())
+        val result = "[ $pattern | $projection ]"
 
-        return Pair(result,fieldVariable)
+        return Pair(result, "x")
     }
 
     fun formatPatternComprehension(md: MetaData, variable: String, field: Field, orderBysIgnore: MutableList<Pair<String,Boolean>>): Pair<String,String> {
