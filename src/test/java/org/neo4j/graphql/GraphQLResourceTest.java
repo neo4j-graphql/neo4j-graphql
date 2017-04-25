@@ -76,7 +76,7 @@ public class GraphQLResourceTest {
     }
     @Test
     public void personByNameParameter() throws Exception {
-        HTTP.Response response = HTTP.POST(serverURI.toString(), map("query", "query AllPeopleQuery($name:String!) { Person(name:$name) {name,born} }","variables",map("name","Meg Ryan")));
+        HTTP.Response response = HTTP.POST(serverURI.toString(), map("query", "query AllPeopleQuery($name:ID!) { Person(name:$name) {name,born} }","variables",map("name","Meg Ryan")));
 
         assertEquals(200, response.status());
 

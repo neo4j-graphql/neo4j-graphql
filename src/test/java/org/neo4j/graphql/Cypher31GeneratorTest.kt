@@ -94,7 +94,7 @@ RETURN `Person`.`name` AS `name`,
         type Person {
             name: String
             born: Int
-            movies: [Movie] @out(name: "ACTED_IN")
+            movies: [Movie] @relation(name: "ACTED_IN")
         }
 
         type Movie {

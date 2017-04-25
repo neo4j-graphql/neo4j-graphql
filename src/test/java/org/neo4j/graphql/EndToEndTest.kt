@@ -39,18 +39,18 @@ class EndToEndTest {
 
         val schema = """
         type Person {
-            name: String!
+            name: ID!
             born: Int
-            movies: [Movie] @out(name:"ACTED_IN")
+            movies: [Movie] @relation(name:"ACTED_IN")
             totalMoviesCount: Int @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
             recommendedColleagues: [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) RETURN other")
         }
 
         type Movie  {
-            title: String!
+            title: ID!
             released: Int
             tagline: String
-            actors: [Person] @in(name:"ACTED_IN")
+            actors: [Person] @relation(name:"ACTED_IN",direction:"IN")
          }
          """
 

@@ -184,6 +184,7 @@ class GraphQLSchemaBuilder {
     private fun graphQLType(type: MetaData.PropertyType): GraphQLScalarType {
         return when (type.name) {
             "String" -> GraphQLString
+            "ID" -> GraphQLID
             "Boolean" -> GraphQLBoolean
             "Number" -> GraphQLFloat
             "Float" -> GraphQLFloat
@@ -235,7 +236,7 @@ class GraphQLSchemaBuilder {
                 .build()
 
     }
-    fun idProperty(md: MetaData) : Pair<String,MetaData.PropertyType>? = md.properties.entries.filter { it.value.nonNull }.map{ it.toPair() }.firstOrNull()
+    fun idProperty(md: MetaData) : Pair<String,MetaData.PropertyType>? = md.properties.entries.filter { it.value.name == "ID" }.map{ it.toPair() }.firstOrNull()
 
     fun relationshipMutationFields(metaData: MetaData) : List<GraphQLFieldDefinition> {
         val idProperty = idProperty(metaData)
