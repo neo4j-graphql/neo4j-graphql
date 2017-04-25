@@ -288,6 +288,51 @@ Server: Jetty(9.2.9.v20150224)
 {"data":{"Person":[{"name":"Tom Hanks","born":1956,"actedIn":[{"title":"Charlie Wilson's War","released":2007},{"title":"A League of Their Own","released":1992},{"title":"The Polar Express","released":2004},{"title":"The Green Mile","released":1999},{"title":"Cast Away","released":2000},{"title":"Apollo 13","released":1995},{"title":"The Da Vinci Code","released":2006},{"title":"Cloud Atlas","released":2012},{"title":"Joe Versus the Volcano","released":1990},{"title":"Sleepless in Seattle","released":1993},{"title":"You've Got Mail","released":1998},{"title":"That Thing You Do","released":1996}]}]}}
 ----
 
+=== Schema first
+
+----
+$ curl -X POST http://localhost:7474/graphql/idl -d 'type Person {
+            name: String!
+            born: Int
+            movies: [Movie] @out(name:"ACTED_IN")
+            totalMoviesCount: Int @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
+            recommendedColleagues: [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) RETURN other")
+        }
+
+        type Movie  {
+            title: String!
+            released: Int
+            tagline: String
+            actors: [Person] @in(name:"ACTED_IN")
+         }' -u neo4j:neo
+----
+
+[source, cypher]
+----
+call graphql.execute("query { Person { name born totalMoviesCount recommendedColleagues { name }  }}", {}) yield result
+UNWIND result.Person AS person
+RETURN person.name, person.born, person.totalMoviesCount, [p IN person.recommendedColleagues | p.name]
+LIMIT 10
+----
+
+----
+╒══════════════╤═════════════╤═════════════════════════╤══════════════════════════════╕
+│"person.name" │"person.born"│"person.totalMoviesCount"│"colleagues"                  │
+╞══════════════╪═════════════╪═════════════════════════╪══════════════════════════════╡
+│"Keanu Reeves"│"1964"       │"7"                      │["Diane Keaton","Jack Nicholso│
+│              │             │                         │n","Dina Meyer","Ice-T","Takes│
+│              │             │                         │hi Kitano","Brooke Langton","G│
+│              │             │                         │ene Hackman","Orlando Jones","│
+│              │             │                         │Al Pacino","Charlize Theron","│
+│              │             │                         │Hugo Weaving","Carrie-Anne Mos│
+│              │             │                         │s","Laurence Fishburne","Hugo │
+│              │             │                         │Weaving","Laurence Fishburne",│
+│              │             │                         │"Carrie-Anne Moss","Emil Eifre│
+│              │             │                         │m","Hugo Weaving","Laurence Fi│
+│              │             │                         │shburne","Carrie-Anne Moss"]  │
+└──────────────┴─────────────┴─────────────────────────┴──────────────────────────────┘
+----
+
 == Resources
 
 * https://github.com/graphql-java/graphql-java[GraphQL-Java] which we use in this project
