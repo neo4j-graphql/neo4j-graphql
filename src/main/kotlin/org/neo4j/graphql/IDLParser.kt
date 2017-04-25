@@ -37,10 +37,19 @@ object IDLParser {
                     if (type.isBasic()) {
                         metaData.addProperty(fieldName, type)
                     } else {
-                        val out = child.directives.filter { it.name == "in" }.isEmpty()
-                        val relationshipType = child.directives.filter { it.name == "in" || it.name == "out" }.map { (it.arguments[0].value as StringValue).value}.firstOrNull() ?: fieldName
+                        val relation = child.directives.filter { it.name == "relation" }.firstOrNull()
 
-                        metaData.mergeRelationship(relationshipType, fieldName, type.name, out, type.array)
+                        if (relation == null) {
+                            metaData.mergeRelationship(fieldName, fieldName, type.name, out = true, multi = type.array)
+                        } else {
+
+                            val typeName = relation.arguments.filter {it.name == "name" }.map { (it.value as StringValue).value}.firstOrNull()?:fieldName
+                            val out = relation.arguments.filter {it.name == "direction" }.map { !(it.value as StringValue).value.equals( "IN", ignoreCase = true) }.firstOrNull()?:true
+
+                            metaData.mergeRelationship(typeName, fieldName, type.name, out, type.array)
+                        }
+
+
                     }
                     if (type.nonNull) {
                         metaData.addIdProperty(fieldName)

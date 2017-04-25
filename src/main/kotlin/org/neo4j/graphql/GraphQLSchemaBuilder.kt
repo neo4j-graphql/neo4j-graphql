@@ -157,8 +157,7 @@ class GraphQLSchemaBuilder {
         }
 
         private fun graphQLDirectives() = listOf<GraphQLDirective>(
-                newFieldDirective("in", "Relationship coming in"),
-                newFieldDirective("out", "Relationship going out"),
+                newFieldDirective("relation", "Relationship"),
                 newFieldDirective("cypher", "Cypher query to run"),
                 newDirective("profile", "Enable query profiling"),
                 newDirective("explain", "Enable query explanation"),

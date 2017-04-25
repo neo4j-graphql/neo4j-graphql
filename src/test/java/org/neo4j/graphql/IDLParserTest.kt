@@ -117,21 +117,17 @@ type Droid implements Character {
     //
 
     val moviesSchema = """
-enum Direction {
-   OUT, IN, BOTH
-}
-
 type Person {
    name: String!
    born: Int
-   movies: [Movie] @out(name:"ACTED_IN")
+   movies: [Movie] @relation(name:"ACTED_IN")
 }
 
 type Movie {
     title: String!
     released: Int
     tagline: String
-    actors: [Person] @in(name:"ACTED_IN")
+    actors: [Person] @relation(name:"ACTED_IN", direction:"IN")
 }
 """
 
