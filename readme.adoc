@@ -1,4 +1,5 @@
 = Neo4j-GraphQL Extension
+:img: docs/img
 
 image:https://travis-ci.org/neo4j-contrib/neo4j-graphql.svg?branch=master["Build Status", link="https://travis-ci.org/neo4j-contrib/neo4j-graphql"]
 
@@ -108,7 +109,7 @@ query AllPeopleQuery {
 }
 ----
 
-image::graphiql.jpg[width=600]
+image::{img}/graphiql.jpg[width=600]
 
 You can also use variables or query the schema:
 
@@ -171,7 +172,18 @@ UNWIND result.Person as p
 RETURN p.name, p.born
 ----
 
-image::graphql.execute.jpg[width=600]
+image::{img}/graphql.execute.jpg[width=600]
+
+You can also visualize your GraphQL schema in Neo4j Browser via a procedure.
+
+[source,cypher]
+----
+CALL graphql.schema()
+----
+
+image::{img}/graphql.schema.jpg[width=600]
+
+
 
 == Examples
 
@@ -291,7 +303,7 @@ Server: Jetty(9.2.9.v20150224)
 === Schema first
 
 ----
-$ curl -X POST http://localhost:7474/graphql/idl -d 'type Person {
+curl -X POST http://localhost:7474/graphql/idl -d 'type Person {
             name: String!
             born: Int
             movies: [Movie] @out(name:"ACTED_IN")
@@ -304,7 +316,7 @@ $ curl -X POST http://localhost:7474/graphql/idl -d 'type Person {
             released: Int
             tagline: String
             actors: [Person] @in(name:"ACTED_IN")
-         }' -u neo4j:neo
+         }' -u neo4j:****
 ----
 
 [source, cypher]
@@ -367,7 +379,7 @@ echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 * √ Support for Directives, e.g. to specify the cypher compiler or runtime? or special handling for certain fields or types
 * √ Add `extensions` result value for query statistics or query plan, depending on directives given, e.g. contain the generated cypher query as well
 * @skip, @include directives, check if they are handled by the library
-* handle nested relationships as optional or non-optional (perhaps via nullable?) or directive
+* √ handle nested relationships as optional or non-optional (perhaps via nullable?) or directive
 * √ project non-found nested results as null vs. map with null-value entries
 * https://facebook.github.io/relay/docs/graphql-connections.html#content[Connection] add support for edges / nodes special properties
-* Support 3.1 via pattern comprehensions and map projections
+* √ Support 3.1 via pattern comprehensions and map projections
