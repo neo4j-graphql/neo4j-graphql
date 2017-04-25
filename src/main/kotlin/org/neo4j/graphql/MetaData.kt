@@ -65,6 +65,8 @@ class MetaData(label: String) {
     data class PropertyType(val name: String, val array: Boolean = false, val nonNull: Boolean = false) {
         fun isBasic() : Boolean = basicTypes.contains(name)
 
+        override fun toString(): String = (if (array) "[$name]" else name) + (if (nonNull) "!" else "")
+
         companion object {
             val basicTypes = setOf("String","Boolean","Float","Int","Number","ID")
 

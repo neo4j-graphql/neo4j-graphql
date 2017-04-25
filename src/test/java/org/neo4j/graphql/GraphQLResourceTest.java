@@ -1,11 +1,11 @@
 package org.neo4j.graphql;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
@@ -100,6 +100,32 @@ public class GraphQLResourceTest {
         List<Map>  data = (List<Map>) ((Map) row.get("result")).get("Person");
         assertEquals(1,data.size());
         assertEquals("Meg Ryan",data.get(0).get("name"));
+        assertEquals(false,result.hasNext());
+        result.close();
+    }
+    @Test
+    public void testSchemaProcedure() throws Exception {
+        GraphDatabaseService db = neo4j.graph();
+        Result result = db.execute("CALL graphql.schema()");
+        assertEquals(true,result.hasNext());
+        Map<String, Object> row = result.next();
+//        System.out.println("row = " + row);
+        List<Node> nodes = (List<Node>)row.get("nodes");
+        assertEquals(2,nodes.size());
+        Node person = nodes.get(0);
+        assertEquals("Person", person.getLabels().iterator().next().name());
+        assertEquals("Person", person.getProperty("name"));
+        assertEquals("String", person.getProperty(" name"));
+        assertEquals("Int", person.getProperty(" born"));
+        List<Relationship> rels = (List<Relationship>)row.get("rels");
+        assertEquals(2, rels.size());
+        Relationship actedIn = rels.get(0);
+        assertEquals("Person", actedIn.getStartNode().getLabels().iterator().next().name());
+        assertEquals("Movie", actedIn.getEndNode().getLabels().iterator().next().name());
+        assertEquals("actedIn", actedIn.getType().name());
+        assertEquals("ACTED_IN", actedIn.getProperty("type"));
+        assertEquals(false, actedIn.getProperty("multi"));
+
         assertEquals(false,result.hasNext());
         result.close();
     }

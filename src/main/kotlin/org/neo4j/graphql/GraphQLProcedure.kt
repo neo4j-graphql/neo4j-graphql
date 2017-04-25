@@ -1,6 +1,10 @@
 package org.neo4j.graphql
 
 import org.neo4j.graphdb.GraphDatabaseService
+import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.Relationship
+import org.neo4j.graphql.procedure.VirtualNode
+import org.neo4j.graphql.procedure.VirtualRelationship
 import org.neo4j.logging.Log
 import org.neo4j.procedure.Context
 import org.neo4j.procedure.Name
@@ -22,6 +26,7 @@ class GraphQLProcedure {
     @JvmField var log: Log? = null
 
     class GraphQLResult(@JvmField val result: Map<String, Any>)
+    class GraphResult(@JvmField val nodes: List<Node>,@JvmField val rels: List<Relationship>)
 
     @Procedure("graphql.execute")
     fun execute(@Name("query") query : String , @Name("variables") variables : Map<String,Any>) : Stream<GraphQLResult> {
@@ -36,6 +41,25 @@ class GraphQLProcedure {
         }
         val errors = result.errors.joinToString("\n")
         throw RuntimeException("Error executing GraphQL Query:\n $errors")
+    }
+
+    @Procedure("graphql.schema")
+    fun schema() : Stream<GraphResult> {
+        GraphSchemaScanner.databaseSchema(db!!)
+        val metaDatas = GraphSchemaScanner.allMetaDatas()
+
+        val nodes = metaDatas.associate {
+            val props = it.properties.entries.associate { " "+it.key to it.value.toString() } + ("name" to it.type)
+            it.type to VirtualNode(listOf(it.type) + it.labels, props)
+        }
+        val rels = metaDatas.flatMap { n ->
+            val node = nodes[n.type]!!
+            n.relationships.values.map { rel ->
+                val (start, end) = if (rel.out) node to nodes[rel.label]!! else nodes[rel.label]!! to node
+                VirtualRelationship(start, rel.fieldName, mapOf("type" to rel.type, "multi" to rel.multi), end)
+            }
+        }
+        return Stream.of(GraphResult(nodes.values.toList(),rels))
     }
 
     @UserFunction("graphql.run")
