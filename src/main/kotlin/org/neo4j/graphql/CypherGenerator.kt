@@ -86,20 +86,19 @@ class Cypher31Generator : CypherGenerator() {
             val field = f.name
 
             val cypherStatement = md.cypherFor(field)
+            val relationship = md.relationshipFor(field) // todo correct medatadata of
 
             val expectMultipleValues = md.properties[field]?.array?:true
 
             if (!cypherStatement.isNullOrEmpty()) {
                 val cypherFragment = "graphql.run('$cypherStatement', {this:$variable}, $expectMultipleValues)"
-                if(expectMultipleValues) {
+                if(relationship != null) {
                     val (patternComp, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f)
-                    Pair(field, patternComp) // TODO escape cypher statement quotes
+                    Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
                 } else {
                     Pair(field, cypherFragment) // TODO escape cypher statement quotes
                 }
             } else {
-                val relationship = md.relationshipFor(field) // todo correct medatadata of
-
                 if (relationship == null) {
                     Pair(field, attr(variable, field))
                 } else {

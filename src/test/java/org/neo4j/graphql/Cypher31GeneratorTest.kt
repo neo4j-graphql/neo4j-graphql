@@ -152,7 +152,8 @@ RETURN graphql.run('WITH {this} AS this RETURN 2', {this:Person}, false) AS `sco
         type Person {
             name: String
             born: Int
-            scores: [Int] @cypher(statement: "WITH {this} AS this RETURN range(0,5)")
+            scores: [Int] @cypher(statement: "UNWIND range(0,5) AS value RETURN value")
+            scores2: [Int] @cypher(statement: "RETURN range(0,5)")
         }
         """)
 
@@ -160,7 +161,7 @@ RETURN graphql.run('WITH {this} AS this RETURN 2', {this:Person}, false) AS `sco
 
         val generator = Cypher31Generator()
 
-        val selectionSet = SelectionSet(listOf<Selection>(Field("colleagues", SelectionSet(listOf(Field("name"), Field("born"))))))
+        val selectionSet = SelectionSet(listOf<Selection>(Field("scores"), Field("scores2")))
 
         val field = Field("Person", selectionSet)
 
@@ -168,7 +169,8 @@ RETURN graphql.run('WITH {this} AS this RETURN 2', {this:Person}, false) AS `sco
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN graphql.run('WITH {this} AS this RETURN range(0,5)', {this:Person}, true) AS `scores`""",  query)
+RETURN graphql.run('UNWIND range(0,5) AS value RETURN value', {this:Person}, true) AS `scores`,
+graphql.run('RETURN range(0,5)', {this:Person}, true) AS `scores2`""",  query)
     }
 
     @Test

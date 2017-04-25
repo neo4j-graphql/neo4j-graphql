@@ -39,7 +39,8 @@ object IDLParser {
                     } else {
                         val out = child.directives.filter { it.name == "in" }.isEmpty()
                         val relationshipType = child.directives.filter { it.name == "in" || it.name == "out" }.map { (it.arguments[0].value as StringValue).value}.firstOrNull() ?: fieldName
-                        metaData.mergeRelationship(relationshipType, fieldName, type.name, out, true)
+
+                        metaData.mergeRelationship(relationshipType, fieldName, type.name, out, type.array)
                     }
                     if (type.nonNull) {
                         metaData.addIdProperty(fieldName)
