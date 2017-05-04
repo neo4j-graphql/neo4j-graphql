@@ -28,7 +28,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     @Path("/")
     @OPTIONS
     fun options(@Context headers: HttpHeaders): Response {
-        val origin = headers.getRequestHeader("Origin").firstOrNull()
+        val origin = headers.getRequestHeader("Origin")?.firstOrNull()
         return if (origin.isNullOrEmpty()) Response.ok().build()
         else Response.ok().header("Access-Control-Allow-Origin", origin).build()
     }

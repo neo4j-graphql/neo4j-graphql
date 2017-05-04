@@ -44,6 +44,13 @@ public class GraphQLResourceTest {
     }
 
     @Test
+    public void options() throws Exception {
+        HTTP.Response response = HTTP.request("OPTIONS",serverURI.toString(), null);
+
+        assertEquals(200, response.status());
+    }
+
+    @Test
     public void allPeople() throws Exception {
         HTTP.Response response = HTTP.POST(serverURI.toString(), map("query", "query AllPeopleQuery { Person {name,born} }"));
 
