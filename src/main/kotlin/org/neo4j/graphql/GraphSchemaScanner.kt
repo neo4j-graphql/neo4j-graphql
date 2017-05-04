@@ -33,6 +33,7 @@ class GraphSchemaScanner {
                 return metaDatas
             } finally {
                 tx.close()
+                GraphSchema.reset()
             }
         }
 
@@ -105,14 +106,12 @@ class GraphSchemaScanner {
         private fun sampleNodes(md: MetaData, db: GraphDatabaseService, label: Label) {
             var count = 10
             val nodes = db.findNodes(label)
-            val values = LinkedHashMap<String, Any>()
             while (nodes.hasNext() && count-- > 0) {
                 val node = nodes.next()
                 for (l in node.labels) md.addLabel(l.name())
-                values.putAll(node.allProperties)
+                node.allProperties.forEach { k, v -> md.addProperty(k, v.javaClass) }
                 sampleRelationships(md, node)
             }
-            values.forEach { k, v -> md.addProperty(k, v.javaClass) }
         }
 
 

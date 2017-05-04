@@ -69,6 +69,14 @@ public class MetaDataTest {
         assertEquals(2*5, result.get("User").size());
     }
     @Test
+    public void conflictingRelationships() throws Exception {
+        db.execute("CREATE (:User {id:-1,name:'Joe'})-[:AGE]->(:Age {age:42})");
+        GraphQLSchema graphQLSchema = GraphQLSchemaBuilder.buildSchema(db);
+        graphql = new GraphQL(graphQLSchema);
+        Map<String, List<Map>> result = executeQuery("query UserQuery { User(name:\"Joe\") {id,name,age,_age { age }}}", map());
+        assertEquals(1, result.get("User").size());
+    }
+    @Test
     public void profileQuery() throws Exception {
         Map<String, Object> result = getBacklog("query UserQuery { User @profile {name} }", map());
         assertEquals(true, result.get("plan").toString().contains("Total database accesses"));
