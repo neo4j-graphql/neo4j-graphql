@@ -68,6 +68,31 @@ public class MetaDataTest {
         Map<String, List<Map>> result = executeQuery("query UserQuery { User {id,name,age} User {age,name}}", map());
         assertEquals(2*5, result.get("User").size());
     }
+
+    @Test
+    public void firstUserQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ User(first:1) {id,name,age} }", map());
+        assertEquals(1, result.get("User").size());
+    }
+
+    @Test
+    public void offsetUserQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ User(offset:2) {id,name,age} }", map());
+        assertEquals(3, result.get("User").size());
+    }
+
+    @Test
+    public void firstOffsetUserQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ User(first:2,offset:1) {id,name,age} }", map());
+        assertEquals(2, result.get("User").size());
+    }
+    @Test
+    public void firstOffsetUseFieldQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ Location { name, livesIn(first:2,offset:1) { name } } }", map());
+        System.out.println("result = " + result);
+        assertEquals(2, ((List)result.get("Location").get(0).get("livesIn")).size());
+    }
+
     @Test
     public void conflictingRelationships() throws Exception {
         db.execute("CREATE (:User {id:-1,name:'Joe'})-[:AGE]->(:Age {age:42})");

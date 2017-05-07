@@ -76,7 +76,7 @@ class GraphQLSchemaBuilder {
     private fun newReferenceField(md: MetaData, name: String, label: String, multi: Boolean): GraphQLFieldDefinition {
         val labelMd = GraphSchemaScanner.getMetaData(label)!!
         val graphQLType: GraphQLOutputType = if (multi) GraphQLList(GraphQLTypeReference(label)) else GraphQLTypeReference(label)
-        return newFieldDefinition()
+        val field = newFieldDefinition()
                 .name(name)
                 /*
             .dataFetcher((env) -> {
@@ -91,8 +91,15 @@ class GraphQLSchemaBuilder {
                 .argument(propertiesAsListArguments(labelMd))
                 .argument(orderByArgument(labelMd))
                 .type(graphQLType)
-                .build()
+
+        return if (multi) {
+            withFirstOffset(field).build()
+        } else field.build()
     }
+
+    private fun withFirstOffset(field: GraphQLFieldDefinition.Builder) = field
+            .argument(newArgument().name("first").type(GraphQLInt).build())
+            .argument(newArgument().name("offset").type(GraphQLInt).build())
 
     private fun newField(md: MetaData, name: String, type: MetaData.PropertyType): GraphQLFieldDefinition {
         return newFieldDefinition()
@@ -206,14 +213,15 @@ class GraphQLSchemaBuilder {
     fun queryFields(metaDatas: Iterable<MetaData>): List<GraphQLFieldDefinition> {
         return metaDatas
                 .map { md ->
-                    newFieldDefinition()
+                    withFirstOffset(
+                            newFieldDefinition()
                             .name(md.type)
                             .type(GraphQLList(toGraphQL(md)))
                             .argument(propertiesAsArguments(md))
                             .argument(propertiesAsListArguments(md))
                             .argument(orderByArgument(md))
-                            //                            .fetchField();
-                            .dataFetcher({ env -> fetchGraphData(md, env) }).build()
+                            .dataFetcher({ env -> fetchGraphData(md, env) })
+                    ).build()
                 }
     }
 

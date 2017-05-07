@@ -1,7 +1,6 @@
 package org.neo4j.graphql
 
 import graphql.language.*
-import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.kernel.internal.Version
 
 fun <T> Iterable<T>.joinNonEmpty(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((T) -> CharSequence)? = null): String {
@@ -62,23 +61,31 @@ class Cypher31Generator : CypherGenerator() {
     fun where(field: Field, variable: String, md: MetaData, orderBys: MutableList<Pair<String,Boolean>>): String {
         val predicates = field.arguments.mapNotNull {
             val name = it.name
-            if (name == "orderBy") {
-                if (it.value is ArrayValue) {
-                    (it.value as ArrayValue).values.filterIsInstance<EnumValue>().forEach {
-                        val pairs = it.name.split("_")
-                        orderBys.add(Pair(pairs[0], pairs[1].toLowerCase() == "asc"))
-                    }
+            when (name) {
+                "orderBy" -> {
+                    extractOrderByEnum(it, orderBys)
+                    null
                 }
-                null
-            }
-            else
-                if (isPlural(name) && it.value is ArrayValue && md.properties.containsKey(singular(name)))
-                    "`${variable}`.`${singular(name)}` IN ${formatValue(it.value)}"
-                else
-                    "`${variable}`.`$name` = ${formatValue(it.value)}"
+                "first" -> null
+                "offset" -> null
+                else -> {
+                    if (isPlural(name) && it.value is ArrayValue && md.properties.containsKey(singular(name)))
+                        "`${variable}`.`${singular(name)}` IN ${formatValue(it.value)}"
+                    else
+                        "`${variable}`.`$name` = ${formatValue(it.value)}"
+                }
             // todo directives for more complex filtering
-        }.joinToString("\nAND ")
+        }}.joinToString("\nAND ")
         return if (predicates.isBlank()) "" else "WHERE " + predicates;
+    }
+
+    private fun extractOrderByEnum(argument: Argument, orderBys: MutableList<Pair<String, Boolean>>) {
+        if (argument.value is ArrayValue) {
+            (argument.value as ArrayValue).values.filterIsInstance<EnumValue>().forEach {
+                val pairs = it.name.split("_")
+                orderBys.add(Pair(pairs[0], pairs[1].toLowerCase() == "asc"))
+            }
+        }
     }
 
     fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String,Boolean>>): List<Pair<String, String>> {
@@ -128,8 +135,16 @@ class Cypher31Generator : CypherGenerator() {
 
         val projection = projectMap(field, "x", fieldMetaData, mutableListOf<Pair<String, Boolean>>())
         val result = "[ $pattern | $projection ]"
+        val skipLimit = skipLimit(field)
+        return Pair(result + subscript(skipLimit), "x")
+    }
 
-        return Pair(result, "x")
+    private fun subscript(skipLimit: Pair<Number?, Number?>): String {
+        if (skipLimit.first == null && skipLimit.second == null) return ""
+
+        val skip = skipLimit.first?.toInt() ?: 0
+        val limit = if (skipLimit.second == null) -1 else skip + (skipLimit.second?.toInt() ?: 0)
+        return "[$skip..$limit]"
     }
 
     fun formatPatternComprehension(md: MetaData, variable: String, field: Field, orderBysIgnore: MutableList<Pair<String,Boolean>>): Pair<String,String> {
@@ -147,8 +162,13 @@ class Cypher31Generator : CypherGenerator() {
         val where = where(field, fieldVariable, fieldMetaData, orderBys2)
         val projection = projectMap(field, fieldVariable, fieldMetaData, orderBysIgnore) // [x IN graph.run ... | x {.name, .age } ] as recommendedMovie if it's a relationship/entity Person / Movie
         var result = "[ $pattern $where | $projection]"
-        if (orderBys2.isNotEmpty()) result = "graphql.sortColl($result,${orderBys2.map { "${if (it.second) "^" else ""}'${it.first}'" }.joinNonEmpty(",","[","]")})"
-        return Pair(result,fieldVariable)
+        // todo parameters, use subscripts instead
+        val skipLimit = skipLimit(field)
+        if (orderBys2.isNotEmpty()) {
+            val orderByParams = orderBys2.map { "${if (it.second) "^" else ""}'${it.first}'" }.joinToString(",", "[", "]")
+            result = "graphql.sortColl($result,$orderByParams)"
+        }
+        return Pair(result + subscript(skipLimit),fieldVariable)
     }
 
     override fun generateQueryForField(field: Field): String {
@@ -162,11 +182,21 @@ class Cypher31Generator : CypherGenerator() {
                 where(field, variable, md, orderBys),
                 nestedPatterns(md, variable, field.selectionSet, orderBys),
                 orderBys.map { "${it.first} ${if (it.second) "asc" else "desc"}" }.joinNonEmpty(",", "\nORDER BY ")
-        )
+        ) +  skipLimitStatements(skipLimit(field))
 
         return parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
-
     }
+
+    private fun skipLimitStatements(skipLimit: Pair<Number?, Number?>) =
+            listOf<String?>( skipLimit.first?.let { "SKIP $it" },skipLimit.second?.let { "LIMIT $it" })
+
+    private fun skipLimit(field: Field): Pair<Number?,Number?> = Pair(
+            intValue(argumentByName(field, "offset")),
+            intValue(argumentByName(field, "first")))
+
+    private fun argumentByName(field: Field, name: String) = field.arguments.firstOrNull { it.name == name }
+
+    private fun intValue(it: Argument?) : Number? = (it?.value as IntValue?)?.value
 
 }
 

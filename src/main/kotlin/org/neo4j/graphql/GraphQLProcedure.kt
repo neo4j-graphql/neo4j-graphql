@@ -98,7 +98,7 @@ class GraphQLProcedure {
 
         Collections.sort(result, compare)
 
-        return (if (skip > 0 && limit != -1L) result.subList (skip.toInt(), limit.toInt())
+        return (if (skip > 0 && limit != -1L) result.subList (skip.toInt(), skip.toInt() + limit.toInt())
         else if (skip > 0) result.subList (skip.toInt(), result.size)
         else if (limit != -1L) result.subList (0, limit.toInt())
         else result)
