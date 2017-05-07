@@ -84,6 +84,8 @@ class MetaData(label: String) {
         }
         constructor(type: Class<*>) : this(typeName(type), type.isArray)
     }
+
+    fun  isComputed(key: String) = cypher.containsKey(key)
     /*
             if (type.isArray) {
             return GraphQLList(graphQlInType(type.componentType))
