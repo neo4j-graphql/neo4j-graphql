@@ -88,11 +88,23 @@ class MetaData(label: String) {
         }
 
      */
-    data class CypherInfo(val cypher: String, val params: Map<String,PropertyType> = emptyMap())
-    data class PropertyInfo(val fieldName:String, val type: PropertyType, val id: Boolean = false, val indexed: Boolean = false, val cypher: CypherInfo? = null) {
+    data class ParameterInfo(val name: String, val type: PropertyType, val defaultValue: Any? = null) // todo directives
+    data class CypherInfo(val cypher: String)
+    data class PropertyInfo(val fieldName:String, val type: PropertyType, val id: Boolean = false,
+                            val indexed: Boolean = false, val cypher: CypherInfo? = null,
+                            val parameters : Map<String,ParameterInfo>? = null) {
         fun isId() = type.name == "ID" || id
         fun isComputed() = cypher != null
         fun  updateable() = !isComputed() && !isId()
     }
-    data class RelationshipInfo(val fieldName: String, val type: String, val label: String, val out: Boolean = true, val multi: Boolean = false, val cypher: MetaData.CypherInfo? = null)
+    data class RelationshipInfo(val fieldName: String, val type: String, val label: String, val out: Boolean = true,
+                                val multi: Boolean = false, val cypher: MetaData.CypherInfo? = null,
+                                val parameters : Map<String,ParameterInfo>? = null)
+
+    fun addParameters(name: String, parameters: Map<String,ParameterInfo>) {
+        if (parameters.isNotEmpty()) {
+            properties.computeIfPresent(name, { name, prop -> prop.copy(parameters = parameters) })
+            relationships.computeIfPresent(name, { name, rel -> rel.copy(parameters = parameters) })
+        }
+    }
 }

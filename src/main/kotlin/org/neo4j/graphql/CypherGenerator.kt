@@ -20,7 +20,7 @@ abstract class CypherGenerator {
 
     abstract fun compiled() : String
 
-    abstract fun generateQueryForField(field: Field): String;
+    abstract fun generateQueryForField(field: Field): String
 
     protected fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)!!
 
@@ -36,7 +36,7 @@ abstract class CypherGenerator {
             // todo turn into parameters  !!
                 is IntValue -> value.value.toString()
                 is FloatValue -> value.value.toString()
-                is BooleanValue -> value.isValue().toString()
+                is BooleanValue -> value.isValue.toString()
                 is StringValue -> "\"${value.value}\""
                 is EnumValue -> "\"${value.name}\""
                 is ObjectValue -> "{" + value.objectFields.map { it.name + ":" + formatValue(it.value) }.joinToString(",") + "}"
@@ -55,7 +55,7 @@ class Cypher31Generator : CypherGenerator() {
         return projectSelectionFields(md, variable, selectionSet, orderBys).map{
             if (it.second == attr(variable, it.first)) ".`${it.first}`"
             else "`${it.first}` : ${it.second}"
-        }.joinNonEmpty(", ","`$variable` {","}");
+        }.joinNonEmpty(", ","`$variable` {","}")
     }
 
     fun where(field: Field, variable: String, md: MetaData, orderBys: MutableList<Pair<String,Boolean>>): String {
@@ -76,7 +76,7 @@ class Cypher31Generator : CypherGenerator() {
                 }
             // todo directives for more complex filtering
         }}.joinToString("\nAND ")
-        return if (predicates.isBlank()) "" else "WHERE " + predicates;
+        return if (predicates.isBlank()) "" else "WHERE " + predicates
     }
 
     private fun extractOrderByEnum(argument: Argument, orderBys: MutableList<Pair<String, Boolean>>) {
@@ -98,7 +98,15 @@ class Cypher31Generator : CypherGenerator() {
             val expectMultipleValues = md.properties[field]?.type?.array?:true
 
             if (!cypherStatement.isNullOrEmpty()) {
-                val cypherFragment = "graphql.run('$cypherStatement', {this:$variable}, $expectMultipleValues)"
+
+                val arguments = f.arguments.associate { it.name to it.value.extract() }
+                        .mapValues { if (it.value is String) "\"${it.value}\"" else it.value.toString() }
+
+                val params = (mapOf("this" to variable) + arguments).entries
+                        .joinToString(",","{","}"){ "`${it.key}`:${it.value}" }
+
+                val cypherFragment = "graphql.run('$cypherStatement', $params, $expectMultipleValues)"
+
                 if(relationship != null) {
                     val (patternComp, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f)
                     Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
@@ -150,7 +158,7 @@ class Cypher31Generator : CypherGenerator() {
     fun formatPatternComprehension(md: MetaData, variable: String, field: Field, orderBysIgnore: MutableList<Pair<String,Boolean>>): Pair<String,String> {
         val fieldName = field.name
         val info = md.relationshipFor(fieldName) ?: return Pair("","")
-        val fieldVariable = variable + "_" + fieldName;
+        val fieldVariable = variable + "_" + fieldName
 
         val arrowLeft = if (!info.out) "<" else ""
         val arrowRight = if (info.out) ">" else ""
@@ -216,7 +224,7 @@ class Cypher30Generator : CypherGenerator() {
     fun formatNestedRelationshipMatch(md: MetaData, variable: String, field: Field, orderBys: MutableList<String>): String {
         val fieldName = field.name
         val info = md.relationshipFor(fieldName) ?: return ""
-        val fieldVariable = variable + "_" + fieldName;
+        val fieldVariable = variable + "_" + fieldName
 
         val arrowLeft = if (!info.out) "<" else ""
         val arrowRight = if (info.out) ">" else ""
@@ -252,19 +260,19 @@ class Cypher30Generator : CypherGenerator() {
                     "`${variable}`.`$name` = ${formatValue(it.value)} "
             // todo directives for more complex filtering
         }.joinToString(" AND \n")
-        return if (predicates.isBlank()) "" else " WHERE " + predicates;
+        return if (predicates.isBlank()) "" else " WHERE " + predicates
     }
 
     fun projection(field: Field, variable: String, md: MetaData): String {
         val selectionSet = field.selectionSet ?: return ""
 
-        return projectSelectionFields(md, variable, selectionSet).map{ "${it.second} AS `${it.first}`" }.joinToString(", ");
+        return projectSelectionFields(md, variable, selectionSet).map{ "${it.second} AS `${it.first}`" }.joinToString(", ")
     }
 
     fun projectMap(field: Field, variable: String, md: MetaData): String {
         val selectionSet = field.selectionSet ?: return ""
 
-        return "CASE `$variable` WHEN null THEN null ELSE {"+projectSelectionFields(md, variable, selectionSet).map{ "`${it.first}` : ${it.second}" }.joinToString(", ")+"} END";
+        return "CASE `$variable` WHEN null THEN null ELSE {"+projectSelectionFields(md, variable, selectionSet).map{ "`${it.first}` : ${it.second}" }.joinToString(", ")+"} END"
     }
 
     fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet): List<Pair<String, String>> {

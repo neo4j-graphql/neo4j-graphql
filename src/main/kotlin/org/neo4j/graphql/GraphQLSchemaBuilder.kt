@@ -60,7 +60,7 @@ class GraphQLSchemaBuilder {
     private fun addRelationships(md: MetaData, builder: GraphQLObjectType.Builder): GraphQLObjectType.Builder {
         var newBuilder = builder
         for ((key, info) in md.relationships) {
-            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi))
+            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi, info.parameters?.values))
         }
         return newBuilder
     }
@@ -73,7 +73,7 @@ class GraphQLSchemaBuilder {
         return newBuilder
     }
 
-    private fun newReferenceField(md: MetaData, name: String, label: String, multi: Boolean): GraphQLFieldDefinition {
+    private fun newReferenceField(md: MetaData, name: String, label: String, multi: Boolean, parameters: Iterable<MetaData.ParameterInfo>? = emptyList()): GraphQLFieldDefinition {
         val labelMd = GraphSchemaScanner.getMetaData(label)!!
         val graphQLType: GraphQLOutputType = if (multi) GraphQLList(GraphQLTypeReference(label)) else GraphQLTypeReference(label)
         val field = newFieldDefinition()
@@ -90,12 +90,15 @@ class GraphQLSchemaBuilder {
                 .argument(propertiesAsArguments(labelMd))
                 .argument(propertiesAsListArguments(labelMd))
                 .argument(orderByArgument(labelMd))
+                .argument(toArguments(parameters))
                 .type(graphQLType)
 
         return if (multi) {
             withFirstOffset(field).build()
         } else field.build()
     }
+
+    private fun toArguments(parameters: Iterable<MetaData.ParameterInfo>?) = parameters?.map { newArgument().name(it.name).type(graphQlInType(it.type)).defaultValue(it.defaultValue).build() } ?: emptyList()
 
     private fun withFirstOffset(field: GraphQLFieldDefinition.Builder) = field
             .argument(newArgument().name("first").type(GraphQLInt).build())
@@ -116,6 +119,7 @@ class GraphQLSchemaBuilder {
                 //                      .type(ids.contains(name) ? Scalars.GraphQLID : graphQlType(value.getClass()))
                 //                      .fetchField().dataFetcher((env) -> null)
                 .type(graphQlOutType(prop.type))
+                .argument(toArguments(prop.parameters?.values))
                 .build()
     }
 
@@ -134,7 +138,7 @@ class GraphQLSchemaBuilder {
 
             val myDirectives : List<GraphQLDirective>
             init {
-                this.myDirectives = newDirectives + super.getDirectives();
+                this.myDirectives = newDirectives + super.getDirectives()
             }
             override fun getDirectives(): List<GraphQLDirective> {
                 return myDirectives
@@ -372,7 +376,7 @@ class GraphQLSchemaBuilder {
         if (directives.containsKey("explain")) { parts.add("explain")  }
         if (directives.containsKey("profile")) { parts.remove("explain"); parts.add("profile")  }
 
-        return if (parts.isEmpty()) query else parts.joinToString(" ","cypher "," ") + query;
+        return if (parts.isEmpty()) query else parts.joinToString(" ","cypher "," ") + query
     }
 
     // todo make it dependenden on directive
@@ -403,7 +407,7 @@ class GraphQLSchemaBuilder {
                 .type(GraphQLList(GraphQLEnumType("_${md.type}Ordering","Ordering Enum for ${md.type}",
                         md.properties.keys.flatMap { listOf(
                                 GraphQLEnumValueDefinition(it+"_asc","Ascending sort for $it",Pair(it,true)),
-                                GraphQLEnumValueDefinition(it+"_desc","Descending sort for $it",Pair(it,false))) }))).build();
+                                GraphQLEnumValueDefinition(it+"_desc","Descending sort for $it",Pair(it,false))) }))).build()
     }
     internal fun propertiesAsListArguments(md: MetaData): List<GraphQLArgument> {
         return md.properties.values.map {

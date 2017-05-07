@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import graphql.language.*
 import graphql.parser.Parser
+import org.neo4j.graphql.MetaData.*
 
 object IDLParser {
     fun parse(input: String): Map<String,MetaData> = (Parser().parseDocument(input).definitions.map {
@@ -22,7 +23,7 @@ object IDLParser {
     fun toMeta(definition: TypeDefinition): MetaData {
         val metaData = MetaData(definition.name)
         if (definition is ObjectTypeDefinition) {
-            val labels = definition.implements.filterIsInstance<TypeName>().map { it.name };
+            val labels = definition.implements.filterIsInstance<TypeName>().map { it.name }
             metaData.labels.addAll(labels)
         }
 
@@ -35,14 +36,14 @@ object IDLParser {
                     if (type.isBasic()) {
                         metaData.addProperty(fieldName, type)
                     } else {
-                        val relation = child.directives.filter { it.name == "relation" }.firstOrNull()
+                        val relation = directivesByName(child, "relation").firstOrNull()
 
                         if (relation == null) {
                             metaData.mergeRelationship(fieldName, fieldName, type.name, out = true, multi = type.array)
                         } else {
 
-                            val typeName = relation.arguments.filter {it.name == "name" }.map { (it.value as StringValue).value}.firstOrNull()?:fieldName
-                            val out = relation.arguments.filter {it.name == "direction" }.map { !(it.value as StringValue).value.equals( "IN", ignoreCase = true) }.firstOrNull()?:true
+                            val typeName = argumentByName(relation, "name").map { it.value.extract() as String }.firstOrNull() ?: fieldName
+                            val out = argumentByName(relation, "direction").map { !((it.value.extract() as String).equals( "IN", ignoreCase = true)) }.firstOrNull() ?: true
 
                             metaData.mergeRelationship(typeName, fieldName, type.name, out, type.array)
                         }
@@ -50,7 +51,13 @@ object IDLParser {
                     if (type.nonNull) {
                         metaData.addIdProperty(fieldName)
                     }
-                    child.directives.filter { it.name == "cypher" }.map { (it.arguments[0].value as StringValue).value}.forEach { metaData.addCypher(fieldName, it)}
+                    directivesByName(child, "cypher")
+                            .map { cypher -> argumentByName(cypher,"statement").map{ it.value.extract() as String}.first() }
+                            .forEach { metaData.addCypher(fieldName, it)}
+
+                    metaData.addParameters(fieldName,
+                            child.inputValueDefinitions.associate {
+                                it.name to ParameterInfo(it.name, typeFromIDL(it.type), it.defaultValue?.extract()) })
                 }
                 is TypeName -> println("TypeName: " + child.name + " " + child.javaClass + " in " + definition.name)
                 is EnumValueDefinition -> println("EnumValueDef: " + child.name + " " + child.directives.map { it.name })
@@ -60,7 +67,11 @@ object IDLParser {
         return metaData
     }
 
-    private fun typeFromIDL(type: Type, given: MetaData.PropertyType = MetaData.PropertyType("String")): MetaData.PropertyType = when (type) {
+    private fun argumentByName(relation: Directive, argumentName: String) = relation.arguments.filter { it.name == argumentName }
+
+    private fun directivesByName(child: FieldDefinition, directiveName: String) = child.directives.filter { it.name == directiveName }
+
+    private fun typeFromIDL(type: Type, given: MetaData.PropertyType = PropertyType("String")): MetaData.PropertyType = when (type) {
         is TypeName -> given.copy(name = type.name)
         is NonNullType -> typeFromIDL(type.type, given.copy(nonNull = true))
         is ListType -> typeFromIDL(type.type, given.copy(array = true))

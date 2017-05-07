@@ -46,6 +46,7 @@ class EndToEndTest {
             movies: [Movie] @relation(name:"ACTED_IN")
             totalMoviesCount: Int @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
             recommendedColleagues: [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) RETURN other")
+            score(value:Int!): Int @cypher(statement:"RETURN {value}")
         }
 
         type Movie  {
@@ -83,6 +84,7 @@ class EndToEndTest {
                     recommendedColleagues {
                         name
                     }
+                    score(value:7)
                     movies {
                         title
                         released
@@ -110,6 +112,7 @@ class EndToEndTest {
 
         val kevinBacon = data!!.get(0)
         assertEquals(1958, kevinBacon["born"])
+        assertEquals(7, kevinBacon["score"])
         assertEquals(2, kevinBacon["totalMoviesCount"])
 
         val movies = (kevinBacon["movies"] as List<Map<*, *>>)

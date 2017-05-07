@@ -129,7 +129,7 @@ type Movie {
     released: Int
     tagline: String
     actors: [Person] @relation(name:"ACTED_IN", direction:"IN")
-    score: Int @cypher(statement:"RETURN this.score")
+    score(value:Int! = 1): Int @cypher(statement:"RETURN {value}")
 }
 """
 
@@ -159,7 +159,9 @@ type Movie {
         val md = metaDatas["Movie"]!!
         println(md.properties.keys)
         assertEquals(md.properties.keys , setOf("title","released","tagline","score"))
-        assert(md.properties["score"]?.cypher?.cypher == "RETURN this.score")
+        val scoreInfo = md.properties["score"]!!
+        assertEquals(scoreInfo.parameters , mapOf("value" to MetaData.ParameterInfo("value",MetaData.PropertyType("Int",nonNull = true),1)))
+        assertEquals(scoreInfo.cypher?.cypher , "RETURN {value}")
         assertEquals(md.relationships.keys , setOf("actors"))
         println(md.relationships.values)
         assertEquals(md.relationships.values.iterator().next(),MetaData.RelationshipInfo("actors", "ACTED_IN", "Person", false, true))
