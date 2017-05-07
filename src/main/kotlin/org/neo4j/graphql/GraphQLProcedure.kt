@@ -49,7 +49,7 @@ class GraphQLProcedure {
         val metaDatas = GraphSchemaScanner.allMetaDatas()
 
         val nodes = metaDatas.associate {
-            val props = it.properties.entries.associate { " "+it.key to it.value.toString() } + ("name" to it.type)
+            val props = it.properties.values.associate { " "+it.fieldName to it.type.toString() } + ("name" to it.type)
             it.type to VirtualNode(listOf(it.type) + it.labels, props)
         }
         val rels = metaDatas.flatMap { n ->

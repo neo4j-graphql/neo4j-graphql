@@ -11,6 +11,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphql.MetaData.RelationshipInfo;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.FormattedLogProvider;
@@ -54,10 +55,10 @@ public class MetaDataTest {
     public void sampleRelationships() throws Exception {
         try (Transaction tx = db.beginTx()) {
             MetaData person = GraphSchemaScanner.from(db, label("User"));
-            RelationshipInfo livesInLocation = new RelationshipInfo("livesIn","LIVES_IN", "Location", true);
+            RelationshipInfo livesInLocation = new RelationshipInfo("livesIn","LIVES_IN", "Location", true, false, null);
             assertEquals(map("livesIn", livesInLocation), person.relationships);
             MetaData location = GraphSchemaScanner.from(db, label("Location"));
-            RelationshipInfo personLivesIn = new RelationshipInfo("livesIn","LIVES_IN", "User", false).update(true);
+            RelationshipInfo personLivesIn = new RelationshipInfo("livesIn","LIVES_IN", "User", false, true, null);
             assertEquals(map("livesIn", personLivesIn), location.relationships);
             tx.success();
         }

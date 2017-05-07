@@ -95,7 +95,7 @@ class Cypher31Generator : CypherGenerator() {
             val cypherStatement = md.cypherFor(field)
             val relationship = md.relationshipFor(field) // todo correct medatadata of
 
-            val expectMultipleValues = md.properties[field]?.array?:true
+            val expectMultipleValues = md.properties[field]?.type?.array?:true
 
             if (!cypherStatement.isNullOrEmpty()) {
                 val cypherFragment = "graphql.run('$cypherStatement', {this:$variable}, $expectMultipleValues)"

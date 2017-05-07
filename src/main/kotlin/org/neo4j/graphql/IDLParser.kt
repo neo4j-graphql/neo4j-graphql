@@ -32,8 +32,6 @@ object IDLParser {
                     val fieldName = child.name
                     val type = typeFromIDL(child.type)
 
-                    child.directives.filter { it.name == "cypher" }.map { (it.arguments[0].value as StringValue).value}.forEach { metaData.addCypher(fieldName, it)}
-
                     if (type.isBasic()) {
                         metaData.addProperty(fieldName, type)
                     } else {
@@ -48,12 +46,11 @@ object IDLParser {
 
                             metaData.mergeRelationship(typeName, fieldName, type.name, out, type.array)
                         }
-
-
                     }
                     if (type.nonNull) {
                         metaData.addIdProperty(fieldName)
                     }
+                    child.directives.filter { it.name == "cypher" }.map { (it.arguments[0].value as StringValue).value}.forEach { metaData.addCypher(fieldName, it)}
                 }
                 is TypeName -> println("TypeName: " + child.name + " " + child.javaClass + " in " + definition.name)
                 is EnumValueDefinition -> println("EnumValueDef: " + child.name + " " + child.directives.map { it.name })

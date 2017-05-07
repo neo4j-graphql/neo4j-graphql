@@ -1,9 +1,5 @@
 package org.neo4j.graphql
 
-import graphql.language.ListType
-import graphql.language.NonNullType
-import graphql.language.TypeName
-import org.neo4j.graphdb.Label
 import java.util.*
 
 /**
@@ -18,23 +14,20 @@ class MetaData(label: String) {
         this.type = label
     }
 
-    private val ids = LinkedHashSet<String>()
-    val indexed = LinkedHashSet<String>()
-    val properties = LinkedHashMap<String, PropertyType>()
-    val labels = LinkedHashSet<String>()
+    val properties = LinkedHashMap<String, PropertyInfo>()
     @JvmField val relationships: MutableMap<String, RelationshipInfo> = LinkedHashMap()
-    val cypher = LinkedHashMap<String, String>()
+    val labels = LinkedHashSet<String>()
 
     override fun toString(): String {
-        return "MetaData{type='$type', ids=$ids, indexed=$indexed, properties=$properties, labels=$labels, relationships=$relationships}"
+        return "MetaData{type='$type', properties=$properties, labels=$labels, relationships=$relationships}"
     }
 
-    fun addIndexedProperty(property: String) {
-        indexed.add(property)
+    fun addIndexedProperty(name: String) {
+        properties.compute(name, { name, prop -> prop?.copy(indexed = true) ?: PropertyInfo(name, PropertyType("String"),indexed = true) })
     }
 
-    fun addIdProperty(idProperty: String) {
-        ids.add(idProperty)
+    fun addIdProperty(name: String) {
+        properties.compute(name, { name, prop -> prop?.copy(id = true) ?: PropertyInfo(name, PropertyType("String"),id = true) })
     }
 
     fun addLabel(label: String) {
@@ -42,26 +35,29 @@ class MetaData(label: String) {
     }
 
     fun addProperty(name: String, javaClass: Class<Any>) {
-        properties.put(name, PropertyType(javaClass))
+        properties.compute(name, {name, prop -> prop?.copy(type = PropertyType(javaClass)) ?: PropertyInfo(name,PropertyType(javaClass)) })
     }
 
     fun addProperty(name: String, type: PropertyType) {
-        properties.put(name, type)
+        properties.compute(name, {name, prop -> prop?.copy(type = type) ?: PropertyInfo(name,type) })
     }
 
     fun addCypher(name: String, statement: String) {
-        cypher.put(name, statement)
+        val cypherInfo = CypherInfo(statement)
+        properties.computeIfPresent(name, { name, prop -> prop.copy(cypher = cypherInfo)})
+        relationships.computeIfPresent(name, { name, rel -> rel.copy(cypher = cypherInfo)})
     }
 
     fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean = true, multi : Boolean = false) : RelationshipInfo {
+        // fix for up
         val name = if (properties.containsKey(fieldName)) "_" + fieldName else fieldName
 //        val name = if (out) "${typeName}_$label" else "${label}_${typeName}"
-        return relationships.getOrPut(name) { RelationshipInfo(name, typeName, label, out) }.update(multi)
+        return relationships.compute(name) { name,rel -> rel?.copy(multi = multi) ?: RelationshipInfo(name, typeName, label, out, multi) }!!
     }
 
     fun relationshipFor(fieldName: String) = relationships[fieldName]
 
-    fun cypherFor(fieldName: String) = cypher[fieldName]
+    fun cypherFor(fieldName: String) = relationships[fieldName]?.cypher?.cypher ?: properties[fieldName]?.cypher?.cypher
 
     data class PropertyType(val name: String, val array: Boolean = false, val nonNull: Boolean = false) {
         fun isBasic() : Boolean = basicTypes.contains(name)
@@ -85,11 +81,18 @@ class MetaData(label: String) {
         constructor(type: Class<*>) : this(typeName(type), type.isArray)
     }
 
-    fun  isComputed(key: String) = cypher.containsKey(key)
+    fun  isComputed(key: String) = properties[key]?.cypher != null
     /*
             if (type.isArray) {
             return GraphQLList(graphQlInType(type.componentType))
         }
 
      */
+    data class CypherInfo(val cypher: String, val params: Map<String,PropertyType> = emptyMap())
+    data class PropertyInfo(val fieldName:String, val type: PropertyType, val id: Boolean = false, val indexed: Boolean = false, val cypher: CypherInfo? = null) {
+        fun isId() = type.name == "ID" || id
+        fun isComputed() = cypher != null
+        fun  updateable() = !isComputed() && !isId()
+    }
+    data class RelationshipInfo(val fieldName: String, val type: String, val label: String, val out: Boolean = true, val multi: Boolean = false, val cypher: MetaData.CypherInfo? = null)
 }

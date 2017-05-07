@@ -30,8 +30,8 @@ class GraphQLSchemaBuilder {
         // mostly id, indexed, not sure about others
         // ids: Set<String>, indexed: Set<String>
         var newBuilder = builder
-        for (key in md.indexed) {
-            newBuilder = newBuilder.field(newField(md, key, md.properties[key]!!))
+        for (prop in md.properties.values.filter { it.indexed }) {
+            newBuilder = newBuilder.field(newField(md, prop.fieldName, prop))
         }
         return newBuilder
     }
@@ -101,7 +101,7 @@ class GraphQLSchemaBuilder {
             .argument(newArgument().name("first").type(GraphQLInt).build())
             .argument(newArgument().name("offset").type(GraphQLInt).build())
 
-    private fun newField(md: MetaData, name: String, type: MetaData.PropertyType): GraphQLFieldDefinition {
+    private fun newField(md: MetaData, name: String, prop: MetaData.PropertyInfo): GraphQLFieldDefinition {
         return newFieldDefinition()
                 .name(name)
                 /*
@@ -115,7 +115,7 @@ class GraphQLSchemaBuilder {
                 .description(name + " of  " + md.type)
                 //                      .type(ids.contains(name) ? Scalars.GraphQLID : graphQlType(value.getClass()))
                 //                      .fetchField().dataFetcher((env) -> null)
-                .type(graphQlOutType(type))
+                .type(graphQlOutType(prop.type))
                 .build()
     }
 
@@ -228,15 +228,15 @@ class GraphQLSchemaBuilder {
     fun mutationField(metaData: MetaData) : List<GraphQLFieldDefinition> {
         val idProperty = idProperty(metaData)
 
-        val updatableProperties = metaData.properties.filter { !metaData.isComputed(it.key) }
+        val updatableProperties = metaData.properties.values.filter { !it.isComputed() }
 
         val createMutation = GraphQLFieldDefinition.newFieldDefinition()
                 .name("create" + metaData.type)
                 .description("Creates a ${metaData.type} entity")
                 .type(GraphQLString)
-                .argument(updatableProperties.map { GraphQLArgument(it.key, graphQlInType(it.value)) })
+                .argument(updatableProperties.map { GraphQLArgument(it.fieldName, graphQlInType(it.type)) })
                 .dataFetcher { env ->
-                    val params = mapOf<String, Any>("properties" to updatableProperties.keys.associate { it to env.getArgument<Any>(it) })
+                    val params = mapOf<String, Any>("properties" to updatableProperties.associate { it.fieldName to env.getArgument<Any>(it.fieldName) })
 
                     val statement = "CREATE (node:${metaData.type}) SET node = {properties}"
 
@@ -248,7 +248,7 @@ class GraphQLSchemaBuilder {
         if (idProperty == null)
             return listOf(createMutation)
         else {
-            val nonIdProperties = updatableProperties.filter { it.key != idProperty.first }
+            val nonIdProperties = updatableProperties.filter { !it.isId() }
 
             return listOf(
                 createMutation
@@ -257,14 +257,14 @@ class GraphQLSchemaBuilder {
                         .name("update" + metaData.type)
                         .description("Updates a ${metaData.type} entity")
                         .type(GraphQLString)
-                        .argument(GraphQLArgument(idProperty.first, graphQlInType(idProperty.second)))
-                        .argument(nonIdProperties.map { GraphQLArgument(it.key, graphQlInType(it.value)) })
+                        .argument(GraphQLArgument(idProperty.fieldName, graphQlInType(idProperty.type)))
+                        .argument(nonIdProperties.map { GraphQLArgument(it.fieldName, graphQlInType(it.type)) })
                         .dataFetcher { env ->
                             val params = mapOf<String,Any>(
-                                    "id" to env.getArgument<Any>(idProperty.first),
-                                    "properties" to nonIdProperties.keys.associate { it to env.getArgument<Any>(it) })
+                                    "id" to env.getArgument<Any>(idProperty.fieldName),
+                                    "properties" to nonIdProperties.associate { it.fieldName to env.getArgument<Any>(it.fieldName) })
 
-                            val statement = "MATCH (node:`${metaData.type}` {`${idProperty.first}`:{id}}) SET node += {properties}"
+                            val statement = "MATCH (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) SET node += {properties}"
 
                             executeStatement(env, statement,params)
                         }
@@ -274,11 +274,11 @@ class GraphQLSchemaBuilder {
                         .name("delete" + metaData.type)
                         .description("Deletes a ${metaData.type} entity")
                         .type(GraphQLString)
-                        .argument(GraphQLArgument(idProperty.first, graphQlInType(idProperty.second)))
+                        .argument(GraphQLArgument(idProperty.fieldName, graphQlInType(idProperty.type)))
                         .dataFetcher { env ->
-                            val params = mapOf<String,Any>("id" to env.getArgument<Any>(idProperty.first))
+                            val params = mapOf<String,Any>("id" to env.getArgument<Any>(idProperty.fieldName))
 
-                            val statement = "MATCH (node:`${metaData.type}` {`${idProperty.first}`:{id}}) DETACH DELETE node"
+                            val statement = "MATCH (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) DETACH DELETE node"
 
                             executeStatement(env, statement,params)
 
@@ -289,7 +289,7 @@ class GraphQLSchemaBuilder {
         }
 
     }
-    fun idProperty(md: MetaData) : Pair<String,MetaData.PropertyType>? = md.properties.entries.filter { it.value.name == "ID" }.map{ it.toPair() }.firstOrNull()
+    fun idProperty(md: MetaData) : MetaData.PropertyInfo? = md.properties.values.firstOrNull { it.isId() }
 
     fun relationshipMutationFields(metaData: MetaData) : List<GraphQLFieldDefinition> {
         val idProperty = idProperty(metaData)
@@ -298,8 +298,8 @@ class GraphQLSchemaBuilder {
             val targetIdProperty = idProperty(targetMeta)
             if (idProperty == null || targetIdProperty == null) emptyList()
             else {
-                val sourceArgument = GraphQLArgument(idProperty.first, graphQlInType(idProperty.second))
-                val targetArguments = GraphQLArgument(rel.fieldName, GraphQLNonNull(GraphQLList(graphQlInType(targetIdProperty.second))))
+                val sourceArgument = GraphQLArgument(idProperty.fieldName, graphQlInType(idProperty.type))
+                val targetArguments = GraphQLArgument(rel.fieldName, GraphQLNonNull(GraphQLList(graphQlInType(targetIdProperty.type))))
                 val (left,right) = if (rel.out) Pair("",">") else Pair("<","")
                 listOf(
                 GraphQLFieldDefinition.newFieldDefinition()
@@ -308,12 +308,12 @@ class GraphQLSchemaBuilder {
                         .type(GraphQLString)
                         .argument(sourceArgument).argument(targetArguments)
                         .dataFetcher { env ->
-                            val statement = """MATCH (from:`${metaData.type}` {`${idProperty.first}`:{source}})
+                            val statement = """MATCH (from:`${metaData.type}` {`${idProperty.fieldName}`:{source}})
                                                UNWIND {targets} AS target
-                                               MATCH (to:`${targetMeta.type}` { `${targetIdProperty.first}`: target})
+                                               MATCH (to:`${targetMeta.type}` { `${targetIdProperty.fieldName}`: target})
                                                MERGE (from)$left-[:`${rel.type}`]-$right(to)"""
 
-                            val params = mapOf<String,Any>("source" to env.getArgument<Any>(idProperty.first), "targets" to  env.getArgument<Any>(rel.fieldName))
+                            val params = mapOf<String,Any>("source" to env.getArgument<Any>(idProperty.fieldName), "targets" to  env.getArgument<Any>(rel.fieldName))
                             executeStatement(env, statement, params)
                         }
                         .build(),
@@ -323,13 +323,13 @@ class GraphQLSchemaBuilder {
                         .type(GraphQLString)
                         .argument(sourceArgument).argument(targetArguments)
                         .dataFetcher { env ->
-                            val statement = """MATCH (from:`${metaData.type}` {`${idProperty.first}`:{source}})
+                            val statement = """MATCH (from:`${metaData.type}` {`${idProperty.fieldName}`:{source}})
                                                UNWIND {targets} AS target
-                                               MATCH (from)$left-[rel:`${rel.type}`]-$right(to:`${targetMeta.type}` { `${targetIdProperty.first}`: target})
+                                               MATCH (from)$left-[rel:`${rel.type}`]-$right(to:`${targetMeta.type}` { `${targetIdProperty.fieldName}`: target})
                                                DELETE rel
                                             """
 
-                            val params = mapOf<String,Any>("source" to env.getArgument<Any>(idProperty.first), "targets" to  env.getArgument<Any>(rel.fieldName))
+                            val params = mapOf<String,Any>("source" to env.getArgument<Any>(idProperty.fieldName), "targets" to  env.getArgument<Any>(rel.fieldName))
                             executeStatement(env, statement, params)
                         }
                         .build()
@@ -394,8 +394,8 @@ class GraphQLSchemaBuilder {
     }
 
     internal fun propertiesAsArguments(md: MetaData): List<GraphQLArgument> {
-        return md.properties.entries.map {
-            newArgument().name(it.key).description(it.key + " of " + md.type).type(graphQlInType(it.value, false)).build()
+        return md.properties.values.map {
+            newArgument().name(it.fieldName).description(it.fieldName + " of " + md.type).type(graphQlInType(it.type, false)).build()
         }
     }
     internal fun orderByArgument(md: MetaData): GraphQLArgument {
@@ -406,8 +406,8 @@ class GraphQLSchemaBuilder {
                                 GraphQLEnumValueDefinition(it+"_desc","Descending sort for $it",Pair(it,false))) }))).build();
     }
     internal fun propertiesAsListArguments(md: MetaData): List<GraphQLArgument> {
-        return md.properties.entries.map {
-            newArgument().name(it.key+"s").description(it.key + "s is list variant of "+it.key + " of " + md.type).type(GraphQLList(graphQlInType(it.value, false))).build()
+        return md.properties.values.map {
+            newArgument().name(it.fieldName+"s").description(it.fieldName + "s is list variant of "+it.fieldName + " of " + md.type).type(GraphQLList(graphQlInType(it.type, false))).build()
         }
     }
 }

@@ -4,6 +4,7 @@ import graphql.language.*
 import graphql.parser.Parser
 import org.junit.Test
 import java.math.BigInteger
+import kotlin.test.assertEquals
 
 /**
  * copied from graphql.parser.IDLParserTest
@@ -128,6 +129,7 @@ type Movie {
     released: Int
     tagline: String
     actors: [Person] @relation(name:"ACTED_IN", direction:"IN")
+    score: Int @cypher(statement:"RETURN this.score")
 }
 """
 
@@ -146,19 +148,21 @@ type Movie {
       }
     }
      */
+
     @Test
     fun moviesSchema() {
         val metaDatas = IDLParser.parse(moviesSchema)
         // todo handle enums ?
         println(metaDatas)
         println(metaDatas.keys)
-        assert(setOf("Movie","Person") == metaDatas.keys)
+        assertEquals(setOf("Movie","Person") , metaDatas.keys)
         val md = metaDatas["Movie"]!!
         println(md.properties.keys)
-        assert(md.properties.keys == setOf("title","released","tagline"))
-        assert(md.relationships.keys == setOf("actors"))
+        assertEquals(md.properties.keys , setOf("title","released","tagline","score"))
+        assert(md.properties["score"]?.cypher?.cypher == "RETURN this.score")
+        assertEquals(md.relationships.keys , setOf("actors"))
         println(md.relationships.values)
-        assert(md.relationships.values.iterator().next() == RelationshipInfo("actors","ACTED_IN","Person",false))
+        assertEquals(md.relationships.values.iterator().next(),MetaData.RelationshipInfo("actors", "ACTED_IN", "Person", false, true))
     }
 
 }
