@@ -142,7 +142,7 @@ RETURN `Person`.`name` AS `name`,
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN graphql.run('WITH {this} AS this RETURN 2', {this:Person}, false) AS `score`""",  query)
+RETURN graphql.run('WITH {this} AS this RETURN 2', {`this`:Person}, false) AS `score`""",  query)
     }
 
     @Test
@@ -169,8 +169,8 @@ RETURN graphql.run('WITH {this} AS this RETURN 2', {this:Person}, false) AS `sco
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN graphql.run('UNWIND range(0,5) AS value RETURN value', {this:Person}, true) AS `scores`,
-graphql.run('RETURN range(0,5)', {this:Person}, true) AS `scores2`""",  query)
+RETURN graphql.run('UNWIND range(0,5) AS value RETURN value', {`this`:Person}, true) AS `scores`,
+graphql.run('RETURN range(0,5)', {`this`:Person}, true) AS `scores2`""",  query)
     }
 
     @Test
@@ -196,7 +196,7 @@ graphql.run('RETURN range(0,5)', {this:Person}, true) AS `scores2`""",  query)
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN head([ x IN graphql.run('WITH {this} AS this RETURN this', {this:Person}, true) | `x` {.`name`, .`born`} ]) AS `bestFriend`""",  query)
+RETURN head([ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person}, true) | `x` {.`name`, .`born`} ]) AS `bestFriend`""",  query)
     }
 
     @Test
@@ -222,7 +222,33 @@ RETURN head([ x IN graphql.run('WITH {this} AS this RETURN this', {this:Person},
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN [ x IN graphql.run('WITH {this} AS this RETURN this', {this:Person}, true) | `x` {.`name`, .`born`} ] AS `colleagues`""",  query)
+RETURN [ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person}, true) | `x` {.`name`, .`born`} ] AS `colleagues`""",  query)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun cypherParameterQuery() {
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: String
+            born (value:Int!): Int @cypher(statement:"RETURN {value}")
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val selectionSet = SelectionSet(listOf(Field("name"), Field("born",listOf(Argument("value",IntValue(BigInteger.valueOf(7)))))))
+
+        val field = Field("Person", selectionSet)
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Person`:`Person`)
+RETURN `Person`.`name` AS `name`,
+graphql.run('RETURN {value}', {`this`:Person,`value`:7}, false) AS `born`""",  query)
     }
 
 }

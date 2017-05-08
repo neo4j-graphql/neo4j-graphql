@@ -8,6 +8,8 @@ import org.neo4j.harness.ServerControls
 import org.neo4j.harness.TestServerBuilders
 import org.neo4j.test.server.HTTP
 import java.net.URL
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class EndToEndTest {
 
@@ -44,6 +46,7 @@ class EndToEndTest {
             movies: [Movie] @relation(name:"ACTED_IN")
             totalMoviesCount: Int @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
             recommendedColleagues: [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) RETURN other")
+            score(value:Int!): Int @cypher(statement:"RETURN {value}")
         }
 
         type Movie  {
@@ -81,6 +84,7 @@ class EndToEndTest {
                     recommendedColleagues {
                         name
                     }
+                    score(value:7)
                     movies {
                         title
                         released
@@ -108,6 +112,7 @@ class EndToEndTest {
 
         val kevinBacon = data!!.get(0)
         assertEquals(1958, kevinBacon["born"])
+        assertEquals(7, kevinBacon["score"])
         assertEquals(2, kevinBacon["totalMoviesCount"])
 
         val movies = (kevinBacon["movies"] as List<Map<*, *>>)
@@ -117,6 +122,25 @@ class EndToEndTest {
         val apollo13 = movies.find { it["title"] == "Apollo 13" }!!
         assertEquals(setOf("Kevin Bacon","Meg Ryan"), (apollo13["actors"] as List<Map<*, *>>).map{ it["name"]}.toSet())
 
+        val updateMutation = """
+        mutation {
+            kb: updatePerson(name: "Kevin Bacon" born: 1960 )
+            mr: deletePerson(name: "Meg Ryan" )
+            kb_update: deletePersonMovies(name:"Kevin Bacon" movies:["The Matrix"])
+        }
+        """
+
+        val updateMutationResponse = HTTP.POST(serverURI!!.toString(), mapOf("query" to updateMutation))
+        println("updateMutationResponse = ${updateMutationResponse}")
+        assertEquals(200, mutationResponse.status().toLong())
+
+        val queryResult = neo4j!!.graph().execute("MATCH (p:Person)-[:ACTED_IN]->(m:Movie) RETURN p.name, p.born, m.title")
+        assertTrue(queryResult.hasNext())
+        val row = queryResult.next()
+        assertEquals("Kevin Bacon",row.get("p.name"))
+        assertEquals(1960L,row.get("p.born"))
+        assertEquals("Apollo 13",row.get("m.title"))
+        assertFalse(queryResult.hasNext())
     }
 
 

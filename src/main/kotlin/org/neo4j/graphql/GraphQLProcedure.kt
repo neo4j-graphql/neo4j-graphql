@@ -49,7 +49,7 @@ class GraphQLProcedure {
         val metaDatas = GraphSchemaScanner.allMetaDatas()
 
         val nodes = metaDatas.associate {
-            val props = it.properties.entries.associate { " "+it.key to it.value.toString() } + ("name" to it.type)
+            val props = it.properties.values.associate { " "+it.fieldName to it.type.toString() } + ("name" to it.type)
             it.type to VirtualNode(listOf(it.type) + it.labels, props)
         }
         val rels = metaDatas.flatMap { n ->
@@ -98,7 +98,7 @@ class GraphQLProcedure {
 
         Collections.sort(result, compare)
 
-        return (if (skip > 0 && limit != -1L) result.subList (skip.toInt(), limit.toInt())
+        return (if (skip > 0 && limit != -1L) result.subList (skip.toInt(), skip.toInt() + limit.toInt())
         else if (skip > 0) result.subList (skip.toInt(), result.size)
         else if (limit != -1L) result.subList (0, limit.toInt())
         else result)

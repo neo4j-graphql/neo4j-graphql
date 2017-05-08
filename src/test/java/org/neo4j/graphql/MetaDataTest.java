@@ -11,6 +11,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphql.MetaData.RelationshipInfo;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.FormattedLogProvider;
@@ -54,10 +55,10 @@ public class MetaDataTest {
     public void sampleRelationships() throws Exception {
         try (Transaction tx = db.beginTx()) {
             MetaData person = GraphSchemaScanner.from(db, label("User"));
-            RelationshipInfo livesInLocation = new RelationshipInfo("livesIn","LIVES_IN", "Location", true);
+            RelationshipInfo livesInLocation = new RelationshipInfo("livesIn","LIVES_IN", "Location", true, false, null,null);
             assertEquals(map("livesIn", livesInLocation), person.relationships);
             MetaData location = GraphSchemaScanner.from(db, label("Location"));
-            RelationshipInfo personLivesIn = new RelationshipInfo("livesIn","LIVES_IN", "User", false).update(true);
+            RelationshipInfo personLivesIn = new RelationshipInfo("livesIn","LIVES_IN", "User", false, true, null,null);
             assertEquals(map("livesIn", personLivesIn), location.relationships);
             tx.success();
         }
@@ -68,6 +69,31 @@ public class MetaDataTest {
         Map<String, List<Map>> result = executeQuery("query UserQuery { User {id,name,age} User {age,name}}", map());
         assertEquals(2*5, result.get("User").size());
     }
+
+    @Test
+    public void firstUserQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ User(first:1) {id,name,age} }", map());
+        assertEquals(1, result.get("User").size());
+    }
+
+    @Test
+    public void offsetUserQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ User(offset:2) {id,name,age} }", map());
+        assertEquals(3, result.get("User").size());
+    }
+
+    @Test
+    public void firstOffsetUserQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ User(first:2,offset:1) {id,name,age} }", map());
+        assertEquals(2, result.get("User").size());
+    }
+    @Test
+    public void firstOffsetUseFieldQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ Location { name, livesIn(first:2,offset:1) { name } } }", map());
+        System.out.println("result = " + result);
+        assertEquals(2, ((List)result.get("Location").get(0).get("livesIn")).size());
+    }
+
     @Test
     public void conflictingRelationships() throws Exception {
         db.execute("CREATE (:User {id:-1,name:'Joe'})-[:AGE]->(:Age {age:42})");
