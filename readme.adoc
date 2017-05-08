@@ -57,7 +57,7 @@ $NEO4J_HOME/bin/neo4j restart
 ----
 
 == Features
-
+// tag::features[]
 [options=header,cols="a,2a,3m"]
 |===
 | name | information | example
@@ -78,6 +78,7 @@ $NEO4J_HOME/bin/neo4j restart
 | IDL | define schema via IDL | :POST /graphql/idl "type Person {name: String!, born: Int}"
 | Mutations | mutations are created from the schema | "create" mutations for each type and relationship
 |===
+// end::features[]
 
 == Usage
 
