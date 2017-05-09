@@ -46,6 +46,7 @@ class EndToEndTest {
             movies: [Movie] @relation(name:"ACTED_IN")
             totalMoviesCount: Int @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
             recommendedColleagues: [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) RETURN other")
+            namedColleagues(name: String!): [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) WHERE other.name CONTAINS {name} RETURN other")
             score(value:Int!): Int @cypher(statement:"RETURN {value}")
         }
 
@@ -84,6 +85,9 @@ class EndToEndTest {
                     recommendedColleagues {
                         name
                     }
+                    namedColleagues(name: "Meg") {
+                        name
+                    }
                     score(value:7)
                     movies {
                         title
@@ -112,8 +116,12 @@ class EndToEndTest {
 
         val kevinBacon = data!!.get(0)
         assertEquals(1958, kevinBacon["born"])
-        assertEquals(7, kevinBacon["score"])
         assertEquals(2, kevinBacon["totalMoviesCount"])
+
+        val namedColleagues = (kevinBacon["namedColleagues"] as List<Map<*, *>>)
+        assertEquals(setOf("Meg Ryan"), namedColleagues.map { it["name"] }.toSet())
+
+        assertEquals(7, kevinBacon["score"])
 
         val movies = (kevinBacon["movies"] as List<Map<*, *>>)
         assertEquals(setOf("Apollo 13","The Matrix"), movies.map { it["title"] }.toSet())
@@ -142,7 +150,4 @@ class EndToEndTest {
         assertEquals("Apollo 13",row.get("m.title"))
         assertFalse(queryResult.hasNext())
     }
-
-
-
 }
