@@ -1,10 +1,21 @@
 package org.neo4j.graphql
 
+import graphql.Scalars.*
 import graphql.language.*
 import graphql.parser.Parser
+import graphql.schema.*
 import org.neo4j.graphql.MetaData.*
 
 object IDLParser {
+    fun parseMutations(input : String ) : List<FieldDefinition> {
+        val definitions = Parser().parseDocument(input).definitions
+        val mutationName: String? =
+                definitions.filterIsInstance<SchemaDefinition>()
+                        .flatMap { it.operationTypeDefinitions.filter { it.name == "mutation" }
+                                .map { (it.type as TypeName).name } }.firstOrNull()
+        return definitions.filterIsInstance<ObjectTypeDefinition>().filter { it.name == mutationName  }.flatMap { it.fieldDefinitions  }
+    }
+
     fun parse(input: String): Map<String,MetaData> = (Parser().parseDocument(input).definitions.map {
         when (it) {
 //            is TypeDefinition -> toMeta(x)

@@ -3,13 +3,12 @@ package org.neo4j.graphql
 import graphql.Scalars
 import graphql.Scalars.*
 import graphql.introspection.Introspection
-import graphql.language.Directive
+import graphql.language.*
 import graphql.schema.*
 import graphql.schema.GraphQLArgument.newArgument
 import graphql.schema.GraphQLFieldDefinition.newFieldDefinition
 import graphql.schema.GraphQLObjectType.newObject
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.graphdb.Result
+import org.neo4j.graphdb.*
 import org.neo4j.graphql.CypherGenerator.Companion.DEFAULT_CYPHER_VERSION
 import org.neo4j.helpers.collection.Iterators
 import java.util.*
@@ -35,6 +34,83 @@ class GraphQLSchemaBuilder {
         }
         return newBuilder
     }
+
+    fun toMutationFields(mutations: List<FieldDefinition>, objectTypes: Map<String,GraphQLObjectType>) : List<GraphQLFieldDefinition> {
+        fun graphqlTypeFor(arg: Type) : GraphQLType =
+            when (arg) {
+                is NonNullType -> GraphQLNonNull(graphqlTypeFor(arg.type))
+                is ListType -> GraphQLList(graphqlTypeFor(arg.type))
+                is TypeName ->
+                    when (arg.name) { // todo other types
+                        GraphQLInt.name -> GraphQLInt
+                        GraphQLBoolean.name -> GraphQLBoolean
+                        GraphQLString.name -> GraphQLString
+                        GraphQLID.name -> GraphQLID
+                        // todo others, also inline declared object types
+                        else -> objectTypes.get(arg.name) ?: GraphQLString
+                    // todo
+                    }
+                else -> throw RuntimeException("Unknown Type "+arg)
+            }
+
+        // turn result of update operation into the expected graphql type
+        fun asEntityList(db: GraphDatabaseService, result: Result?, returnType: GraphQLOutputType): Any? {
+            if (result ==null || !result.hasNext()) return emptyList<Map<String,Any>>()
+            val cols = result.columns()
+            val tx = db.beginTx()
+            try {
+                val (isList,type) = if (returnType is GraphQLList) true to returnType.wrappedType else false to returnType
+
+                val list = if (cols.size == 1) {
+                    result.columnAs<Any>(cols.get(0)).map {
+                        if (type is GraphQLObjectType) {
+                            when (it) {
+                                is Map<*, *> -> it as Map<String, Any>
+                                is Entity -> it.allProperties
+                                else -> mapOf(cols.get(0) to it)
+                            }
+                        } else {
+                            it
+                        }
+                    }.asSequence().toList()
+                } else Iterators.asList(result)
+                return if (isList) list else list.firstOrNull()
+            } finally {
+                tx.success()
+                tx.close()
+            }
+        }
+
+        fun databaseUpdate(field: FieldDefinition, ctx: DataFetchingEnvironment, returnType: GraphQLOutputType) : Any? {
+            val db = ctx.getContext<GraphQLContext>().db
+            val params = field.inputValueDefinitions.associate { arg -> arg.name to ctx.getArgument<Any>(arg.name) }
+            return field.directives.filter { it.name == "cypher" }
+                    .flatMap { cypher ->
+                        cypher.arguments.filter { arg -> arg.name == "statement" }.map { it.value }.filterIsInstance<StringValue>()
+                                .map { statement ->
+                            val result = db.execute(statement.value, params)
+                            // todo add "CypherUpdate" as typedefinition
+                            if (returnType == GraphQLString) {
+                                return result.queryStatistics.toString()
+                            }
+                            return asEntityList(db, result, returnType)
+                        }
+                    }.firstOrNull()
+        }
+        return mutations.map { field ->
+            val returnType = graphqlTypeFor(field.type) as GraphQLOutputType
+            GraphQLFieldDefinition.newFieldDefinition()
+                    .name(field.name)
+                    .type(returnType)
+                    .dataFetcher { ctx -> databaseUpdate(field, ctx, returnType) }
+                    .argument(field.inputValueDefinitions.map { arg ->
+                        // todo directives
+                        GraphQLArgument.newArgument().name(arg.name).type(graphqlTypeFor(arg.type) as GraphQLInputType).defaultValue(arg.defaultValue?.extract()).build()
+                    })
+                    .build()
+        }
+    }
+
 
     fun toGraphQL(metaData: MetaData): GraphQLObjectType {
         var builder: GraphQLObjectType.Builder = newObject()
@@ -150,11 +226,6 @@ class GraphQLSchemaBuilder {
 
             val myBuilder = GraphQLSchemaBuilder()
 
-            val mutationFields = GraphSchemaScanner.allMetaDatas().flatMap { myBuilder.relationshipMutationFields(it) + myBuilder.mutationField(it) }
-
-            val mutationType: GraphQLObjectType = newObject().name("MutationType")
-                    .fields(mutationFields)
-                    .build()
 
             val queryType = newObject().name("QueryType")
                     .fields(myBuilder.queryFields(GraphSchemaScanner.allMetaDatas()))
@@ -162,8 +233,18 @@ class GraphQLSchemaBuilder {
 
             val dictionary = myBuilder.graphQlTypes(GraphSchemaScanner.allMetaDatas())
 
+            val mutationsFromSchema = GraphSchemaScanner.schema?.
+                    let { IDLParser.parseMutations(it) }?.
+                    let { parsedMutations -> myBuilder.toMutationFields(parsedMutations, dictionary) } ?: emptyList()
+            val mutationFields = GraphSchemaScanner.allMetaDatas()
+                    .flatMap { myBuilder.relationshipMutationFields(it) + myBuilder.mutationField(it) } + mutationsFromSchema
+
+            val mutationType: GraphQLObjectType = newObject().name("MutationType")
+                    .fields(mutationFields)
+                    .build()
+
             // todo this was missing, it was only called by the builder: SchemaUtil().replaceTypeReferences(graphQLSchema)
-            val schema = GraphQLSchema.Builder().mutation(mutationType).query(queryType).build(dictionary)
+            val schema = GraphQLSchema.Builder().mutation(mutationType).query(queryType).build(dictionary.values.toSet())
             return GraphQLSchemaWithDirectives(schema.queryType, schema.mutationType, schema.dictionary, graphQLDirectives())
         }
 
@@ -393,8 +474,8 @@ class GraphQLSchemaBuilder {
         }
     }
 
-    fun graphQlTypes(metaDatas: Iterable<MetaData>): Set<GraphQLType> {
-        return metaDatas.map { toGraphQL(it) }.toSet()
+    fun graphQlTypes(metaDatas: Iterable<MetaData>): Map<String,GraphQLObjectType> {
+        return metaDatas.associate { it.type to toGraphQL(it) }
     }
 
     internal fun propertiesAsArguments(md: MetaData): List<GraphQLArgument> {

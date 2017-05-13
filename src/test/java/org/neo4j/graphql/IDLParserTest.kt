@@ -167,4 +167,25 @@ type Movie {
         assertEquals(md.relationships.values.iterator().next(),MetaData.RelationshipInfo("actors", "ACTED_IN", "Person", false, true))
     }
 
+    @Test
+    fun parseMutations() {
+        val input = """
+schema {
+   mutation: MutationType
+}
+type MutationType {
+    test(name: String) : String @cypher(statement:"CREATE (t:Test {name:{name}}) RETURN id(t)")
+    newPerson(name:ID!, born:Int) : String @cypher(statement:"CREATE (:Person {name:{name},born:{born}})")
+    newMovie(title:ID!, released:Int, tagline:String) : Movie @cypher(statement:"MERGE (m:Movie {title:{title}}) ON CREATE SET m += {released:{released}, tagline:{tagline}} RETURN m")
+}
+"""
+        val document = Parser().parseDocument(input)
+
+        println(document.definitions)
+        assertEquals(2, document.definitions.size)
+        val mutations = IDLParser.parseMutations(input)
+        assertEquals(3, mutations.size)
+
+    }
+
 }
