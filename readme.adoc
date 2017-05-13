@@ -136,7 +136,7 @@ Run `:play movies` in your Neo4j Server, click the statement and run it to inser
 
 Get GraphiQL electron app from: https://github.com/skevy/graphiql-app
 
-If your Neo4j Server runs with auth enabled, add the appropriate Basic-Auth header in the "Edit HTTP Headers" screen.
+If your Neo4j Server runs with auth enabled, add the appropriate Basic-Auth header in the "Edit HTTP Headers" screen. Make sure the request type is set to `GET`, instead of the default `POST`.
 
 ----
 echo "Authorization: Basic $(echo -n "neo4j:<password>" | base64)"
