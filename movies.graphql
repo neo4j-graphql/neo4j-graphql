@@ -1,0 +1,41 @@
+mutation {
+    kb: createPerson(name: "Kevin Bacon" born: 1958 )
+    mr: createPerson(name: "Meg Ryan" born: 1961 )
+    a13: createMovie(title: "Apollo 13" released: 1995 tagline: "Houston, we have a problem." )
+
+    matrix: createMovie(title: "The Matrix" released: 1999 tagline: "There is no spoon" )
+    kb_matrix: addPersonMovies(name:"Kevin Bacon" movies:["Apollo 13", "The Matrix"])
+    mr_a13: addPersonMovies(name:"Meg Ryan" movies:["Apollo 13"])
+
+    th: newPerson(name:"Tom Hanks" born:1956)
+    fg: newMovie(title:"Forrest Gump") { title }
+}
+
+query {
+    Person(name: "Kevin Bacon") {
+        born,
+        totalMoviesCount
+        recommendedColleagues {
+            name
+        }
+        namedColleagues(name: "Meg") {
+            name
+        }
+        score(value:7)
+        movies {
+            title
+            released
+            tagline
+            actors {
+                name
+                born
+            }
+         }
+     }
+}
+
+mutation {
+    kb: updatePerson(name: "Kevin Bacon" born: 1960 )
+    mr: deletePerson(name: "Meg Ryan" )
+    kb_update: deletePersonMovies(name:"Kevin Bacon" movies:["The Matrix"])
+}

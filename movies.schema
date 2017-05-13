@@ -1,0 +1,35 @@
+type Person {
+    name: ID!
+    born: Int
+    movies: [Movie] @relation(name:"ACTED_IN")
+    totalMoviesCount: Int
+        @cypher(statement: "MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
+
+    recommendedColleagues: [Person]
+        @cypher(statement: "MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) RETURN other")
+
+    namedColleagues(name: String!): [Person]
+        @cypher(statement: "MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) WHERE other.name CONTAINS {name} RETURN other")
+
+    score(value:Int!): Int
+        @cypher(statement:"RETURN {value}")
+}
+
+type Movie  {
+    title: ID!
+    released: Int
+    tagline: String
+    actors: [Person] @relation(name:"ACTED_IN",direction:"IN")
+ }
+
+schema {
+    mutation: MutationType
+}
+
+type MutationType {
+    newPerson(name:ID!, born:Int) : String
+         @cypher(statement:"CREATE (:Person {name:{name},born:{born}})")
+
+    newMovie(title:ID!, released:Int, tagline:String) : Movie
+         @cypher(statement:"MERGE (m:Movie {title:{title}}) ON CREATE SET m += {released:{released}, tagline:{tagline}} RETURN m")
+}
