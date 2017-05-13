@@ -56,6 +56,14 @@ class EndToEndTest {
             tagline: String
             actors: [Person] @relation(name:"ACTED_IN",direction:"IN")
          }
+
+         schema {
+            mutation: MutationType
+         }
+         type MutationType {
+            newPerson(name:ID!, born:Int) : String @cypher(statement:"CREATE (:Person {name:{name},born:{born}})")
+            newMovie(title:ID!, released:Int, tagline:String) : Movie @cypher(statement:"MERGE (m:Movie {title:{title}}) ON CREATE SET m += {released:{released}, tagline:{tagline}} RETURN m")
+         }
          """
 
         val schemaResponse = HTTP.POST(idlEndpoint, HTTP.RawPayload.rawPayload(schema))
@@ -69,12 +77,24 @@ class EndToEndTest {
             matrix: createMovie(title: "The Matrix" released: 2001 tagline: "Cypher, not as good as GraphQL" )
             kb_matrix: addPersonMovies(name:"Kevin Bacon" movies:["Apollo 13", "The Matrix"])
             mr_a13: addPersonMovies(name:"Meg Ryan" movies:["Apollo 13"])
+            th: newPerson(name:"Tom Hanks" born:1950)
+            fg: newMovie(title:"Forrest Gump") { title }
         }
         """
 
         val mutationResponse = HTTP.POST(serverURI!!.toString(), mapOf("query" to mutation))
         println("mutationResponse = " + mutationResponse.rawContent())
         assertEquals(200, mutationResponse.status().toLong())
+
+        val thResult = neo4j!!.graph().execute("MATCH (p:Person {name:'Tom Hanks', born:1950}) RETURN p.name as name").columnAs<String>("name")
+        assertEquals(true, thResult.hasNext())
+        assertEquals("Tom Hanks", thResult.next())
+        assertEquals(false, thResult.hasNext())
+
+        val fgResult = neo4j!!.graph().execute("MATCH (m:Movie {title:'Forrest Gump'}) RETURN m.title as title").columnAs<String>("title")
+        assertEquals(true, fgResult.hasNext())
+        assertEquals("Forrest Gump", fgResult.next())
+        assertEquals(false, fgResult.hasNext())
 
 
         val query = """

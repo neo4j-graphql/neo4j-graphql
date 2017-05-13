@@ -14,6 +14,7 @@ class GraphSchemaScanner {
     companion object {
         fun fieldName(type: String) : String = type.split("_").mapIndexed { i, s -> if (i==0) s.toLowerCase() else s.toLowerCase().capitalize()  }.joinToString("")
         internal val allTypes = LinkedHashMap<String, MetaData>()
+        internal var schema : String? = null
 
         val DENSE_NODE = 50
 
@@ -53,13 +54,14 @@ class GraphSchemaScanner {
             }
 
         }
-        fun readIdl(db: GraphDatabaseService) : Map<String, MetaData>? {
+        fun readIdlMetadata(db: GraphDatabaseService) = readIdl(db)?.let { IDLParser.parse(it) }
+
+        fun readIdl(db: GraphDatabaseService) : String? {
             val tx = db.beginTx()
             try {
                 val schema = graphProperties(db).getProperty("graphql.idl", null) as String?
-                val metaDatas = if (schema == null) null else IDLParser.parse(schema)
                 tx.success()
-                return metaDatas
+                return schema
             } finally {
                 tx.close()
             }
@@ -67,7 +69,8 @@ class GraphSchemaScanner {
 
         fun databaseSchema(db: GraphDatabaseService) {
             allTypes.clear();
-            val idlMetaData = readIdl(db)
+            schema = readIdl(db)
+            val idlMetaData = readIdlMetadata(db)
             if (idlMetaData != null) {
                 allTypes.putAll(idlMetaData)
             }

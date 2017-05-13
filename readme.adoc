@@ -58,26 +58,31 @@ $NEO4J_HOME/bin/neo4j restart
 
 == Features
 
+// tag::features[]
+
 [options=header,cols="a,2a,3m"]
 |===
 | name | information | example
 | entities | each node label represented as entity | { User {name,age} }
 | multi entities | multiple entities per query turned into `UNION` | { User {name,age} City {name,geo} }
 | properties (out) | via sampling property names and types are determined | { City {name,geo} }
-| properties (in) | all properties can be used as filtering (exact/list) input parameters, will be turned into Cypher parameters | { City(name:"Berlin") {name,geo} }
-| parameters | passed through as Cypher parameters | query UserQuery ($name: String!) { User(name:$name) {name,age} }
-| relationships (out) | via a `RELTYPE_Label` nested field | { User { name, LIVES_IN_City {name} } }
-| relationships (in) | via a `Label_RELTYPE` nested field | { City { name, User_LIVES_IN { name } } }
-| ordering | via an extra `orderBy` input field | query UserSortQuery { User(orderBy:[name_desc,age_desc]) {name,age}}
-| directive | directives control cypher prefixes, *note that directives have to be set at the first entity* |
-| directive - query plan | `@profile / @explain` will be returned in extra field `extensions` | query UserQuery { User @profile {name} }
+| field parameters | all properties can be used as filtering (exact/list) input parameters, will be turned into Cypher parameters | { City(name:"Berlin") {name,geo} }
+| query parameters | passed through as Cypher parameters | query UserQuery ($name: String!) { User(name:$name) {name,age} }
+| relationships | via a @relationship annotated field | type User { name: String, city : City @relation(name:"LIVES_IN", direction:OUT) }
+| ordering | via an extra `orderBy` parameter | query UserSortQuery { User(orderBy:[name_desc,age_desc]) {name,age}}
+| IDL | define schema via IDL | :POST /graphql/idl "type Person {name: String!, born: Int}"
+| Mutations | create/delete mutations inferred from the schema | createMovie(title:ID!, released:Int) / createMoviePersons(title:ID!,persons:[ID!])
+| Cypher queries | @cypher directive on fields and types, parameter support | actors : Int @cypher(statement:"RETURN size((this)<-[:ACTED_IN]-())")
+| Cypher updates | Custom mutations by executing cypher | createPerson(name: String) : Person @cypher(statement:"CREATE (p:Person {name:{name}}) RETURN p")
+| extensions | extra information returned | fields are: columns, query, warnings, plan, type READ_ONLY/READ_WRITE,
+// | directive | directives control cypher prefixes, *note that directives have to be set at the first entity* |
+// | directive - query plan | `@profile / @explain` will be returned in extra field `extensions` | query UserQuery { User @profile {name} }
 
 // | directive - version | set cypher version to use `@version(3.0,3.1,3.2)` | query UserQuery { User @version(3.0) {name} }
 // | directive - compiled runtime  | force compiled runtime to be used | query UserQuery { User @compile {name} }
-| extensions | extra information returned | fields are: columns, query, warnings, plan, type READ_ONLY/READ_WRITE,
-| IDL | define schema via IDL | :POST /graphql/idl "type Person {name: String!, born: Int}"
-| Mutations | mutations are created from the schema | "create" mutations for each type and relationship
 |===
+
+// end::features[]
 
 == Usage
 
@@ -383,3 +388,5 @@ echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 * √ project non-found nested results as null vs. map with null-value entries
 * https://facebook.github.io/relay/docs/graphql-connections.html#content[Connection] add support for edges / nodes special properties
 * √ Support 3.1 via pattern comprehensions and map projections
+* Improvements: consider replacing MetaData with GraphQL types,
+* check if there is a direct conversion from parsed data (AST-Nodes) to graphql-schema types

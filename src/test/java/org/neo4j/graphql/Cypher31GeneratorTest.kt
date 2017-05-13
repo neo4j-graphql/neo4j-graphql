@@ -219,6 +219,11 @@ RETURN head([ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person
         val field = Field("Person", selectionSet)
 
         val query = generator.generateQueryForField(field)
+/*
+query Person {
+   name, born
+}
+ */
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
