@@ -62,19 +62,63 @@ $NEO4J_HOME/bin/neo4j restart
 
 [options=header,cols="a,2a,3m"]
 |===
+
 | name | information | example
-| entities | each node label represented as entity | { User {name,age} }
-| multi entities | multiple entities per query turned into `UNION` | { User {name,age} City {name,geo} }
-| properties (out) | via sampling property names and types are determined | { City {name,geo} }
-| field parameters | all properties can be used as filtering (exact/list) input parameters, will be turned into Cypher parameters | { City(name:"Berlin") {name,geo} }
-| query parameters | passed through as Cypher parameters | query UserQuery ($name: String!) { User(name:$name) {name,age} }
-| relationships | via a @relationship annotated field | type User { name: String, city : City @relation(name:"LIVES_IN", direction:OUT) }
-| ordering | via an extra `orderBy` parameter | query UserSortQuery { User(orderBy:[name_desc,age_desc]) {name,age}}
-| IDL | define schema via IDL | :POST /graphql/idl "type Person {name: String!, born: Int}"
-| Mutations | create/delete mutations inferred from the schema | createMovie(title:ID!, released:Int) / createMoviePersons(title:ID!,persons:[ID!])
-| Cypher queries | @cypher directive on fields and types, parameter support | actors : Int @cypher(statement:"RETURN size((this)<-[:ACTED_IN]-())")
-| Cypher updates | Custom mutations by executing cypher | createPerson(name: String) : Person @cypher(statement:"CREATE (p:Person {name:{name}}) RETURN p")
-| extensions | extra information returned | fields are: columns, query, warnings, plan, type READ_ONLY/READ_WRITE,
+| entities
+| each node label represented as entity
+| { Person {name,born} }
+
+| multi entities
+| multiple entities per query turned into `UNION`
+| { Person {name,born} Movie {title,released} }
+
+| properties (out)
+| via sampling property names and types are determined
+| { Movie {title, released} }
+
+| field parameters
+| all properties can be used as filtering (exact/list) input parameters, will be turned into Cypher parameters
+| { Movie(title:"The Matrix") {name,released} }
+
+| query parameters
+| passed through as Cypher parameters
+| query MovieByParameter ($title: String!) { Person(name:$name) {name,born} }
+
+| relationships
+| via a `@relationship` annotated field, optional direction
+| type Person { name: String, movies : Movie @relation(name:"ACTED_IN", direction:OUT) }
+
+| ordering
+| via an extra `orderBy` parameter
+| query PersonSortQuery { Person(orderBy:[name_desc,born_desc]) {name,born}}
+
+| pagination
+| via `first` and `offset` parameters
+| query PagedPeople { Person(first:10, offset:20) {name,born}}
+
+| schema first IDL support
+| define schema via IDL
+| :POST /graphql/idl "type Person {name: String!, born: Int}"
+
+| Mutations | create/delete mutations inferred from the schema |
+createMovie(title:ID!, released:Int)
+updateMovie(title:ID!, released:Int)
+deleteMovie(title:ID!)
+
+createMoviePersons(title:ID!,persons:[ID!])
+deleteMoviePersons(title:ID!,persons:[ID!])
+
+| Cypher queries
+| `@cypher` directive on fields and types, parameter support
+| actors : Int @cypher(statement:"RETURN size((this)<-[:ACTED_IN]-())")
+
+| Cypher updates
+| Custom mutations by executing `@cypher` directives
+| createPerson(name: String) : Person @cypher(statement:"CREATE (p:Person {name:{name}}) RETURN p")
+
+| extensions
+| extra information returned
+| fields are: columns, query, warnings, plan, type READ_ONLY/READ_WRITE,
 // | directive | directives control cypher prefixes, *note that directives have to be set at the first entity* |
 // | directive - query plan | `@profile / @explain` will be returned in extra field `extensions` | query UserQuery { User @profile {name} }
 
