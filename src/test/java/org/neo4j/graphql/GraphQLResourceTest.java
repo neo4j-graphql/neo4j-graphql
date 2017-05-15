@@ -110,6 +110,7 @@ public class GraphQLResourceTest {
         assertEquals(false,result.hasNext());
         result.close();
     }
+    
     @Test
     public void testSchemaProcedure() throws Exception {
         GraphDatabaseService db = neo4j.graph();

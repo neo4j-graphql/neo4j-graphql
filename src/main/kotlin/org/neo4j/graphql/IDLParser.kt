@@ -38,6 +38,10 @@ object IDLParser {
             metaData.labels.addAll(labels)
         }
 
+        if (definition is InterfaceTypeDefinition) {
+            metaData.isInterface()
+        }
+
         definition.children.forEach { child ->
             when (child) {
                 is FieldDefinition -> {

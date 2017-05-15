@@ -27,7 +27,8 @@ class Cypher31GeneratorTest {
 
         assertEquals(
 """MATCH (`Person`:`Person`)
-RETURN `Person`.`name` AS `name`""",  query)
+RETURN labels(`Person`) AS `_labels`,
+`Person`.`name` AS `name`""",  query)
     }
 
     @Test
@@ -52,7 +53,8 @@ RETURN `Person`.`name` AS `name`""",  query)
         assertEquals(
                 """MATCH (`Person`:`Person`)
 WHERE `Person`.`name` = "Michael Hunger"
-RETURN `Person`.`name` AS `name`""",  query)
+RETURN labels(`Person`) AS `_labels`,
+`Person`.`name` AS `name`""",  query)
     }
 
     @Test
@@ -83,7 +85,8 @@ RETURN `Person`.`name` AS `name`""",  query)
                 """MATCH (`Person`:`Person`)
 WHERE `Person`.`name` IN ["Michael Hunger","Will Lyon"]
 AND `Person`.`born` = 1960
-RETURN `Person`.`name` AS `name`,
+RETURN labels(`Person`) AS `_labels`,
+`Person`.`name` AS `name`,
 `Person`.`born` AS `born`""",  query)
     }
 
@@ -114,9 +117,110 @@ RETURN `Person`.`name` AS `name`,
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN `Person`.`name` AS `name`,
+RETURN labels(`Person`) AS `_labels`,
+`Person`.`name` AS `name`,
 `Person`.`born` AS `born`,
-[ (`Person`)-[:`ACTED_IN`]->(`Person_movies`:`Movie`)  | `Person_movies` {.`title`}] AS `movies`""",  query)
+[ (`Person`)-[:`ACTED_IN`]->(`Person_movies`:`Movie`)  | `Person_movies` {`_labels` : labels(`Person_movies`), .`title`}] AS `movies`""",  query)
+    }
+
+    @Test
+    fun matchIncludesLabels() {
+        val metaData = IDLParser.parse("""
+        interface Person {
+            name: String
+        }
+
+        type Actor implements Person {
+            name: String
+            numberOfOscars: Int
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val selectionSet = SelectionSet(listOf<Selection>(Field("name"), Field("numberOfOscars")))
+
+        val field = Field("Actor", selectionSet)
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Actor`:`Actor`)
+RETURN labels(`Actor`) AS `_labels`,
+`Actor`.`name` AS `name`,
+`Actor`.`numberOfOscars` AS `numberOfOscars`""",  query)
+    }
+    @Test
+    fun matchIncludesLabelsProjection() {
+        val metaData = IDLParser.parse("""
+        interface Person {
+            name: String
+        }
+
+        type Actor implements Person {
+            name: String
+            friend: Person
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val subSelectionSet = SelectionSet(listOf<Selection>(Field("name")))
+        val selectionSet = SelectionSet(listOf<Selection>(Field("name"), Field("friend",subSelectionSet)))
+
+        val field = Field("Actor", selectionSet)
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Actor`:`Actor`)
+RETURN labels(`Actor`) AS `_labels`,
+`Actor`.`name` AS `name`,
+head([ (`Actor`)-[:`friend`]->(`Actor_friend`:`Person`)  | `Actor_friend` {`_labels` : labels(`Actor_friend`), .`name`}]) AS `friend`""",  query)
+    }
+
+    @Test
+    fun includeFragments() {
+        val metaData = IDLParser.parse("""
+        interface Person {
+            name: String
+        }
+
+        type Actor implements Person {
+            name: String
+            numberOfOscars: Int
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        /*
+        Person {
+         ... on Actor {
+            name, numberOfOscars
+         }}
+         */
+        val selectionSet = SelectionSet(listOf<Selection>(InlineFragment(TypeName("Actor"), SelectionSet(listOf(Field("name"), Field("numberOfOscars"))))))
+
+        val field = Field("Person", selectionSet)
+
+        val query = generator.generateQueryForField(field)
+
+        // it's like a cast
+        // but perhaps we can just ignore it more or less
+        // just add a check that the fragment is valid for the label?
+        // WITH *, `Person` AS `Actor` ??
+        assertEquals(
+                """MATCH (`Person`:`Person`)
+RETURN labels(`Person`) AS `_labels`,
+`Person`.`name` AS `name`,
+`Person`.`numberOfOscars` AS `numberOfOscars`""",  query)
     }
 
     @Test
@@ -142,7 +246,8 @@ RETURN `Person`.`name` AS `name`,
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN graphql.run('WITH {this} AS this RETURN 2', {`this`:Person}, false) AS `score`""",  query)
+RETURN labels(`Person`) AS `_labels`,
+graphql.run('WITH {this} AS this RETURN 2', {`this`:Person}, false) AS `score`""",  query)
     }
 
     @Test
@@ -169,7 +274,8 @@ RETURN graphql.run('WITH {this} AS this RETURN 2', {`this`:Person}, false) AS `s
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN graphql.run('UNWIND range(0,5) AS value RETURN value', {`this`:Person}, true) AS `scores`,
+RETURN labels(`Person`) AS `_labels`,
+graphql.run('UNWIND range(0,5) AS value RETURN value', {`this`:Person}, true) AS `scores`,
 graphql.run('RETURN range(0,5)', {`this`:Person}, true) AS `scores2`""",  query)
     }
 
@@ -196,7 +302,8 @@ graphql.run('RETURN range(0,5)', {`this`:Person}, true) AS `scores2`""",  query)
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN head([ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person}, true) | `x` {.`name`, .`born`} ]) AS `bestFriend`""",  query)
+RETURN labels(`Person`) AS `_labels`,
+head([ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person}, true) | `x` {`_labels` : labels(`x`), .`name`, .`born`} ]) AS `bestFriend`""",  query)
     }
 
     @Test
@@ -227,7 +334,8 @@ query Person {
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN [ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person}, true) | `x` {.`name`, .`born`} ] AS `colleagues`""",  query)
+RETURN labels(`Person`) AS `_labels`,
+[ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person}, true) | `x` {`_labels` : labels(`x`), .`name`, .`born`} ] AS `colleagues`""",  query)
     }
 
     @Test
@@ -252,7 +360,8 @@ RETURN [ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person}, tr
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN `Person`.`name` AS `name`,
+RETURN labels(`Person`) AS `_labels`,
+`Person`.`name` AS `name`,
 graphql.run('RETURN {value}', {`this`:Person,`value`:7}, false) AS `born`""",  query)
     }
 

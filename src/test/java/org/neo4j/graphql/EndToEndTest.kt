@@ -40,13 +40,28 @@ class EndToEndTest {
         val idlEndpoint = URL(serverURI, "idl").toString()
 
         val schema = """
-        type Person {
+        interface Person {
+            name: ID!
+            born: Int
+            movies: [Movie]
+            score(value:Int!): Int @cypher(statement:"RETURN {value}")
+        }
+
+        type Actor implements Person {
             name: ID!
             born: Int
             movies: [Movie] @relation(name:"ACTED_IN")
+            score(value:Int!): Int @cypher(statement:"RETURN {value}")
+
             totalMoviesCount: Int @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
             recommendedColleagues: [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) RETURN other")
             namedColleagues(name: String!): [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) WHERE other.name CONTAINS {name} RETURN other")
+        }
+
+        type Director implements Person {
+            name: ID!
+            born: Int
+            movies: [Movie] @relation(name:"DIRECTED")
             score(value:Int!): Int @cypher(statement:"RETURN {value}")
         }
 
@@ -54,7 +69,8 @@ class EndToEndTest {
             title: ID!
             released: Int
             tagline: String
-            actors: [Person] @relation(name:"ACTED_IN",direction:"IN")
+            actors: [Actor] @relation(name:"ACTED_IN",direction:"IN")
+            directors: [Director] @relation(name:"DIRECTED",direction:"IN")
          }
 
          schema {
@@ -71,12 +87,14 @@ class EndToEndTest {
 
         val mutation = """
         mutation {
-            kb: createPerson(name: "Kevin Bacon" born: 1958 )
-            mr: createPerson(name: "Meg Ryan" born: 1961 )
+            kb: createActor(name: "Kevin Bacon" born: 1958 )
+            mr: createActor(name: "Meg Ryan" born: 1961 )
             a13: createMovie(title: "Apollo 13" released: 1995 tagline: "..." )
             matrix: createMovie(title: "The Matrix" released: 2001 tagline: "Cypher, not as good as GraphQL" )
-            kb_matrix: addPersonMovies(name:"Kevin Bacon" movies:["Apollo 13", "The Matrix"])
-            mr_a13: addPersonMovies(name:"Meg Ryan" movies:["Apollo 13"])
+
+            kb_matrix: addActorMovies(name:"Kevin Bacon" movies:["Apollo 13", "The Matrix"])
+            mr_a13: addActorMovies(name:"Meg Ryan" movies:["Apollo 13"])
+
             th: newPerson(name:"Tom Hanks" born:1950)
             fg: newMovie(title:"Forrest Gump") { title }
         }
@@ -96,28 +114,35 @@ class EndToEndTest {
         assertEquals("Forrest Gump", fgResult.next())
         assertEquals(false, fgResult.hasNext())
 
-
         val query = """
             query {
                 Person(name: "Kevin Bacon") {
-                    born,
-                    totalMoviesCount
-                    recommendedColleagues {
-                        name
-                    }
-                    namedColleagues(name: "Meg") {
-                        name
-                    }
-                    score(value:7)
-                    movies {
-                        title
-                        released
-                        tagline
-                        actors {
+                    born
+
+                    ... on Actor {
+                        totalMoviesCount
+                        recommendedColleagues {
                             name
-                            born
                         }
-                     }
+                        namedColleagues(name: "Meg") {
+                            ... on Actor {
+                                name
+                                totalMoviesCount
+                            }
+                        }
+                        movies {
+                            title
+                            released
+                            tagline
+                            actors {
+                                name
+                                born
+                            }
+                         }
+                    }
+
+                    score(value:7)
+
                  }
             }
         """
@@ -152,9 +177,9 @@ class EndToEndTest {
 
         val updateMutation = """
         mutation {
-            kb: updatePerson(name: "Kevin Bacon" born: 1960 )
-            mr: deletePerson(name: "Meg Ryan" )
-            kb_update: deletePersonMovies(name:"Kevin Bacon" movies:["The Matrix"])
+            kb: updateActor(name: "Kevin Bacon" born: 1960 )
+            mr: deleteActor(name: "Meg Ryan" )
+            kb_update: deleteActorMovies(name:"Kevin Bacon" movies:["The Matrix"])
         }
         """
 
@@ -162,7 +187,7 @@ class EndToEndTest {
         println("updateMutationResponse = ${updateMutationResponse}")
         assertEquals(200, mutationResponse.status().toLong())
 
-        val queryResult = neo4j!!.graph().execute("MATCH (p:Person)-[:ACTED_IN]->(m:Movie) RETURN p.name, p.born, m.title")
+        val queryResult = neo4j!!.graph().execute("MATCH (p:Actor)-[:ACTED_IN]->(m:Movie) RETURN p.name, p.born, m.title")
         assertTrue(queryResult.hasNext())
         val row = queryResult.next()
         assertEquals("Kevin Bacon",row.get("p.name"))
