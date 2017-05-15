@@ -88,40 +88,59 @@ class Cypher31Generator : CypherGenerator() {
         }
     }
 
-    fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String,Boolean>>): List<Pair<String, String>> {
-        return selectionSet.selections.filterIsInstance<Field>().mapNotNull { f ->
-            val field = f.name
+    fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String, Boolean>>): List<Pair<String, String>> {
+        return listOf(Pair("_labels", "labels(`$variable`)")) +
+                projectFragments(md, variable, selectionSet.selections, orderBys) +
+                selectionSet.selections.filterIsInstance<Field>().mapNotNull { projectField(it, md, variable, orderBys) }
+    }
 
-            val cypherStatement = md.cypherFor(field)
-            val relationship = md.relationshipFor(field) // todo correct medatadata of
-
-            val expectMultipleValues = md.properties[field]?.type?.array?:true
-
-            if (!cypherStatement.isNullOrEmpty()) {
-
-                val arguments = f.arguments.associate { it.name to it.value.extract() }
-                        .mapValues { if (it.value is String) "\"${it.value}\"" else it.value.toString() }
-
-                val params = (mapOf("this" to variable) + arguments).entries
-                        .joinToString(",","{","}"){ "`${it.key}`:${it.value}" }
-
-                val cypherFragment = "graphql.run('$cypherStatement', $params, $expectMultipleValues)"
-
-                if(relationship != null) {
-                    val (patternComp, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f)
-                    Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
-                } else {
-                    Pair(field, cypherFragment) // TODO escape cypher statement quotes
-                }
+    fun projectFragments(md: MetaData, variable: String, selections: MutableList<Selection>, orderBys: MutableList<Pair<String, Boolean>>): List<Pair<String, String>> {
+        return selections.filterIsInstance<InlineFragment>().flatMap {
+            val fragmentTypeName = it.typeCondition.name
+            val fragmentMetaData = GraphSchemaScanner.getMetaData(fragmentTypeName)!!
+            if (fragmentMetaData.labels.contains(md.type)) {
+                // these are the nested fields of the fragment
+                // it could be that we have to adapt the variable name too, and perhaps add some kind of rename
+                it.selectionSet.selections.filterIsInstance<Field>().map { projectField(it, fragmentMetaData, variable, orderBys) }.filterNotNull()
             } else {
-                if (relationship == null) {
-                    Pair(field, attr(variable, field))
-                } else {
-                    if (f.selectionSet == null) null // todo
-                    else {
-                        val (patternComp, _) = formatPatternComprehension(md,variable,f, orderBys) // metaData(info.label)
-                        Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
-                    }
+                emptyList<Pair<String, String>>()
+            }
+        }
+    }
+
+
+    private fun projectField(f: Field, md: MetaData, variable: String, orderBys: MutableList<Pair<String, Boolean>>): Pair<String, String>? {
+        val field = f.name
+
+        val cypherStatement = md.cypherFor(field)
+        val relationship = md.relationshipFor(field) // todo correct medatadata of
+
+        val expectMultipleValues = md.properties[field]?.type?.array ?: true
+
+        return if (!cypherStatement.isNullOrEmpty()) {
+
+            val arguments = f.arguments.associate { it.name to it.value.extract() }
+                    .mapValues { if (it.value is String) "\"${it.value}\"" else it.value.toString() }
+
+            val params = (mapOf("this" to variable) + arguments).entries
+                    .joinToString(",", "{", "}") { "`${it.key}`:${it.value}" }
+
+            val cypherFragment = "graphql.run('$cypherStatement', $params, $expectMultipleValues)"
+
+            if (relationship != null) {
+                val (patternComp, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f)
+                Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
+            } else {
+                Pair(field, cypherFragment) // TODO escape cypher statement quotes
+            }
+        } else {
+            if (relationship == null) {
+                Pair(field, attr(variable, field))
+            } else {
+                if (f.selectionSet == null) null // todo
+                else {
+                    val (patternComp, _) = formatPatternComprehension(md, variable, f, orderBys) // metaData(info.label)
+                    Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
                 }
             }
         }
@@ -276,22 +295,40 @@ class Cypher30Generator : CypherGenerator() {
     }
 
     fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet): List<Pair<String, String>> {
-        return selectionSet.selections.filterIsInstance<Field>().map { f ->
-            //            val alias = f.alias ?: f.name // alias is handled in graphql layer
-            val alias = f.name
-            val info = md.relationshipFor(f.name) // todo correct medatadata of
+        val selections = selectionSet.selections
 
-            if (info == null) {
-                Pair(alias, "`$variable`.`${f.name}`")
+        return projectFragments(md, selections, variable) +
+                selections.filterIsInstance<Field>().map{ projectField(md, variable, it) }.filterNotNull()
+    }
+
+    fun projectFragments(md: MetaData, selections: MutableList<Selection>, variable: String): List<Pair<String, String>> {
+        return selections.filterIsInstance<InlineFragment>().flatMap {
+            val fragmentTypeName = it.typeCondition.name
+            val metaData = GraphSchemaScanner.getMetaData(fragmentTypeName)!!
+            if (metaData.labels.contains(md.type)) {
+                // these are the nested fields of the fragment
+                val map = it.selectionSet.selections.filterIsInstance<Field>().map { projectField(md, variable, it) }.filterNotNull()
+                map
             } else {
-                if (f.selectionSet == null) null // todo
-                else {
-                    val fieldVariable = variable + "_" + f.name
-                    val map = projectMap(f, fieldVariable, metaData(info.label))
-                    Pair(alias, if (info.multi) "collect($map)" else map)
-                }
+                emptyList<Pair<String, String>>()
             }
-        }.filterNotNull()
+        }
+    }
+
+    private fun projectField(md: MetaData, variable: String, f: Field): Pair<String, String>? {
+        val alias = f.name
+        val info = md.relationshipFor(f.name) // todo correct medatadata of
+
+        return if (info == null) {
+            Pair(alias, "`$variable`.`${f.name}`")
+        } else {
+            if (f.selectionSet == null) null // todo
+            else {
+                val fieldVariable = variable + "_" + f.name
+                val map = projectMap(f, fieldVariable, metaData(info.label))
+                Pair(alias, if (info.multi) "collect($map)" else map)
+            }
+        }
     }
 
     override fun generateQueryForField(field: Field): String {

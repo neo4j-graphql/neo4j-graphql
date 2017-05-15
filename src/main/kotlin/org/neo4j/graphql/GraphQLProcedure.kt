@@ -6,10 +6,7 @@ import org.neo4j.graphdb.Relationship
 import org.neo4j.graphql.procedure.VirtualNode
 import org.neo4j.graphql.procedure.VirtualRelationship
 import org.neo4j.logging.Log
-import org.neo4j.procedure.Context
-import org.neo4j.procedure.Name
-import org.neo4j.procedure.Procedure
-import org.neo4j.procedure.UserFunction
+import org.neo4j.procedure.*
 import java.util.*
 import java.util.stream.Stream
 
@@ -41,6 +38,15 @@ class GraphQLProcedure {
         }
         val errors = result.errors.joinToString("\n")
         throw RuntimeException("Error executing GraphQL Query:\n $errors")
+    }
+
+
+    data class StringResult(@JvmField val value: String)
+
+    @Procedure("graphql.idl", mode = Mode.WRITE)
+    fun idl(@Name("idl") idl: String) : Stream<StringResult> {
+        val storeIdl = GraphSchemaScanner.storeIdl(db!!, idl)
+        return Stream.of(StringResult(storeIdl.toString()))
     }
 
     @Procedure("graphql.schema")

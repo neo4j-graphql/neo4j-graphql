@@ -7,8 +7,8 @@ import java.util.*
  * @since 30.10.16
  */
 class MetaData(label: String) {
-
     var type = ""
+    var isInterface = false
 
     init {
         this.type = label
@@ -19,7 +19,7 @@ class MetaData(label: String) {
     val labels = LinkedHashSet<String>()
 
     override fun toString(): String {
-        return "MetaData{type='$type', properties=$properties, labels=$labels, relationships=$relationships}"
+        return "MetaData{type='$type', properties=$properties, labels=$labels, relationships=$relationships, isInterface=$isInterface}"
     }
 
     fun addIndexedProperty(name: String) {
@@ -106,5 +106,9 @@ class MetaData(label: String) {
             properties.computeIfPresent(name, { name, prop -> prop.copy(parameters = parameters) })
             relationships.computeIfPresent(name, { name, rel -> rel.copy(parameters = parameters) })
         }
+    }
+
+    fun isInterface() {
+        isInterface = true
     }
 }
