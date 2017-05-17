@@ -82,8 +82,13 @@ class Cypher31Generator : CypherGenerator() {
     private fun extractOrderByEnum(argument: Argument, orderBys: MutableList<Pair<String, Boolean>>) {
         if (argument.value is ArrayValue) {
             (argument.value as ArrayValue).values.filterIsInstance<EnumValue>().forEach {
-                val pairs = it.name.split("_")
-                orderBys.add(Pair(pairs[0], pairs[1].toLowerCase() == "asc"))
+                val name = it.name
+                if (name.endsWith("_desc")) {
+                    orderBys.add(Pair(name.substring(0,name.lastIndexOf("_")), false))
+                }
+                if (name.endsWith("_asc")) {
+                    orderBys.add(Pair(name.substring(0,name.lastIndexOf("_")), true))
+                }
             }
         }
     }
@@ -192,7 +197,7 @@ class Cypher31Generator : CypherGenerator() {
         // todo parameters, use subscripts instead
         val skipLimit = skipLimit(field)
         if (orderBys2.isNotEmpty()) {
-            val orderByParams = orderBys2.map { "${if (it.second) "^" else ""}'${it.first}'" }.joinToString(",", "[", "]")
+            val orderByParams = orderBys2.map { "'${if (it.second) "^" else ""}${it.first}'" }.joinToString(",", "[", "]")
             result = "graphql.sortColl($result,$orderByParams)"
         }
         return Pair(result + subscript(skipLimit),fieldVariable)

@@ -136,6 +136,16 @@ public class MetaDataTest {
             assertEquals(5L-i,users.get(i).get("age"));
         }
     }
+    @Test
+    public void allUsersSortAsc() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query UserSortQuery { User(orderBy:[name_asc,age_asc]) {name,age}}", map());
+        List<Map> users = result.get("User");
+        int size = users.size();
+        assertEquals(5, size);
+        for (int i = 0; i < size; i++) {
+            assertEquals((long)(i+1),users.get(i).get("age"));
+        }
+    }
 
     @Test
     public void allLocationsQuery() throws Exception {
