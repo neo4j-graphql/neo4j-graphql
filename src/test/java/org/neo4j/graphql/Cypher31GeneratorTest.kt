@@ -247,7 +247,7 @@ RETURN labels(`Person`) AS `_labels`,
         assertEquals(
                 """MATCH (`Person`:`Person`)
 RETURN labels(`Person`) AS `_labels`,
-graphql.run('WITH {this} AS this RETURN 2', {`this`:Person}, false) AS `score`""",  query)
+graphql.run('WITH {this} AS this RETURN 2', {`this`:`Person`}, false) AS `score`""",  query)
     }
 
     @Test
@@ -275,8 +275,8 @@ graphql.run('WITH {this} AS this RETURN 2', {`this`:Person}, false) AS `score`""
         assertEquals(
                 """MATCH (`Person`:`Person`)
 RETURN labels(`Person`) AS `_labels`,
-graphql.run('UNWIND range(0,5) AS value RETURN value', {`this`:Person}, true) AS `scores`,
-graphql.run('RETURN range(0,5)', {`this`:Person}, true) AS `scores2`""",  query)
+graphql.run('UNWIND range(0,5) AS value RETURN value', {`this`:`Person`}, true) AS `scores`,
+graphql.run('RETURN range(0,5)', {`this`:`Person`}, true) AS `scores2`""",  query)
     }
 
     @Test
@@ -303,7 +303,7 @@ graphql.run('RETURN range(0,5)', {`this`:Person}, true) AS `scores2`""",  query)
         assertEquals(
                 """MATCH (`Person`:`Person`)
 RETURN labels(`Person`) AS `_labels`,
-head([ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person}, true) | `x` {`_labels` : labels(`x`), .`name`, .`born`} ]) AS `bestFriend`""",  query)
+head([ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:`Person`}, true) | `x` {`_labels` : labels(`x`), .`name`, .`born`} ]) AS `bestFriend`""",  query)
     }
 
     @Test
@@ -335,7 +335,7 @@ query Person {
         assertEquals(
                 """MATCH (`Person`:`Person`)
 RETURN labels(`Person`) AS `_labels`,
-[ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:Person}, true) | `x` {`_labels` : labels(`x`), .`name`, .`born`} ] AS `colleagues`""",  query)
+[ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:`Person`}, true) | `x` {`_labels` : labels(`x`), .`name`, .`born`} ] AS `colleagues`""",  query)
     }
 
     @Test
@@ -362,7 +362,7 @@ RETURN labels(`Person`) AS `_labels`,
                 """MATCH (`Person`:`Person`)
 RETURN labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`,
-graphql.run('RETURN {value}', {`this`:Person,`value`:7}, false) AS `born`""",  query)
+graphql.run('RETURN {value}', {`this`:`Person`,`value`:7}, false) AS `born`""",  query)
     }
 
 }
