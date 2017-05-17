@@ -207,8 +207,8 @@ type Director implements Person {
 }
 
 type Movie {
-    title: String!
-    released: Int
+    title: String! @isUnique
+    released: Int @defaultValue(value: 1900)
     tagline: String
     actors: [Actor] @relation(name:"ACTED_IN", direction:"IN")
     directors: [Director] @relation(name:"DIRECTED", direction:"IN")
@@ -222,7 +222,8 @@ type Movie {
         // todo handle enums ?
         println(metaDatas)
         println(metaDatas.keys)
-
+        assertEquals(1900, metaDatas.get("Movie")?.properties?.get("released")?.defaultValue)
+        assertEquals(true, metaDatas.get("Movie")?.properties?.get("title")?.unique)
     }
 
 }
