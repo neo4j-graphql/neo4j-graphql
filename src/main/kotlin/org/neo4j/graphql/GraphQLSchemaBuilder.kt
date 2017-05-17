@@ -35,7 +35,7 @@ class GraphQLSchemaBuilder {
         return newBuilder
     }
 
-    fun toMutationFields(mutations: List<FieldDefinition>, objectTypes: Map<String,GraphQLObjectType>) : List<GraphQLFieldDefinition> {
+    fun toDynamicQueryOrMutationFields(fields: List<FieldDefinition>, objectTypes: Map<String,GraphQLObjectType>) : List<GraphQLFieldDefinition> {
         fun graphqlTypeFor(arg: Type) : GraphQLType =
             when (arg) {
                 is NonNullType -> GraphQLNonNull(graphqlTypeFor(arg.type))
@@ -59,7 +59,7 @@ class GraphQLSchemaBuilder {
             val cols = result.columns()
             val tx = db.beginTx()
             try {
-                val (isList,type) = if (returnType is GraphQLList) true to returnType.wrappedType else false to returnType
+                val (isList,type) = if (returnType is GraphQLList) Pair(true, returnType.wrappedType) else Pair(false, returnType)
 
                 val list = if (cols.size == 1) {
                     result.columnAs<Any>(cols.get(0)).map {
@@ -81,7 +81,7 @@ class GraphQLSchemaBuilder {
             }
         }
 
-        fun databaseUpdate(field: FieldDefinition, ctx: DataFetchingEnvironment, returnType: GraphQLOutputType) : Any? {
+        fun executeCypher(field: FieldDefinition, ctx: DataFetchingEnvironment, returnType: GraphQLOutputType) : Any? {
             val db = ctx.getContext<GraphQLContext>().db
             val params = field.inputValueDefinitions.associate { arg -> arg.name to ctx.getArgument<Any>(arg.name) }
             return field.directives.filter { it.name == "cypher" }
@@ -97,15 +97,19 @@ class GraphQLSchemaBuilder {
                         }
                     }.firstOrNull()
         }
-        return mutations.map { field ->
+        return fields.map { field ->
             val returnType = graphqlTypeFor(field.type) as GraphQLOutputType
             GraphQLFieldDefinition.newFieldDefinition()
                     .name(field.name)
                     .type(returnType)
-                    .dataFetcher { ctx -> databaseUpdate(field, ctx, returnType) }
+                    .dataFetcher { ctx -> executeCypher(field, ctx, returnType) }
                     .argument(field.inputValueDefinitions.map { arg ->
                         // todo directives
-                        GraphQLArgument.newArgument().name(arg.name).type(graphqlTypeFor(arg.type) as GraphQLInputType).defaultValue(arg.defaultValue?.extract()).build()
+                        GraphQLArgument.newArgument()
+                                .name(arg.name)
+                                .type(graphqlTypeFor(arg.type) as GraphQLInputType)
+                                .defaultValue(arg.defaultValue?.extract())
+                                .build()
                     })
                     .build()
         }
@@ -289,18 +293,23 @@ class GraphQLSchemaBuilder {
             val objectTypes = dictionary.second
             val allTypes = (objectTypes.values + interfaceTypes.values).toSet()
 
-            val queryType = newObject().name("QueryType")
-                    .fields(myBuilder.queryFields(metaDatas,allTypes))
-                    .build()
-
             val mutationsFromSchema = GraphSchemaScanner.schema?.
                     let { IDLParser.parseMutations(it) }?.
-                    let { parsedMutations -> myBuilder.toMutationFields(parsedMutations, objectTypes) } ?: emptyList()
+                    let { parsedMutations -> myBuilder.toDynamicQueryOrMutationFields(parsedMutations, objectTypes) } ?: emptyList()
+            val queriesFromSchema = GraphSchemaScanner.schema?.
+                    let { IDLParser.parseQueries(it) }?.
+                    let { parsedQueries -> myBuilder.toDynamicQueryOrMutationFields(parsedQueries, objectTypes) } ?: emptyList()
             val mutationFields = GraphSchemaScanner.allMetaDatas()
                     .flatMap { myBuilder.relationshipMutationFields(it) + myBuilder.mutationField(it) } + mutationsFromSchema
 
             val mutationType: GraphQLObjectType = newObject().name("MutationType")
                     .fields(mutationFields)
+                    .build()
+
+            val queriesFromTypes = myBuilder.queryFields(metaDatas, allTypes)
+
+            val queryType = newObject().name("QueryType")
+                    .fields(queriesFromTypes + queriesFromSchema)
                     .build()
 
             // todo this was missing, it was only called by the builder: SchemaUtil().replaceTypeReferences(graphQLSchema)

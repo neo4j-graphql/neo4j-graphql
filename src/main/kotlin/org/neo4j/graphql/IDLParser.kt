@@ -8,12 +8,22 @@ import org.neo4j.graphql.MetaData.*
 
 object IDLParser {
     fun parseMutations(input : String ) : List<FieldDefinition> {
+        return parseSchemaType(input, "mutation")
+    }
+
+    fun parseQueries(input : String ) : List<FieldDefinition> {
+        return parseSchemaType(input, "query")
+    }
+
+    private fun parseSchemaType(input: String, schemaType: String): List<FieldDefinition> {
         val definitions = Parser().parseDocument(input).definitions
         val mutationName: String? =
                 definitions.filterIsInstance<SchemaDefinition>()
-                        .flatMap { it.operationTypeDefinitions.filter { it.name == "mutation" }
-                                .map { (it.type as TypeName).name } }.firstOrNull()
-        return definitions.filterIsInstance<ObjectTypeDefinition>().filter { it.name == mutationName  }.flatMap { it.fieldDefinitions  }
+                        .flatMap {
+                            it.operationTypeDefinitions.filter { it.name == schemaType }
+                                    .map { (it.type as TypeName).name }
+                        }.firstOrNull()
+        return definitions.filterIsInstance<ObjectTypeDefinition>().filter { it.name == mutationName }.flatMap { it.fieldDefinitions }
     }
 
     fun parse(input: String): Map<String,MetaData> = (Parser().parseDocument(input).definitions.map {

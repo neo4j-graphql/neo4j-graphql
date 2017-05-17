@@ -75,10 +75,16 @@ class EndToEndTest {
 
          schema {
             mutation: MutationType
+            query: QueryType
          }
          type MutationType {
             newPerson(name:ID!, born:Int) : String @cypher(statement:"CREATE (:Person {name:{name},born:{born}})")
             newMovie(title:ID!, released:Int, tagline:String) : Movie @cypher(statement:"MERGE (m:Movie {title:{title}}) ON CREATE SET m += {released:{released}, tagline:{tagline}} RETURN m")
+         }
+         type QueryType {
+            personByName(name:ID!) : Person @cypher(statement:"MATCH (p:Person {name:{name}}) RETURN p")
+            personByBorn(born:Int!) : [Person] @cypher(statement:"MATCH (p:Person {born:{born}}) RETURN p")
+            movieCount : Int @cypher(statement:"MATCH (:Movie) RETURN count(*)")
          }
          """
 
@@ -147,11 +153,7 @@ class EndToEndTest {
             }
         """
 
-        val queryResponse = HTTP.POST(serverURI!!.toString(), mapOf("query" to query))
-
-        println(ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(queryResponse.content()))
-
-        val result = queryResponse.content<Map<String, Map<String, List<Map<*, *>>>>>()
+        val result = executeQuery(query)
 
         assertNull(result["errors"])
 
@@ -175,6 +177,17 @@ class EndToEndTest {
         val apollo13 = movies.find { it["title"] == "Apollo 13" }!!
         assertEquals(setOf("Kevin Bacon","Meg Ryan"), (apollo13["actors"] as List<Map<*, *>>).map{ it["name"]}.toSet())
 
+        val queryFields = """
+        query {
+            personByName(name: "Kevin Bacon") { born }
+        }
+        """
+
+        val fieldResult = executeQuery(query)
+        assertNull(fieldResult["errors"])
+        assertEquals(1, fieldResult["data"]!!["Person"]?.size)
+        assertEquals(1958, fieldResult["data"]!!["Person"]!!.get(0)["born"])
+
         val updateMutation = """
         mutation {
             kb: updateActor(name: "Kevin Bacon" born: 1960 )
@@ -194,5 +207,13 @@ class EndToEndTest {
         assertEquals(1960L,row.get("p.born"))
         assertEquals("Apollo 13",row.get("m.title"))
         assertFalse(queryResult.hasNext())
+    }
+
+    private fun executeQuery(query: String): Map<String, Map<String, List<Map<*, *>>>> {
+        val queryResponse = HTTP.POST(serverURI!!.toString(), mapOf("query" to query))
+
+        println(ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(queryResponse.content()))
+
+        return queryResponse.content<Map<String, Map<String, List<Map<*, *>>>>>()
     }
 }
