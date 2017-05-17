@@ -215,11 +215,19 @@ class Cypher31Generator : CypherGenerator() {
         val md = metaData(name)
         val orderBys = mutableListOf<Pair<String,Boolean>>()
 
+        val projectFields = projectSelectionFields(md, variable, field.selectionSet, orderBys)
+        val resultProjection = projectFields.map { pair ->
+            val (fieldName, projection) = pair
+            "$projection AS `$fieldName`"
+        }.joinToString(",\n","RETURN ")
+
+        val resultFieldNames = projectFields.map { it.first }.toSet()
         val parts = listOf(
                 "MATCH (`$variable`:`$name`)",
                 where(field, variable, md, orderBys),
-                nestedPatterns(md, variable, field.selectionSet, orderBys),
-                orderBys.map { "${it.first} ${if (it.second) "asc" else "desc"}" }.joinNonEmpty(",", "\nORDER BY ")
+                resultProjection,
+                // todo check if result is in returned projections
+                orderBys.map { (if (!resultFieldNames.contains(it.first))  "`$variable`." else "") + "`${it.first}` ${if (it.second) "asc" else "desc"}" }.joinNonEmpty(",", "ORDER BY ")
         ) +  skipLimitStatements(skipLimit(field))
 
         return parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
@@ -241,7 +249,7 @@ class Cypher31Generator : CypherGenerator() {
 class Cypher30Generator : CypherGenerator() {
     override fun compiled() = "compiled"
 
-    fun orderBy(orderBys:List<String>) = if (orderBys.isEmpty()) "" else orderBys.joinNonEmpty(",", "\nWITH * ORDER BY ")
+    fun orderBy(variable: String, orderBys:List<String>) = if (orderBys.isEmpty()) "" else orderBys.map { "`$variable`.$it" }.joinNonEmpty(",", "\nWITH * ORDER BY ")
 
     fun optionalMatches(metaData: MetaData, variable: String, selections: Iterable<Selection>, orderBys: MutableList<String>) =
             selections.map {
@@ -352,7 +360,7 @@ class Cypher30Generator : CypherGenerator() {
                 where(field, variable, md, orderBys) +
                 optionalMatches(md, variable, field.selectionSet.selections, orderBys) +
                 // TODO order within each
-                orderBy(orderBys) +
+                orderBy(variable, orderBys) +
                 " \nRETURN " + projection(field, variable, md)
     }
 

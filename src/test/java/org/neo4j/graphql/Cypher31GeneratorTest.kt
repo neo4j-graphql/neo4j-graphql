@@ -59,6 +59,58 @@ RETURN labels(`Person`) AS `_labels`,
 
     @Test
     @Throws(Exception::class)
+    fun matchOrderBy() {
+
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: String
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val name = Field("name" )
+        val field = Field("Person", listOf(Argument("orderBy", EnumValue("name_asc"))), SelectionSet(listOf<Selection>(name)))
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Person`:`Person`)
+RETURN labels(`Person`) AS `_labels`,
+`Person`.`name` AS `name`
+ORDER BY `name` asc""",  query)
+    }
+    @Test
+    @Throws(Exception::class)
+    fun matchOrderByNonReturned() {
+
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: String
+            born: Int
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val name = Field("name" )
+        val field = Field("Person", listOf(Argument("orderBy", EnumValue("born_desc"))), SelectionSet(listOf<Selection>(name)))
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+                """MATCH (`Person`:`Person`)
+RETURN labels(`Person`) AS `_labels`,
+`Person`.`name` AS `name`
+ORDER BY `Person`.`born` desc""",  query)
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun matchWhereMultipleArguments() {
 
         val metaData = IDLParser.parse("""
