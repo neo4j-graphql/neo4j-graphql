@@ -186,6 +186,23 @@ type MutationType {
         val mutations = IDLParser.parseMutations(input)
         assertEquals(3, mutations.size)
     }
+    @Test
+    fun parseQueries() {
+        val input = """
+schema {
+   query: QueryType
+}
+type QueryType {
+    personByName(name:ID!) : Person @cypher(statement:"MATCH (p:Person {name:{name}}) RETURN p")
+}
+"""
+        val document = Parser().parseDocument(input)
+
+        println(document.definitions)
+        assertEquals(2, document.definitions.size)
+        val queries = IDLParser.parseQueries(input)
+        assertEquals(1, queries.size)
+    }
 
     val fancyMoviesSchema = """
 interface Person {
