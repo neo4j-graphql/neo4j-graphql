@@ -80,16 +80,22 @@ class Cypher31Generator : CypherGenerator() {
     }
 
     private fun extractOrderByEnum(argument: Argument, orderBys: MutableList<Pair<String, Boolean>>) {
-        if (argument.value is ArrayValue) {
-            (argument.value as ArrayValue).values.filterIsInstance<EnumValue>().forEach {
-                val name = it.name
-                if (name.endsWith("_desc")) {
-                    orderBys.add(Pair(name.substring(0,name.lastIndexOf("_")), false))
-                }
-                if (name.endsWith("_asc")) {
-                    orderBys.add(Pair(name.substring(0,name.lastIndexOf("_")), true))
-                }
+        fun extractSortFields(arg: EnumValue) : Unit {
+            val name = arg.name
+            if (name.endsWith("_desc")) {
+                orderBys.add(Pair(name.substring(0,name.lastIndexOf("_")), false))
             }
+            if (name.endsWith("_asc")) {
+                orderBys.add(Pair(name.substring(0,name.lastIndexOf("_")), true))
+            }
+        }
+
+        val value = argument.value
+        if (value is EnumValue) {
+            extractSortFields(value)
+        }
+        if (value is ArrayValue) {
+            value.values.filterIsInstance<EnumValue>().forEach{extractSortFields(it)}
         }
     }
 
