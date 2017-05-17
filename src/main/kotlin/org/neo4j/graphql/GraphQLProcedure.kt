@@ -26,7 +26,7 @@ class GraphQLProcedure {
     class GraphResult(@JvmField val nodes: List<Node>,@JvmField val rels: List<Relationship>)
 
     @Procedure("graphql.execute")
-    fun execute(@Name("query") query : String , @Name("variables") variables : Map<String,Any>) : Stream<GraphQLResult> {
+    fun execute(@Name("query") query : String , @Name("variables",defaultValue = "{}") variables : Map<String,Any>) : Stream<GraphQLResult> {
         val ctx = GraphQLContext(db!!, log!!)
         val result = GraphSchema.getGraphQL(db!!).execute(query, ctx, variables)
 
@@ -96,8 +96,13 @@ class GraphQLProcedure {
             fields.fold(0) { a: Int, s: Pair<String, Boolean> ->
                 if (a == 0) {
                     val name = s.first
-                    if (s.second) o1.getValue(name).compareTo(o2.getValue(name))
-                    else o2.getValue(name).compareTo(o1.getValue(name))
+                    val v1 = o1.get(name)
+                    val v2 = o2.get(name)
+                    if (v1 == v2) 0
+                    else {
+                        val cmp = if (v1 == null) -1 else if (v2 == null) 1 else v1.compareTo(v2)
+                        if (s.second) cmp else -cmp
+                    }
                 } else a
             }
         }
