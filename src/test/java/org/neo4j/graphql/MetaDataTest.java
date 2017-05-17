@@ -87,11 +87,34 @@ public class MetaDataTest {
         Map<String, List<Map>> result = executeQuery("{ User(first:2,offset:1) {id,name,age} }", map());
         assertEquals(2, result.get("User").size());
     }
+
     @Test
     public void firstOffsetUseFieldQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("{ Location { name, livesIn(first:2,offset:1) { name } } }", map());
         System.out.println("result = " + result);
         assertEquals(2, ((List)result.get("Location").get(0).get("livesIn")).size());
+    }
+    @Test
+    public void nestedOrderByQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ Location { name, livesIn(orderBy:name_desc) { name, age } } }", map());
+        System.out.println("result = " + result);
+        List<Map> users = (List<Map>) result.get("Location").get(0).get("livesIn");
+        int size = users.size();
+        assertEquals(5, size);
+        for (int i = 0; i < size; i++) {
+            assertEquals(5L-i,users.get(i).get("age"));
+        }
+    }
+    @Test
+    public void nestedOrderBysQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("{ Location { name, livesIn(orderBy:[name_desc]) { name, age } } }", map());
+        System.out.println("result = " + result);
+        List<Map> users = (List<Map>) result.get("Location").get(0).get("livesIn");
+        int size = users.size();
+        assertEquals(5, size);
+        for (int i = 0; i < size; i++) {
+            assertEquals(5L-i,users.get(i).get("age"));
+        }
     }
 
     @Test
@@ -136,6 +159,7 @@ public class MetaDataTest {
             assertEquals(5L-i,users.get(i).get("age"));
         }
     }
+
     @Test
     public void allUsersSortAsc() throws Exception {
         Map<String, List<Map>> result = executeQuery("query UserSortQuery { User(orderBy:[name_asc,age_asc]) {name,age}}", map());
