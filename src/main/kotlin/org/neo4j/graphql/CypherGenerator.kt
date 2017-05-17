@@ -133,7 +133,7 @@ class Cypher31Generator : CypherGenerator() {
             val arguments = f.arguments.associate { it.name to it.value.extract() }
                     .mapValues { if (it.value is String) "\"${it.value}\"" else it.value.toString() }
 
-            val params = (mapOf("this" to variable) + arguments).entries
+            val params = (mapOf("this" to "`$variable`") + arguments).entries
                     .joinToString(",", "{", "}") { "`${it.key}`:${it.value}" }
 
             val cypherFragment = "graphql.run('$cypherStatement', $params, $expectMultipleValues)"

@@ -38,8 +38,8 @@ class MetaData(label: String) {
         properties.compute(name, {name, prop -> prop?.copy(type = PropertyType(javaClass)) ?: PropertyInfo(name,PropertyType(javaClass)) })
     }
 
-    fun addProperty(name: String, type: PropertyType) {
-        properties.compute(name, {name, prop -> prop?.copy(type = type) ?: PropertyInfo(name,type) })
+    fun addProperty(name: String, type: PropertyType, defaultValue: Any? = null, unique : Boolean = false) {
+        properties.compute(name, {name, prop -> (prop ?: PropertyInfo(name,type)).copy(type = type, defaultValue = defaultValue, unique = unique)})
     }
 
     fun addCypher(name: String, statement: String) {
@@ -91,7 +91,8 @@ class MetaData(label: String) {
     data class ParameterInfo(val name: String, val type: PropertyType, val defaultValue: Any? = null) // todo directives
     data class CypherInfo(val cypher: String)
     data class PropertyInfo(val fieldName:String, val type: PropertyType, val id: Boolean = false,
-                            val indexed: Boolean = false, val cypher: CypherInfo? = null,
+                            val indexed: Boolean = false, val cypher: CypherInfo? = null, val defaultValue : Any? = null,
+                            val unique: Boolean = false,
                             val parameters : Map<String,ParameterInfo>? = null) {
         fun isId() = type.name == "ID" || id
         fun isComputed() = cypher != null

@@ -47,9 +47,10 @@ object IDLParser {
                 is FieldDefinition -> {
                     val fieldName = child.name
                     val type = typeFromIDL(child.type)
-
+                    val defaultValue = directivesByName(child,"defaultValue").flatMap{ it.arguments.map { it.value.extract()  }}.firstOrNull()
+                    val isUnique = directivesByName(child,"isUnique").isNotEmpty()
                     if (type.isBasic()) {
-                        metaData.addProperty(fieldName, type)
+                        metaData.addProperty(fieldName, type, defaultValue, unique = isUnique)
                     } else {
                         val relation = directivesByName(child, "relation").firstOrNull()
 
