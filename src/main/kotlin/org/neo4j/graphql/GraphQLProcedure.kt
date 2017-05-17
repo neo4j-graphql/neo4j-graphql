@@ -41,12 +41,12 @@ class GraphQLProcedure {
     }
 
 
-    data class StringResult(@JvmField val value: String)
+    data class StringResult(@JvmField val value: String?)
 
     @Procedure("graphql.idl", mode = Mode.WRITE)
     fun idl(@Name("idl") idl: String) : Stream<StringResult> {
-        val storeIdl = GraphSchemaScanner.storeIdl(db!!, idl)
-        return Stream.of(StringResult(storeIdl.toString()))
+            val storeIdl = GraphSchemaScanner.storeIdl(db!!, idl)
+            return Stream.of(StringResult(storeIdl.toString()))
     }
 
     @Procedure("graphql.schema")
