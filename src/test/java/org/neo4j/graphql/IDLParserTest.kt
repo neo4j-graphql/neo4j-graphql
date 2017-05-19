@@ -23,9 +23,9 @@ fieldName(arg1:SomeType={one:1} @argDirective(a1:${'$'}v1)):[Elm] @fieldDirectiv
 
         println(document.definitions[0])
         println(iface())
-        assert(document.definitions.size == 1)
+        assertEquals(1, document.definitions.size)
 //        assert(document.definitions[0] == iface())
-        assert(document.definitions[0].toString() == iface().toString())
+        assertEquals(iface().toString(), document.definitions[0].toString())
     }
 
     fun iface(): InterfaceTypeDefinition {
@@ -56,9 +56,9 @@ fieldName(arg1:SomeType={one:1} @argDirective(a1:${'$'}v1)):[Elm] @fieldDirectiv
         val schema = "type Human { name: String }"
 
         val metaDatas = IDLParser.parse(schema)
-        assert(setOf("Human") == metaDatas.keys)
+        assertEquals(setOf("Human"), metaDatas.keys)
         val md = metaDatas["Human"]!!
-        assert(md.properties.keys == setOf("name"))
+        assertEquals(setOf("name"), md.properties.keys)
     }
 
     val simple = """type Person { name: String }"""
@@ -107,10 +107,10 @@ type Droid implements Character {
         val metaDatas = IDLParser.parse(starWars)
         // todo handle enums ?
         println(metaDatas)
-        assert(setOf("Character", "Droid", "Human") == metaDatas.keys)
+        assertEquals(metaDatas.keys, setOf("Character", "Droid", "Human"))
         val md = metaDatas["Human"]!!
-        assert(md.labels == setOf("Character"))
-        assert(md.properties.keys == setOf("id", "name", "homePlanet"))
+        assertEquals(setOf("Character"), md.labels)
+        assertEquals(setOf("id", "name", "appearsIn", "homePlanet"), md.properties.keys)
     }
 
     //  # (direction: Direction = OUT, type: String =  "ACTED_IN"): [Movie]
@@ -166,6 +166,22 @@ type Movie {
         assertEquals(md.relationships.values.iterator().next(), MetaData.RelationshipInfo("actors", "ACTED_IN", "Person", false, true))
     }
 
+
+    @Test
+    fun parseEnum() {
+        val input = """
+enum Test {
+ A, B, C
+}
+"""
+        val document = Parser().parseDocument(input)
+
+        println(document.definitions)
+        assertEquals(1, document.definitions.size)
+        val enums = IDLParser.parseEnums(Parser().parseDocument(input).definitions)
+        assertEquals(1, enums.size)
+        assertEquals(listOf("A","B","C"), enums["Test"])
+    }
 
     @Test
     fun parseMutations() {
