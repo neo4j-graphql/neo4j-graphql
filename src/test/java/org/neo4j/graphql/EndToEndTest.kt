@@ -102,7 +102,7 @@ class EndToEndTest {
             kb: createActor(name: "Kevin Bacon" born: 1958 )
             mr: createActor(name: "Meg Ryan" born: 1961 )
             a13: createMovie(title: "Apollo 13" released: 1995 tagline: "...", genre: SciFi )
-            matrix: createMovie(title: "The Matrix" released: 2001 tagline: "Cypher, not as good as GraphQL" )
+            matrix: createMovie(title: "The Matrix" released: 2001 tagline: "There is no spoon" )
 
             kb_matrix: addActorMovies(name:"Kevin Bacon" movies:["Apollo 13", "The Matrix"])
             mr_a13: addActorMovies(name:"Meg Ryan" movies:["Apollo 13"])

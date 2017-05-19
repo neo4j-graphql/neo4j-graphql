@@ -60,6 +60,8 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     private fun executeQuery(params: Map<String, Any>): Response {
         val query = params["query"] as String
         val variables = getVariables(params)
+        println(query)
+        println(variables)
 
         val ctx = GraphQLContext(db, log)
         val graphQL = GraphSchema.getGraphQL(db)
