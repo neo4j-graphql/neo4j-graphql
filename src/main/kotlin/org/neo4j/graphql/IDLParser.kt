@@ -30,8 +30,15 @@ object IDLParser {
         return definitions.filterIsInstance<ObjectTypeDefinition>().filter { it.name == mutationName }.flatMap { it.fieldDefinitions }
     }
 
+    private fun parseSchemaTypes(definitions: MutableList<Definition>) =
+            definitions.filterIsInstance<SchemaDefinition>()
+            .map {
+                it.operationTypeDefinitions.associate { it.name to (it.type as TypeName).name }
+            }.firstOrNull() ?: emptyMap()
+
     fun parse(input: String): Map<String,MetaData> {
         val definitions = Parser().parseDocument(input).definitions
+        val schemaTypes = parseSchemaTypes(definitions)
         val enums = definitions.filterIsInstance<EnumTypeDefinition>().map { it.name }.toSet()
         return (definitions.map {
             when (it) {
@@ -41,7 +48,7 @@ object IDLParser {
                 is InterfaceTypeDefinition -> toMeta(it,enums)
 //            is InputObjectTypeDefinition -> toMeta(x)
 //            is ScalarTypeDefinition -> toMeta(x)
-                is ObjectTypeDefinition -> toMeta(it,enums)
+                is ObjectTypeDefinition -> if (schemaTypes.values.contains(it.name)) null else toMeta(it,enums)
                 else -> {
                     println(it.javaClass); null
                 }

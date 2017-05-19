@@ -356,7 +356,7 @@ class GraphQLSchemaBuilder {
     }
 
     private fun graphQlInType(type: MetaData.PropertyType, required: Boolean = true): GraphQLInputType {
-        var inType : GraphQLInputType = if (type.enum || type.inputType) GraphQLTypeReference(type.name) else graphQLType(type)
+        var inType : GraphQLInputType = if (type.enum || type.inputType) GraphQLTypeReference(type.name) else graphQLType(type) // todo handle enums differently
         if (type.array) {
             inType = GraphQLList(inType)
         }
