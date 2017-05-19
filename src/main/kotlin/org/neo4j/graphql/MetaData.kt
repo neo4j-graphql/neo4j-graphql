@@ -38,8 +38,8 @@ class MetaData(label: String) {
         properties.compute(name, {name, prop -> prop?.copy(type = PropertyType(javaClass)) ?: PropertyInfo(name,PropertyType(javaClass)) })
     }
 
-    fun addProperty(name: String, type: PropertyType, defaultValue: Any? = null, unique : Boolean = false) {
-        properties.compute(name, {name, prop -> (prop ?: PropertyInfo(name,type)).copy(type = type, defaultValue = defaultValue, unique = unique)})
+    fun addProperty(name: String, type: PropertyType, defaultValue: Any? = null, unique : Boolean = false, enum : Boolean = false) {
+        properties.compute(name, {name, prop -> (prop ?: PropertyInfo(name,type)).copy(type = type, defaultValue = defaultValue, unique = unique, enum = enum)})
     }
 
     fun addCypher(name: String, statement: String) {
@@ -59,7 +59,7 @@ class MetaData(label: String) {
 
     fun cypherFor(fieldName: String) = relationships[fieldName]?.cypher?.cypher ?: properties[fieldName]?.cypher?.cypher
 
-    data class PropertyType(val name: String, val array: Boolean = false, val nonNull: Boolean = false) {
+    data class PropertyType(val name: String, val array: Boolean = false, val nonNull: Boolean = false, val enum: Boolean = false, val inputType: Boolean = false) {
         fun isBasic() : Boolean = basicTypes.contains(name)
 
         override fun toString(): String = (if (array) "[$name]" else name) + (if (nonNull) "!" else "")
@@ -92,7 +92,7 @@ class MetaData(label: String) {
     data class CypherInfo(val cypher: String)
     data class PropertyInfo(val fieldName:String, val type: PropertyType, val id: Boolean = false,
                             val indexed: Boolean = false, val cypher: CypherInfo? = null, val defaultValue : Any? = null,
-                            val unique: Boolean = false,
+                            val unique: Boolean = false,val enum : Boolean = false,
                             val parameters : Map<String,ParameterInfo>? = null) {
         fun isId() = type.name == "ID" || id
         fun isComputed() = cypher != null

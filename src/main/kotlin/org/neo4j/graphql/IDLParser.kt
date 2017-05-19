@@ -1,15 +1,19 @@
 package org.neo4j.graphql
 
-import graphql.Scalars.*
 import graphql.language.*
 import graphql.parser.Parser
-import graphql.schema.*
 import org.neo4j.graphql.MetaData.*
 
 object IDLParser {
     fun parseMutations(input : String ) : List<FieldDefinition> {
         return parseSchemaType(input, "mutation")
     }
+
+    // todo directives
+    fun parseEnums(definitions: List<Definition>)
+            = definitions
+            .filterIsInstance<EnumTypeDefinition>()
+            .associate { it.name to it.enumValueDefinitions.map { it.name } }
 
     fun parseQueries(input : String ) : List<FieldDefinition> {
         return parseSchemaType(input, "query")
@@ -26,22 +30,26 @@ object IDLParser {
         return definitions.filterIsInstance<ObjectTypeDefinition>().filter { it.name == mutationName }.flatMap { it.fieldDefinitions }
     }
 
-    fun parse(input: String): Map<String,MetaData> = (Parser().parseDocument(input).definitions.map {
-        when (it) {
+    fun parse(input: String): Map<String,MetaData> {
+        val definitions = Parser().parseDocument(input).definitions
+        val enums = definitions.filterIsInstance<EnumTypeDefinition>().map { it.name }.toSet()
+        return (definitions.map {
+            when (it) {
 //            is TypeDefinition -> toMeta(x)
 //            is UnionTypeDefinition -> toMeta(x)
 //            is EnumTypeDefinition -> toMeta(x)
-            is InterfaceTypeDefinition -> toMeta(it)
+                is InterfaceTypeDefinition -> toMeta(it,enums)
 //            is InputObjectTypeDefinition -> toMeta(x)
 //            is ScalarTypeDefinition -> toMeta(x)
-            is ObjectTypeDefinition -> toMeta(it)
-            else -> {
-                println(it.javaClass); null
+                is ObjectTypeDefinition -> toMeta(it,enums)
+                else -> {
+                    println(it.javaClass); null
+                }
             }
-        }
-    }).filterNotNull().associate{ m -> Pair(m.type, m) }
+        }).filterNotNull().associate { m -> Pair(m.type, m) }
+    }
 
-    fun toMeta(definition: TypeDefinition): MetaData {
+    fun toMeta(definition: TypeDefinition, enumNames: Set<String> = emptySet()): MetaData {
         val metaData = MetaData(definition.name)
         if (definition is ObjectTypeDefinition) {
             val labels = definition.implements.filterIsInstance<TypeName>().map { it.name }
@@ -56,11 +64,11 @@ object IDLParser {
             when (child) {
                 is FieldDefinition -> {
                     val fieldName = child.name
-                    val type = typeFromIDL(child.type)
+                    val type = typeFromIDL(child.type, enumNames)
                     val defaultValue = directivesByName(child,"defaultValue").flatMap{ it.arguments.map { it.value.extract()  }}.firstOrNull()
                     val isUnique = directivesByName(child,"isUnique").isNotEmpty()
-                    if (type.isBasic()) {
-                        metaData.addProperty(fieldName, type, defaultValue, unique = isUnique)
+                    if (type.isBasic() || type.enum) {
+                        metaData.addProperty(fieldName, type, defaultValue, unique = isUnique, enum = type.enum)
                     } else {
                         val relation = directivesByName(child, "relation").firstOrNull()
 
@@ -83,7 +91,7 @@ object IDLParser {
 
                     metaData.addParameters(fieldName,
                             child.inputValueDefinitions.associate {
-                                it.name to ParameterInfo(it.name, typeFromIDL(it.type), it.defaultValue?.extract()) })
+                                it.name to ParameterInfo(it.name, typeFromIDL(it.type, enumNames), it.defaultValue?.extract()) })
                 }
                 is TypeName -> println("TypeName: " + child.name + " " + child.javaClass + " in " + definition.name)
                 is EnumValueDefinition -> println("EnumValueDef: " + child.name + " " + child.directives.map { it.name })
@@ -97,12 +105,14 @@ object IDLParser {
 
     private fun directivesByName(child: FieldDefinition, directiveName: String) = child.directives.filter { it.name == directiveName }
 
-    private fun typeFromIDL(type: Type, given: MetaData.PropertyType = PropertyType("String")): MetaData.PropertyType = when (type) {
-        is TypeName -> given.copy(name = type.name)
-        is NonNullType -> typeFromIDL(type.type, given.copy(nonNull = true))
-        is ListType -> typeFromIDL(type.type, given.copy(array = true))
+    private fun typeFromIDL(type: Type, enums: Set<String>, given: MetaData.PropertyType = PropertyType("String")): MetaData.PropertyType = when (type) {
+        is TypeName -> given.copy(name = type.name, enum = enums.contains(type.name))
+        is NonNullType -> typeFromIDL(type.type, enums, given.copy(nonNull = true))
+        is ListType -> typeFromIDL(type.type, enums, given.copy(array = true))
         else -> {
             println("Type ${type}"); given
         }
     }
+
+    fun parseDefintions(schema: String?) = if (schema==null) emptyList<Definition>() else Parser().parseDocument(schema).definitions
 }

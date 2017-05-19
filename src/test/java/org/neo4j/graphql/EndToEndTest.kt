@@ -69,6 +69,7 @@ class EndToEndTest {
             title: ID!
             released: Int
             tagline: String
+            genre: Genre
             actors: [Actor] @relation(name:"ACTED_IN",direction:"IN")
             directors: [Director] @relation(name:"DIRECTED",direction:"IN")
          }
@@ -85,6 +86,11 @@ class EndToEndTest {
             personByName(name:ID!) : Person @cypher(statement:"MATCH (p:Person {name:{name}}) RETURN p")
             personByBorn(born:Int!) : [Person] @cypher(statement:"MATCH (p:Person {born:{born}}) RETURN p")
             movieCount : Int @cypher(statement:"MATCH (:Movie) RETURN count(*)")
+            movieByGenre(genre: Genre) : [Movie] @cypher(statement:"MATCH (m:Movie {genre:{genre}}) RETURN m")
+            movieGenre(title: String) : Genre @cypher(statement:"MATCH (m:Movie {title:{title}}) RETURN m.genre")
+         }
+         enum Genre {
+            Action, Drama, Family, Horror, SciFi
          }
          """
 
@@ -95,7 +101,7 @@ class EndToEndTest {
         mutation {
             kb: createActor(name: "Kevin Bacon" born: 1958 )
             mr: createActor(name: "Meg Ryan" born: 1961 )
-            a13: createMovie(title: "Apollo 13" released: 1995 tagline: "..." )
+            a13: createMovie(title: "Apollo 13" released: 1995 tagline: "...", genre: SciFi )
             matrix: createMovie(title: "The Matrix" released: 2001 tagline: "Cypher, not as good as GraphQL" )
 
             kb_matrix: addActorMovies(name:"Kevin Bacon" movies:["Apollo 13", "The Matrix"])
@@ -178,15 +184,30 @@ class EndToEndTest {
         assertEquals(setOf("Kevin Bacon","Meg Ryan"), (apollo13["actors"] as List<Map<*, *>>).map{ it["name"]}.toSet())
 
         val queryFields = """
-        query {
-            personByName(name: "Kevin Bacon") { born }
-        }
+        query { personByName(name: "Kevin Bacon") { born } }
         """
 
-        val fieldResult = executeQuery(query)
+        val fieldResult = executeQuery(queryFields)
+        println(fieldResult)
         assertNull(fieldResult["errors"])
-        assertEquals(1, fieldResult["data"]!!["Person"]?.size)
-        assertEquals(1958, fieldResult["data"]!!["Person"]!!.get(0)["born"])
+        assertEquals(mapOf("born" to 1958), fieldResult["data"]!!["personByName"])
+
+        val queryByGenre = """
+        query { movieByGenre(genre: SciFi) { title } }
+        """
+        val queryByGenreResult = executeQuery(queryByGenre)
+        println(queryByGenreResult)
+        assertNull(queryByGenreResult["errors"])
+        assertEquals(1, queryByGenreResult["data"]!!["movieByGenre"]?.size)
+        assertEquals("Apollo 13", queryByGenreResult["data"]!!["movieByGenre"]!!.get(0)["title"])
+
+        val queryGenre = """
+        query { movieGenre(title:"Apollo 13") }
+        """
+        val genreResult = executeQuery(queryGenre)
+        println(genreResult)
+        assertNull(genreResult["errors"])
+        assertEquals("SciFi", genreResult["data"]!!["movieGenre"])
 
         val updateMutation = """
         mutation {
