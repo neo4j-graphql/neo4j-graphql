@@ -177,11 +177,18 @@ class Cypher31Generator : CypherGenerator() {
         return Pair(result + subscript(skipLimit), "x")
     }
 
-    private fun subscript(skipLimit: Pair<Number?, Number?>): String {
+    private fun subscriptInt(skipLimit: Pair<Number?, Number?>): String {
         if (skipLimit.first == null && skipLimit.second == null) return ""
 
         val skip = skipLimit.first?.toInt() ?: 0
         val limit = if (skipLimit.second == null) -1 else skip + (skipLimit.second?.toInt() ?: 0)
+        return "[$skip..$limit]"
+    }
+    private fun subscript(skipLimit: Pair<String?, String?>): String {
+        if (skipLimit.first == null && skipLimit.second == null) return ""
+
+        val skip = skipLimit.first ?: "0"
+        val limit = if (skipLimit.second == null) "-1" else skip + "+" + (skipLimit.second ?: "0")
         return "[$skip..$limit]"
     }
 
@@ -233,17 +240,43 @@ class Cypher31Generator : CypherGenerator() {
         return parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
     }
 
-    private fun skipLimitStatements(skipLimit: Pair<Number?, Number?>) =
+    private fun skipLimitStatements(skipLimit: Pair<String?, String?>) =
             listOf<String?>( skipLimit.first?.let { "SKIP $it" },skipLimit.second?.let { "LIMIT $it" })
 
-    private fun skipLimit(field: Field): Pair<Number?,Number?> = Pair(
+    private fun skipLimitInt(field: Field): Pair<Number?,Number?> = Pair(
             intValue(argumentByName(field, "offset")),
             intValue(argumentByName(field, "first")))
 
+    private fun skipLimit(field: Field): Pair<String?,String?> = Pair(
+            argumentValueOrParam(field, "offset"), argumentValueOrParam(field, "first"))
+
     private fun argumentByName(field: Field, name: String) = field.arguments.firstOrNull { it.name == name }
 
-    private fun intValue(it: Argument?) : Number? = (it?.value as IntValue?)?.value
+    private fun argumentValueOrParam(field: Field, name: String)
+            = field.arguments
+            .filter { it.name == name }
+            .map { it.value }
+            // todo variables seem to be automatically resolved to field name variables
+            .map { if (it is VariableReference) "{${name}}" else valueAsString(it) }
+            .firstOrNull()
 
+    private fun valueAsString(it: Value?): String? = when (it) {
+        is IntValue -> it.value.toString()
+        is FloatValue -> it.value.toString()
+        is StringValue -> "'" + it.value + "'"
+        is EnumValue -> "'" + it.name + "'"
+        is BooleanValue -> it.isValue.toString()
+        is ArrayValue -> it.values.map { valueAsString(it) }.joinToString(",","[","]")
+        is ObjectValue -> it.objectFields.map { "`${it.name}`:${valueAsString(it.value)}" }.joinToString(",","{","}")
+        is VariableReference -> "{${it.name}}"
+        else -> null
+    }
+
+    private fun intValue(it: Argument?) : Number? {
+        val value = it?.value
+        return if (value is IntValue) value.value
+        else null
+    }
 }
 
 class Cypher30Generator : CypherGenerator() {
