@@ -87,6 +87,11 @@ public class MetaDataTest {
         Map<String, List<Map>> result = executeQuery("{ User(first:2,offset:1) {id,name,age} }", map());
         assertEquals(2, result.get("User").size());
     }
+    @Test
+    public void firstOffsetUserQueryParams() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query ($skip:Int!,$limit:Int!) { User(first:$limit,offset:$skip) {id,name,age} }", map("skip",1,"limit",2));
+        assertEquals(2, result.get("User").size());
+    }
 
     @Test
     public void firstOffsetUseFieldQuery() throws Exception {
