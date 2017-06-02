@@ -139,7 +139,8 @@ class GraphQLSchemaBuilder {
         builder = addProperties(metaData, builder)
         builder = addRelationships(metaData, builder)
 
-        builder = builder.typeResolver { cypherResult ->
+        builder = builder.typeResolver { env ->
+            val cypherResult = env.`object`
             val row = cypherResult as Map<String,Any>
             val allLabels = row?.get("_labels") as List<String>?
             // we also have to add the interfaces to the mutation on create
@@ -253,8 +254,8 @@ class GraphQLSchemaBuilder {
     }
     
     companion object {
-        class GraphQLSchemaWithDirectives(queryType: GraphQLObjectType, mutationType: GraphQLObjectType, dictionary: Set<GraphQLType>, newDirectives : List<GraphQLDirective>)
-            : GraphQLSchema(queryType, mutationType, dictionary) {
+        class GraphQLSchemaWithDirectives(queryType: GraphQLObjectType, mutationType: GraphQLObjectType, additionalTypes: Set<GraphQLType>, newDirectives : List<GraphQLDirective>)
+            : GraphQLSchema(queryType, mutationType, additionalTypes) {
 
             val myDirectives : List<GraphQLDirective>
             init {
@@ -313,7 +314,7 @@ class GraphQLSchemaBuilder {
 
             val schema = GraphQLSchema.Builder().mutation(mutationType).query(queryType).build(allTypes.values.toSet()) // interfaces seem to be quite tricky
 
-            return GraphQLSchemaWithDirectives(schema.queryType, schema.mutationType, schema.dictionary, graphQLDirectives())
+            return GraphQLSchemaWithDirectives(schema.queryType, schema.mutationType, schema.additionalTypes, graphQLDirectives())
         }
 
         private fun graphQLDirectives() = listOf<GraphQLDirective>(
