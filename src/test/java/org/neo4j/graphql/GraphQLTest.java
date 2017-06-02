@@ -1,5 +1,6 @@
 package org.neo4j.graphql;
 
+import graphql.TypeResolutionEnvironment;
 import graphql.schema.*;
 import org.junit.Test;
 
@@ -40,12 +41,6 @@ public class GraphQLTest {
         GraphQLInterfaceType comicCharacter = newInterface()
                 .name("ComicCharacter")
                 .description("A abstract comic character.")
-                .typeResolver(new TypeResolver() {
-                    @Override
-                    public GraphQLObjectType getType(Object object) {
-                        return null;
-                    }
-                })
                 .field(newFieldDefinition()
                         .name("name")
                         .description("The name of the character.")
@@ -66,7 +61,8 @@ public class GraphQLTest {
                 .possibleType(DogType)
                 .typeResolver(new TypeResolver() {
                     @Override
-                    public GraphQLObjectType getType(Object object) {
+                    public GraphQLObjectType getType(TypeResolutionEnvironment env) {
+                        Object object = env.getObject();
                         if (object instanceof Cat) {
                             return CatType;
                         }
