@@ -184,6 +184,23 @@ enum Test {
     }
 
     @Test
+    fun parseInputType() {
+        val input = """
+input Test {
+ name: String = "Foo"
+ age: Int = 42
+}
+"""
+        val document = Parser().parseDocument(input)
+
+        println(document.definitions)
+        assertEquals(1, document.definitions.size)
+        val inputTypes = IDLParser.parseInputTypes(document.definitions)
+        assertEquals(1, inputTypes.size)
+        assertEquals(listOf("name","age"), inputTypes["Test"]?.map { it.name })
+    }
+
+    @Test
     fun parseMutations() {
         val input = """
 schema {
