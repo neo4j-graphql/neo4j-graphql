@@ -38,6 +38,8 @@ public class GraphQLTest {
 
     @Test
     public void testCreateInterface() throws Exception {
+        GraphQLObjectType CatType = newObject().name("CatType").build();
+
         GraphQLInterfaceType comicCharacter = newInterface()
                 .name("ComicCharacter")
                 .description("A abstract comic character.")
@@ -45,6 +47,7 @@ public class GraphQLTest {
                         .name("name")
                         .description("The name of the character.")
                         .type(GraphQLString).build())
+                .typeResolver((env) -> CatType)
                 .build();
     }
 

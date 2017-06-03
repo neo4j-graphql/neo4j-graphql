@@ -14,25 +14,26 @@ import org.neo4j.graphql.CypherGenerator.Companion.DEFAULT_CYPHER_VERSION
 import org.neo4j.helpers.collection.Iterators
 import java.util.*
 
-class GraphQLSchemaBuilder {
+class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
-    fun toDynamicQueryOrMutationFields(fields: List<FieldDefinition>, objectTypes: Map<String,GraphQLObjectType>) : List<GraphQLFieldDefinition> {
-        fun graphqlTypeFor(arg: Type) : GraphQLType =
+    fun graphqlTypeFor(arg: Type, existingTypes: Map<String, GraphQLType>): GraphQLType =
             when (arg) {
-                is NonNullType -> GraphQLNonNull(graphqlTypeFor(arg.type))
-                is ListType -> GraphQLList(graphqlTypeFor(arg.type))
+                is NonNullType -> GraphQLNonNull(graphqlTypeFor(arg.type, existingTypes))
+                is ListType -> GraphQLList(graphqlTypeFor(arg.type, existingTypes))
                 is TypeName ->
                     when (arg.name) { // todo other types
                         GraphQLInt.name -> GraphQLInt
                         GraphQLBoolean.name -> GraphQLBoolean
                         GraphQLString.name -> GraphQLString
                         GraphQLID.name -> GraphQLID
-                        // todo others, also inline declared object types
-                        else -> objectTypes.get(arg.name) ?: GraphQLTypeReference(arg.name)
+                    // todo others, also inline declared object types
+                        else -> existingTypes.get(arg.name) ?: GraphQLTypeReference(arg.name)
                     // todo
                     }
-                else -> throw RuntimeException("Unknown Type "+arg)
+                else -> throw RuntimeException("Unknown Type " + arg)
             }
+
+    fun toDynamicQueryOrMutationFields(fields: List<FieldDefinition>, objectTypes: Map<String,GraphQLType>) : List<GraphQLFieldDefinition> {
 
         // turn result of update operation into the expected graphql type
         fun asEntityList(db: GraphDatabaseService, result: Result?, returnType: GraphQLOutputType): Any? {
@@ -80,7 +81,7 @@ class GraphQLSchemaBuilder {
                     }.firstOrNull()
         }
         return fields.map { field ->
-            val returnType = graphqlTypeFor(field.type) as GraphQLOutputType
+            val returnType = graphqlTypeFor(field.type, objectTypes) as GraphQLOutputType
             GraphQLFieldDefinition.newFieldDefinition()
                     .name(field.name)
                     .type(returnType)
@@ -89,7 +90,7 @@ class GraphQLSchemaBuilder {
                         // todo directives
                         GraphQLArgument.newArgument()
                                 .name(arg.name)
-                                .type(graphqlTypeFor(arg.type) as GraphQLInputType)
+                                .type(graphqlTypeFor(arg.type,objectTypes) as GraphQLInputType)
                                 .defaultValue(arg.defaultValue?.extract())
                                 .build()
                     })
@@ -269,52 +270,7 @@ class GraphQLSchemaBuilder {
         @JvmStatic fun buildSchema(db: GraphDatabaseService): GraphQLSchema {
             GraphSchemaScanner.databaseSchema(db)
 
-            val myBuilder = GraphQLSchemaBuilder()
-
-            val metaDatas = GraphSchemaScanner.allMetaDatas()
-            val typeMetaDatas = metaDatas.filterNot {  it.isInterface }
-
-            val definitions = IDLParser.parseDefintions(GraphSchemaScanner.schema)
-
-            val enums: Map<String, GraphQLEnumType> =
-                    IDLParser.parseEnums(definitions).mapValues { (k, v) ->
-                        GraphQLEnumType(k, "Enum for $k", v.map { GraphQLEnumValueDefinition(it, "Value for $it", it) })}
-
-            val inputTypes : Map<String, GraphQLInputType> = enums;
-
-            val dictionary = myBuilder.graphQlTypes(metaDatas)
-
-            val interfaceTypes = dictionary.first
-            val objectTypes = dictionary.second
-
-
-            val allTypes = objectTypes + interfaceTypes + enums
-
-            val mutationsFromSchema = GraphSchemaScanner.schema?.
-                    let { IDLParser.parseMutations(it) }?.
-                    let { parsedMutations -> myBuilder.toDynamicQueryOrMutationFields(parsedMutations, objectTypes) } ?: emptyList()
-            val queriesFromSchema = GraphSchemaScanner.schema?.
-                    let { IDLParser.parseQueries(it) }?.
-                    let { parsedQueries -> myBuilder.toDynamicQueryOrMutationFields(parsedQueries, objectTypes) } ?: emptyList()
-            val mutationFields = GraphSchemaScanner.allMetaDatas()
-                    .flatMap { myBuilder.relationshipMutationFields(it,enums) + myBuilder.mutationField(it) } + mutationsFromSchema
-
-            val mutationType: GraphQLObjectType = newObject().name("MutationType")
-                    .fields(mutationFields)
-                    .build()
-
-
-            val queriesFromTypes = myBuilder.queryFields(metaDatas)
-
-            val queryType = newObject().name("QueryType")
-                    .fields(queriesFromTypes + queriesFromSchema)
-                    .build()
-
-            // todo this was missing, it was only called by the builder: SchemaUtil().replaceTypeReferences(graphQLSchema)
-
-            val schema = GraphQLSchema.Builder().mutation(mutationType).query(queryType).build(allTypes.values.toSet()) // interfaces seem to be quite tricky
-
-            return GraphQLSchemaWithDirectives(schema.queryType, schema.mutationType, schema.additionalTypes, graphQLDirectives())
+            return GraphQLSchemaBuilder(GraphSchemaScanner.allMetaDatas()).buildSchema()
         }
 
         private fun graphQLDirectives() = listOf<GraphQLDirective>(
@@ -334,6 +290,72 @@ class GraphQLSchemaBuilder {
         private fun newFieldDirective(name: String, desc: String, vararg arguments: GraphQLArgument) =
                 GraphQLDirective(name, desc, EnumSet.of(Introspection.DirectiveLocation.FIELD), listOf(*arguments), true, false, true)
     }
+
+    fun obtainEnum(given: GraphQLEnumType) : GraphQLEnumType {
+        return enums.computeIfAbsent(given.name, {given})
+    }
+
+    fun inputType(name: String) : GraphQLInputType {
+        return (enums.get(name) ?: inputTypes.get(name) ?: GraphQLTypeReference(name)) as GraphQLInputType
+    }
+
+    val typeMetaDatas = metaDatas.filterNot {  it.isInterface }
+    val definitions = IDLParser.parseDefintions(GraphSchemaScanner.schema)
+    val enums: MutableMap<String, GraphQLEnumType> = enumsFromDefinitions(definitions).toMutableMap()
+    val inputTypes: Map<String, GraphQLInputObjectType> = inputTypesFromDefinitions(definitions, enums)
+
+    private fun buildSchema() : GraphQLSchema {
+
+        val dictionary = graphQlTypes(metaDatas)
+
+        val interfaceTypes = dictionary.first
+        val objectTypes = dictionary.second
+
+        val mutationsFromSchema = GraphSchemaScanner.schema?.
+                let { IDLParser.parseMutations(it) }?.
+                let { parsedMutations -> toDynamicQueryOrMutationFields(parsedMutations, objectTypes) } ?: emptyList()
+
+        val queriesFromSchema = GraphSchemaScanner.schema?.
+                let { IDLParser.parseQueries(it) }?.
+                let { parsedQueries -> toDynamicQueryOrMutationFields(parsedQueries, objectTypes) } ?: emptyList()
+        val mutationFields = GraphSchemaScanner.allMetaDatas()
+                .flatMap { relationshipMutationFields(it,enums) + mutationField(it) } + mutationsFromSchema
+
+        val mutationType: GraphQLObjectType = newObject().name("MutationType")
+                .fields(mutationFields)
+                .build()
+
+        val queriesFromTypes = queryFields(metaDatas)
+
+        val queryType = newObject().name("QueryType")
+                .fields(queriesFromTypes + queriesFromSchema)
+                .build()
+
+        // todo this was missing, it was only called by the builder: SchemaUtil().replaceTypeReferences(graphQLSchema)
+
+        val allTypes = objectTypes + interfaceTypes + enums + inputTypes
+
+        val schema = GraphQLSchema.Builder().mutation(mutationType).query(queryType).build(allTypes.values.toSet()) // interfaces seem to be quite tricky
+
+        return GraphQLSchemaWithDirectives(schema.queryType, schema.mutationType, schema.additionalTypes, graphQLDirectives())
+    }
+
+    fun enumsFromDefinitions(definitions: List<Definition>) = IDLParser.parseEnums(definitions).mapValues { (k, v) ->
+        GraphQLEnumType(k, "Enum for $k", v.map { GraphQLEnumValueDefinition(it, "Value for $it", it) })
+    }
+
+    fun inputTypesFromDefinitions(definitions: List<Definition>, inputTypes: Map<String, GraphQLType> = emptyMap()) =
+            IDLParser.parseInputTypes(definitions).map { input ->
+                GraphQLInputObjectType.newInputObject().name(input.key).description("Input Type " + input.key).fields(
+                        input.value.map { field ->
+                            GraphQLInputObjectField.newInputObjectField()
+                                    .name(field.name).description("Field ${field.name} of ${input.key}")
+                                    .type(graphqlTypeFor(field.type, inputTypes) as GraphQLInputType).defaultValue(field.defaultValue?.extract()).build()
+                        })
+                        .build()
+            }
+            .associate { it.name to it }
+
     private fun graphQlOutType(type: MetaData.PropertyType): GraphQLOutputType {
         var outType : GraphQLOutputType = if (type.enum) GraphQLTypeReference(type.name) else graphQLType(type)
         if (type.array) {
@@ -569,10 +591,10 @@ class GraphQLSchemaBuilder {
     }
     internal fun orderByArgument(md: MetaData): GraphQLArgument {
         return newArgument().name("orderBy")
-                .type(GraphQLList(GraphQLEnumType("_${md.type}Ordering","Ordering Enum for ${md.type}",
+                .type(GraphQLList(obtainEnum(GraphQLEnumType("_${md.type}Ordering","Ordering Enum for ${md.type}",
                         md.properties.keys.flatMap { listOf(
                                 GraphQLEnumValueDefinition(it+"_asc","Ascending sort for $it",Pair(it,true)),
-                                GraphQLEnumValueDefinition(it+"_desc","Descending sort for $it",Pair(it,false))) }))).build()
+                                GraphQLEnumValueDefinition(it+"_desc","Descending sort for $it",Pair(it,false))) })))).build()
     }
     internal fun propertiesAsListArguments(md: MetaData): List<GraphQLArgument> {
         return md.properties.values.map {

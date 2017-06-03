@@ -15,6 +15,11 @@ object IDLParser {
             .filterIsInstance<EnumTypeDefinition>()
             .associate { it.name to it.enumValueDefinitions.map { it.name } }
 
+    fun parseInputTypes(definitions: List<Definition>)
+            = definitions
+            .filterIsInstance<InputObjectTypeDefinition>()
+            .associate { it.name to it.inputValueDefinitions}
+
     fun parseQueries(input : String ) : List<FieldDefinition> {
         return parseSchemaType(input, "query")
     }
