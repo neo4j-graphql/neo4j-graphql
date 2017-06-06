@@ -98,7 +98,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         }
     }
 
-    fun toGraphQLObjectType(metaData: MetaData, interfaceDefinitions: Map<String, GraphQLInterfaceType>) : GraphQLObjectType {
+    fun toGraphQLObjectType(metaData: MetaData, interfaceDefinitions: Map<String, GraphQLInterfaceType> = emptyMap()) : GraphQLObjectType {
         var builder: GraphQLObjectType.Builder = newObject()
                 .name(metaData.type)
                 .description(metaData.type + "-Node")
