@@ -10,7 +10,7 @@ fun Value.extract(): Any =
             is BooleanValue -> this.isValue
             is StringValue -> this.value
             is EnumValue -> this.name
-            is VariableReference -> this.name
+            is VariableReference -> "{`${this.name}`}" // todo $name
             is ArrayValue -> this.values.map { it.extract() }.toList()
             else -> throw IllegalArgumentException("Unknown Value $this ${this.javaClass}")
         }
