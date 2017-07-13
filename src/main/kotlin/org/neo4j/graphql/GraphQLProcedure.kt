@@ -40,7 +40,6 @@ class GraphQLProcedure {
         throw RuntimeException("Error executing GraphQL Query:\n $errors")
     }
 
-
     data class StringResult(@JvmField val value: String?)
 
     @Procedure("graphql.idl", mode = Mode.WRITE)
@@ -61,8 +60,7 @@ class GraphQLProcedure {
         val rels = metaDatas.flatMap { n ->
             val node = nodes[n.type]!!
             n.relationships.values.map { rel ->
-                val (start, end) = if (rel.out) node to nodes[rel.label]!! else nodes[rel.label]!! to node
-                VirtualRelationship(start, rel.fieldName, mapOf("type" to rel.type, "multi" to rel.multi), end)
+                VirtualRelationship(node, rel.fieldName, mapOf("type" to rel.type, "multi" to rel.multi), nodes[rel.label]!!)
             }
         }
         return Stream.of(GraphResult(nodes.values.toList(),rels))
@@ -78,6 +76,19 @@ class GraphQLProcedure {
             return result.columnAs<Any>(firstColumn).asSequence().toList()
         } else {
             return result.columnAs<Any>(firstColumn).next()!!
+        }
+    }
+
+    data class Row(@JvmField val value:Any?)
+
+    @Procedure("graphql.run", mode = Mode.WRITE)
+    fun runProc(@Name("query") query: String, @Name("variables") variables : Map<String,Any>, @Name("expectMultipleValues") expectMultipleValues : Boolean) : Stream<Row> {
+        val result = run(query, variables, expectMultipleValues)
+
+        return if (result is List<*>) {
+            result.stream().map { Row(it) }
+        } else {
+            Stream.of(Row(result))
         }
     }
 

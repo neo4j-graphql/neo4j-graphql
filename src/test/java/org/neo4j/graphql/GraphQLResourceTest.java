@@ -134,6 +134,13 @@ public class GraphQLResourceTest {
         assertEquals("ACTED_IN", actedIn.getProperty("type"));
         assertEquals(false, actedIn.getProperty("multi"));
 
+        actedIn = rels.get(1);
+        assertEquals("Movie", actedIn.getStartNode().getLabels().iterator().next().name());
+        assertEquals("Person", actedIn.getEndNode().getLabels().iterator().next().name());
+        assertEquals("actedIn", actedIn.getType().name());
+        assertEquals("ACTED_IN", actedIn.getProperty("type"));
+        assertEquals(false, actedIn.getProperty("multi"));
+
         assertEquals(false,result.hasNext());
         result.close();
     }
