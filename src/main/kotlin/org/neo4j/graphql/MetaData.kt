@@ -48,11 +48,11 @@ class MetaData(label: String) {
         relationships.computeIfPresent(name, { name, rel -> rel.copy(cypher = cypherInfo)})
     }
 
-    fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean = true, multi : Boolean = false) : RelationshipInfo {
+    fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean, multi : Boolean) : RelationshipInfo {
         // fix for up
         val name = if (properties.containsKey(fieldName)) "_" + fieldName else fieldName
 //        val name = if (out) "${typeName}_$label" else "${label}_${typeName}"
-        return relationships.compute(name) { name,rel -> rel?.copy(multi = multi) ?: RelationshipInfo(name, typeName, label, out, multi) }!!
+        return relationships.compute(name) { name,rel -> rel?.copy(multi = multi, out = out) ?: RelationshipInfo(name, typeName, label, out, multi) }!!
     }
 
     fun relationshipFor(fieldName: String) = relationships[fieldName]
