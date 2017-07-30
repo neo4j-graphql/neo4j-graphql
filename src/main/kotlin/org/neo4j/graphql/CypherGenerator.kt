@@ -48,7 +48,6 @@ abstract class CypherGenerator {
 class Cypher31Generator : CypherGenerator() {
     override fun compiled() = "compiledExperimentalFeatureNotSupportedForProductionUse"
 
-
     fun projectMap(field: Field, variable: String, md: MetaData, orderBys: MutableList<Pair<String,Boolean>>): String {
         val selectionSet = field.selectionSet ?: return ""
 
@@ -239,6 +238,9 @@ class Cypher31Generator : CypherGenerator() {
 
         return parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
     }
+
+    private fun cypherDirective(field: Field): Directive? =
+            field.directives.filter { it.name == "cypher" }.firstOrNull()
 
     private fun skipLimitStatements(skipLimit: Pair<String?, String?>) =
             listOf<String?>( skipLimit.first?.let { "SKIP $it" },skipLimit.second?.let { "LIMIT $it" })
