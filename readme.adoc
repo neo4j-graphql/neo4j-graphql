@@ -434,3 +434,36 @@ echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 * √ Support 3.1 via pattern comprehensions and map projections
 * Improvements: consider replacing MetaData with GraphQL types,
 * check if there is a direct conversion from parsed data (AST-Nodes) to graphql-schema types
+
+////
+== Rewrite
+
+* Replace Metadata with GraphQLTypes / Interfaces -> use GraphQLReferenceType to break cyclic dependencies
+* Keep tests
+* Store meta-information in directives (@relation, @isUnique etc.)
+* Change db-scanner to generate GraphQL-Types
+* Use schema parser to turn IDL into types
+* Add transformations, that e.g. adds dynamic query and mutation types with @cypher directives and custom enums/input objects
+* Add transformation for pagination, filter, ordering on all primitive fields
+* Allow for further transformations
+* Unify custom and generated dynamic fields (handle mutations and root queries separately with graphql.run procedure, inline with function
+* Generate Cypher query from current query + schema information
+* Build easy transform functions from schema objects into simpler data clases e.g. a Cypher class with (query, parameters) or Relationship(field,type,direction,start-label,end-label)
+* The only "wiring" we have to add is for top level objects
+
+1. Schema source
+2. Schema
+3. Transform/Augment with custom queries & mutations
+4. Generate queries based on schema + query
+
+== Open
+
+* Unions
+* Subscriptions
+
+== Permissions
+
+* provide username, adminstatus and roles as parameters to cypher query
+* make them queryable from graphql with __User {name, roles, admin, active}
+* support the permission queries from graph cool using the user and their roles
+////
