@@ -280,7 +280,6 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 newFieldDirective("cypher", "Cypher query to run"),
                 newDirective("profile", "Enable query profiling"),
                 newDirective("explain", "Enable query explanation"),
-                newDirective("compile", "Enable query compilation"),
                 newDirective("version", "Specify Cypher version", GraphQLArgument("version","Cypher Version (3.0, 3.1, 3.2)", GraphQLString, DEFAULT_CYPHER_VERSION))
         )
 
@@ -551,7 +550,6 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     private fun applyDirectivesToStatement(generator: CypherGenerator, query: String, directives: Map<String, Directive>) :String {
         val parts = mutableListOf<String>()
 //        if (directives.containsKey("cypher"))  { parts.add(directives.get("cypher").arguments.first().value.toString())  }
-        if (directives.containsKey("compile")) { parts.add("runtime="+generator.compiled())  }
         if (directives.containsKey("explain")) { parts.add("explain")  }
         if (directives.containsKey("profile")) { parts.remove("explain"); parts.add("profile")  }
 

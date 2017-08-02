@@ -13,12 +13,9 @@ abstract class CypherGenerator {
         val DEFAULT_CYPHER_VERSION = "3.1"
 
         fun instance(): CypherGenerator {
-            if (VERSION.startsWith("3.1")) return Cypher31Generator()
-            return Cypher30Generator()
+            return Cypher31Generator()
         }
     }
-
-    abstract fun compiled() : String
 
     abstract fun generateQueryForField(field: Field): String
 
@@ -46,8 +43,6 @@ abstract class CypherGenerator {
 }
 
 class Cypher31Generator : CypherGenerator() {
-    override fun compiled() = "compiledExperimentalFeatureNotSupportedForProductionUse"
-
     fun projectMap(field: Field, variable: String, md: MetaData, orderBys: MutableList<Pair<String,Boolean>>): String {
         val selectionSet = field.selectionSet ?: return ""
 
@@ -279,126 +274,4 @@ class Cypher31Generator : CypherGenerator() {
         return if (value is IntValue) value.value
         else null
     }
-}
-
-class Cypher30Generator : CypherGenerator() {
-    override fun compiled() = "compiled"
-
-    fun orderBy(variable: String, orderBys:List<String>) = if (orderBys.isEmpty()) "" else orderBys.map { "`$variable`.$it" }.joinNonEmpty(",", "\nWITH * ORDER BY ")
-
-    fun optionalMatches(metaData: MetaData, variable: String, selections: Iterable<Selection>, orderBys: MutableList<String>) =
-            selections.map {
-                when (it) {
-                    is Field -> formatNestedRelationshipMatch(metaData, variable, it, orderBys)
-                    else -> ""
-                }
-            }.joinToString("\n")
-
-    fun formatNestedRelationshipMatch(md: MetaData, variable: String, field: Field, orderBys: MutableList<String>): String {
-        val fieldName = field.name
-        val info = md.relationshipFor(fieldName) ?: return ""
-        val fieldVariable = variable + "_" + fieldName
-
-        val arrowLeft = if (!info.out) "<" else ""
-        val arrowRight = if (info.out) ">" else ""
-
-        val fieldMetaData = GraphSchemaScanner.getMetaData(info.label)!!
-
-        val pattern = "(`$variable`)$arrowLeft-[:`${info.type}`]-$arrowRight(`$fieldVariable`:`${info.label}`)"
-        val where = where(field, fieldVariable, fieldMetaData, orderBys)
-
-        val result = "\nOPTIONAL MATCH $pattern $where\n"
-        return result +
-                if (field.selectionSet.selections.isNotEmpty())
-                    optionalMatches(fieldMetaData, fieldVariable, field.selectionSet.selections, orderBys)
-                else ""
-    }
-
-    fun where(field: Field, variable: String, md: MetaData, orderBys: MutableList<String>): String {
-        val predicates = field.arguments.mapNotNull {
-            val name = it.name
-            if (name == "orderBy") {
-                if (it.value is ArrayValue) {
-                    (it.value as ArrayValue).values.filterIsInstance<EnumValue>().forEach {
-                        val pairs = it.name.split("_")
-                        orderBys.add("`$variable`.`${pairs[0]}` ${pairs[1]}")
-                    }
-                }
-                null
-            }
-            else
-                if (isPlural(name) && it.value is ArrayValue && md.properties.containsKey(singular(name)))
-                    "`${variable}`.`${singular(name)}` IN ${formatValue(it.value)} "
-                else
-                    "`${variable}`.`$name` = ${formatValue(it.value)} "
-            // todo directives for more complex filtering
-        }.joinToString(" AND \n")
-        return if (predicates.isBlank()) "" else " WHERE " + predicates
-    }
-
-    fun projection(field: Field, variable: String, md: MetaData): String {
-        val selectionSet = field.selectionSet ?: return ""
-
-        return projectSelectionFields(md, variable, selectionSet).map{ "${it.second} AS `${it.first}`" }.joinToString(", ")
-    }
-
-    fun projectMap(field: Field, variable: String, md: MetaData): String {
-        val selectionSet = field.selectionSet ?: return ""
-
-        return "CASE `$variable` WHEN null THEN null ELSE {"+projectSelectionFields(md, variable, selectionSet).map{ "`${it.first}` : ${it.second}" }.joinToString(", ")+"} END"
-    }
-
-    fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet): List<Pair<String, String>> {
-        val selections = selectionSet.selections
-
-        return projectFragments(md, selections, variable) +
-                selections.filterIsInstance<Field>().map{ projectField(md, variable, it) }.filterNotNull()
-    }
-
-    fun projectFragments(md: MetaData, selections: MutableList<Selection>, variable: String): List<Pair<String, String>> {
-        return selections.filterIsInstance<InlineFragment>().flatMap {
-            val fragmentTypeName = it.typeCondition.name
-            val metaData = GraphSchemaScanner.getMetaData(fragmentTypeName)!!
-            if (metaData.labels.contains(md.type)) {
-                // these are the nested fields of the fragment
-                val map = it.selectionSet.selections.filterIsInstance<Field>().map { projectField(md, variable, it) }.filterNotNull()
-                map
-            } else {
-                emptyList<Pair<String, String>>()
-            }
-        }
-    }
-
-    private fun projectField(md: MetaData, variable: String, f: Field): Pair<String, String>? {
-        val alias = f.name
-        val info = md.relationshipFor(f.name) // todo correct medatadata of
-
-        return if (info == null) {
-            Pair(alias, "`$variable`.`${f.name}`")
-        } else {
-            if (f.selectionSet == null) null // todo
-            else {
-                val fieldVariable = variable + "_" + f.name
-                val map = projectMap(f, fieldVariable, metaData(info.label))
-                Pair(alias, if (info.multi) "collect($map)" else map)
-            }
-        }
-    }
-
-    override fun generateQueryForField(field: Field): String {
-        val name = field.name
-        val variable = name
-        val md = metaData(name)
-        val orderBys = mutableListOf<String>()
-
-        return "MATCH (`$variable`:`$name`) \n" +
-                where(field, variable, md, orderBys) +
-                optionalMatches(md, variable, field.selectionSet.selections, orderBys) +
-                // TODO order within each
-                orderBy(variable, orderBys) +
-                " \nRETURN " + projection(field, variable, md)
-    }
-
-
-
 }
