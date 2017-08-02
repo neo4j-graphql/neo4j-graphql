@@ -143,12 +143,6 @@ public class MetaDataTest {
     }
 
     @Test @Ignore
-    public void compileQuery() throws Exception {
-        Map<String, Object> result = getBacklog("query UserQuery { User @compile {name} }", map());
-        assertEquals("READ_ONLY", result.get("type"));
-    }
-
-    @Test @Ignore
     public void versionQuery() throws Exception {
         ExecutionResult result = getResult("query UserQuery { User @version(version:\"3.1\") {name} }", map());
         assertEquals(asList(), result.getErrors());
