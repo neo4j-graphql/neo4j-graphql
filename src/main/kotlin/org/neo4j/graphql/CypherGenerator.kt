@@ -10,7 +10,7 @@ fun <T> Iterable<T>.joinNonEmpty(separator: CharSequence = ", ", prefix: CharSeq
 abstract class CypherGenerator {
     companion object {
         val VERSION = Version.getNeo4jVersion()
-        val DEFAULT_CYPHER_VERSION = "3.1"
+        val DEFAULT_CYPHER_VERSION = "3.2"
 
         fun instance(): CypherGenerator {
             return Cypher31Generator()
