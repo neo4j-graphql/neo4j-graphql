@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import graphql.language.*
 import graphql.parser.Parser
+import graphql.parser.antlr.GraphqlParser
 import org.neo4j.graphql.MetaData.*
 
 object IDLParser {
@@ -25,7 +26,7 @@ object IDLParser {
     }
 
     private fun parseSchemaType(input: String, schemaType: String): List<FieldDefinition> {
-        val definitions = Parser().parseDocument(input).definitions
+        val definitions = parseDocument(input).definitions
         val mutationName: String? =
                 definitions.filterIsInstance<SchemaDefinition>()
                         .flatMap {
@@ -42,7 +43,7 @@ object IDLParser {
             }.firstOrNull() ?: emptyMap()
 
     fun parse(input: String): Map<String,MetaData> {
-        val definitions = Parser().parseDocument(input).definitions
+        val definitions = parseDocument(input).definitions
         val schemaTypes = parseSchemaTypes(definitions)
         val enums = definitions.filterIsInstance<EnumTypeDefinition>().map { it.name }.toSet()
         return (definitions.map {
@@ -59,6 +60,23 @@ object IDLParser {
                 }
             }
         }).filterNotNull().associate { m -> Pair(m.type, m) }
+    }
+
+    private fun parseDocument(input: String) : Document {
+        val parser = Parser()
+        try {
+            return parser.parseDocument(input)
+        } catch (e:Exception) {
+            val cause = e.cause
+            when (cause) {
+                is org.antlr.v4.runtime.InputMismatchException -> {
+                    val token = cause.offendingToken
+                    val expected = cause.expectedTokens.toString(GraphqlParser.VOCABULARY)
+                    throw RuntimeException(String.format("Error parsing IDL expected %s got '%s' line %d column %d",  expected, token.text, token.line,token.charPositionInLine),e);
+                }
+                else -> throw e;
+            }
+        }
     }
 
     fun toMeta(definition: TypeDefinition, enumNames: Set<String> = emptySet()): MetaData {

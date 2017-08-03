@@ -5,12 +5,28 @@ import graphql.parser.Parser
 import org.junit.Test
 import java.math.BigInteger
 import kotlin.test.assertEquals
+import kotlin.test.fail
 
 /**
  * copied from graphql.parser.IDLParserTest
  */
 
 class IDLParserTest {
+
+    @Test
+    fun parseIDLError() {
+        val input = """
+type Foo {
+  name String
+}
+"""
+        try {
+            IDLParser.parse(input)
+            fail("Should fail parsing")
+        } catch(e: Exception) {
+            assertEquals("Error parsing IDL expected ':' got 'String' line 3 column 7",e.message)
+        }
+    }
 
     @Test
     fun parseIDL() {
