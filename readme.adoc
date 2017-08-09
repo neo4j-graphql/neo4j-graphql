@@ -355,7 +355,7 @@ Server: Jetty(9.2.9.v20150224)
 curl -X POST http://localhost:7474/graphql/idl -d 'type Person {
             name: String!
             born: Int
-            movies: [Movie] @out(name:"ACTED_IN")
+            movies: [Movie] @relation(name:"ACTED_IN")
             totalMoviesCount: Int @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->() RETURN count(*) AS totalMoviesCount")
             recommendedColleagues: [Person] @cypher(statement: "WITH {this} AS this MATCH (this)-[:ACTED_IN]->()<-[:ACTED_IN]-(other) RETURN other")
         }
@@ -364,7 +364,7 @@ curl -X POST http://localhost:7474/graphql/idl -d 'type Person {
             title: String!
             released: Int
             tagline: String
-            actors: [Person] @in(name:"ACTED_IN")
+            actors: [Person] @relation(name:"ACTED_IN",direction:IN)
          }' -u neo4j:****
 ----
 
