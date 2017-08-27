@@ -52,7 +52,7 @@ git clone https://github.com/neo4j-contrib/neo4j-graphql
 cd neo4j-graphql
 mvn clean package
 cp target/neo4j-graphql-0.1-SNAPSHOT.jar $NEO4J_HOME/plugins
-echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> $NEO4J_HOME/config/neo4j.conf
+echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> $NEO4J_HOME/conf/neo4j.conf
 $NEO4J_HOME/bin/neo4j restart
 ----
 
