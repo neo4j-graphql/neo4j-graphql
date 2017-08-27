@@ -73,7 +73,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
             result.put("errors", executionResult.errors)
         }
         if (ctx.backLog.isNotEmpty()) {
-            result["extensions"]=ctx.backLog
+            result["extensions"] = ctx.backLog
         }
         return Response.ok().entity(formatMap(result)).build()
     }
@@ -82,7 +82,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     private fun getVariables(requestBody: Map<String, Any>): Map<String, Any> {
         val varParam = requestBody["variables"]
         return when (varParam) {
-            is String -> if (varParam.isNotBlank()) parseMap(varParam) else emptyMap()
+            is String -> if (varParam.isNotBlank() && varParam != "null") parseMap(varParam) else emptyMap()
             is Map<*, *> -> varParam as Map<String, Any>
             else -> emptyMap()
         }
