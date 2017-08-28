@@ -60,8 +60,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     private fun executeQuery(params: Map<String, Any>): Response {
         val query = params["query"] as String
         val variables = getVariables(params)
-        println(query)
-        println(variables)
+        if (log.isDebugEnabled()) log.debug("Executing {} with {}", query, variables)
 
         val ctx = GraphQLContext(db, log)
         val graphQL = GraphSchema.getGraphQL(db)
@@ -69,7 +68,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
 
         val result = linkedMapOf("data" to executionResult.getData<Any>())
         if (executionResult.errors.isNotEmpty()) {
-            log.error("Errors: {}", executionResult.errors)
+            log.warn("Errors: {}", executionResult.errors)
             result.put("errors", executionResult.errors)
         }
         if (ctx.backLog.isNotEmpty()) {
@@ -82,7 +81,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     private fun getVariables(requestBody: Map<String, Any>): Map<String, Any> {
         val varParam = requestBody["variables"]
         return when (varParam) {
-            is String -> if (varParam.isNotBlank()) parseMap(varParam) else emptyMap()
+            is String -> parseMap(varParam)
             is Map<*, *> -> varParam as Map<String, Any>
             else -> emptyMap()
         }
@@ -91,6 +90,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     private fun formatMap(result: Map<String, Any>) = OBJECT_MAPPER.writeValueAsString(result)
 
     @Suppress("UNCHECKED_CAST")
-    private fun parseMap(value: String): Map<String, Any> = OBJECT_MAPPER.readValue(value, Map::class.java) as Map<String, Any>
+    private fun parseMap(value: String): Map<String, Any> = 
+        if (value == null || value == "null") emptyMap() else OBJECT_MAPPER.readValue(value, Map::class.java) as Map<String, Any>
 
 }

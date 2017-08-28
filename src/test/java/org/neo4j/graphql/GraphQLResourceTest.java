@@ -69,7 +69,7 @@ public class GraphQLResourceTest {
 
     @Test
     public void personByYear() throws Exception {
-        HTTP.Response response = HTTP.POST(serverURI.toString(), map("query", "query AllPeopleQuery { Person(born:1961) {name,born} }"));
+        HTTP.Response response = HTTP.POST(serverURI.toString(), map("query", "query AllPeopleQuery { Person(born:1961) {name,born} }","variables","null"));
 
         assertEquals(200, response.status());
 
