@@ -91,7 +91,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
 
     @Suppress("UNCHECKED_CAST")
     private fun parseMap(value: String?): Map<String, Any> =
-        if (value == null || value == "null") emptyMap()
+        if (value == null || value.isNullOrBlank()|| value == "null") emptyMap()
         else {
             val v = value.trim('"',' ','\t','\n','\r')
             OBJECT_MAPPER.readValue(v, Map::class.java) as Map<String, Any>
