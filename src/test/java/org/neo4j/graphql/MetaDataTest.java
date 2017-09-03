@@ -41,7 +41,7 @@ public class MetaDataTest {
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(Procedures.class).registerFunction(GraphQLProcedure.class);
-        db.execute("CREATE (berlin:Location {name:'Berlin',longitude:13.4, latitude: 52.5, coord:[13.4,52.5]}) WITH berlin UNWIND range(1,5) as id CREATE (:User {name:'John '+id, id:id, age:id})-[:LIVES_IN]->(berlin)").close();
+        db.execute("CREATE (:Country),(berlin:Location {name:'Berlin',longitude:13.4, latitude: 52.5, coord:[13.4,52.5]}) WITH berlin UNWIND range(1,5) as id CREATE (:User {name:'John '+id, id:id, age:id})-[:LIVES_IN]->(berlin)").close();
         GraphQLSchema graphQLSchema = GraphQLSchemaBuilder.buildSchema(db);
         graphql = new GraphQL(graphQLSchema);
     }
@@ -68,6 +68,11 @@ public class MetaDataTest {
     public void allUsersQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query UserQuery { User {id,name,age} User {age,name}}", map());
         assertEquals(2*5, result.get("User").size());
+    }
+    @Test
+    public void countryQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query { Country { _id } }", map());
+        assertEquals(1, result.get("Country").size());
     }
 
     @Test

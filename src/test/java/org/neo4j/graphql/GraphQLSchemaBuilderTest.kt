@@ -7,8 +7,26 @@ import graphql.parser.Parser
 import graphql.schema.*
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import kotlin.test.assertNull
 
 class GraphQLSchemaBuilderTest {
+    @Test
+    fun emptyNode() {
+        val md = MetaData("Actor")
+        val schema = GraphQLSchemaBuilder(listOf(md))
+        val type: GraphQLObjectType = schema.toGraphQLObjectType(md)
+        assertEquals("Actor", type.name)
+        assertEquals(listOf("_id"), type.fieldDefinitions.map { it.name })
+
+        val queryType = schema.queryFields(listOf(md)).first()
+        assertEquals("Actor", queryType.name)
+        assertEquals(setOf("first","offset"), queryType.arguments.map { it.name }.toSet())
+
+        val graphQLSchema = schema.buildSchema()
+        val ordering = graphQLSchema.getType("_ActorOrdering") as GraphQLEnumType?
+        assertNull(ordering)
+    }
+
     @Test
     fun mutationField() {
         val md = MetaData("Actor")
