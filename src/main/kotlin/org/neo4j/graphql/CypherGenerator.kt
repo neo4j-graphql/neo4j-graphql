@@ -2,6 +2,7 @@ package org.neo4j.graphql
 
 import graphql.language.*
 import org.neo4j.kernel.internal.Version
+import java.util.regex.Pattern
 
 fun <T> Iterable<T>.joinNonEmpty(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((T) -> CharSequence)? = null): String {
     return if (iterator().hasNext()) joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString() else ""
@@ -130,7 +131,8 @@ class Cypher31Generator : CypherGenerator() {
             val params = (mapOf("this" to "`$variable`") + arguments).entries
                     .joinToString(",", "{", "}") { "`${it.key}`:${it.value}" }
 
-            val cypherFragment = "graphql.run('$cypherStatement', $params, $expectMultipleValues)"
+            val prefix  = if (!cypherStatement!!.contains(Regex("this\\s*\\}?\\s+AS\\s+",RegexOption.IGNORE_CASE))) "WITH {this} AS this " else ""
+            val cypherFragment = "graphql.run('${prefix}${cypherStatement}', $params, $expectMultipleValues)"
 
             if (relationship != null) {
                 val (patternComp, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f)
