@@ -109,7 +109,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 //                    .fetchField().dataFetcher((env) -> null)
                 .type(Scalars.GraphQLID).build())
 
-        metaData.labels.forEach { builder = builder.withInterface(interfaceDefinitions.get(it))  }
+        metaData.labels.mapNotNull { interfaceDefinitions.get(it) }.forEach {  builder = builder.withInterface(it) }
 
         // todo relationships, labels etc.
 
@@ -205,6 +205,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     ): GraphQLFieldDefinition {
         val labelMd = GraphSchemaScanner.getMetaData(label)!!
         val graphQLType: GraphQLOutputType = if (multi) GraphQLList(GraphQLTypeReference(label)) else GraphQLTypeReference(label)
+        val hasProperties = labelMd.properties.isNotEmpty()
         val field = newFieldDefinition()
                 .name(name)
                 /*
@@ -218,7 +219,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .description(md.type + " " + name + " " + label)
                 .argument(propertiesAsArguments(labelMd))
                 .argument(propertiesAsListArguments(labelMd))
-                .argument(orderByArgument(labelMd))
+                .argumentIf(hasProperties, {orderByArgument(labelMd)})
                 .argument(toArguments(parameters))
                 .type(graphQLType)
 
@@ -226,6 +227,9 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             withFirstOffset(field).build()
         } else field.build()
     }
+
+    fun GraphQLFieldDefinition.Builder.argumentIf(pred: Boolean, arg: () -> GraphQLArgument) =
+        if (pred) this.argument(arg.invoke()) else this
 
     private fun toArguments(parameters: Iterable<MetaData.ParameterInfo>?): List<GraphQLArgument> {
         return parameters?.map { newArgument().name(it.name).type(graphQlInType(it.type, false)).defaultValue(it.defaultValue).build() } ?: emptyList()
@@ -303,7 +307,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     val enums: MutableMap<String, GraphQLEnumType> = enumsFromDefinitions(definitions).toMutableMap()
     val inputTypes: Map<String, GraphQLInputObjectType> = inputTypesFromDefinitions(definitions, enums)
 
-    private fun buildSchema() : GraphQLSchema {
+    fun buildSchema() : GraphQLSchema {
 
         val dictionary = graphQlTypes(metaDatas)
 
@@ -390,13 +394,14 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     fun queryFields(metaDatas: Iterable<MetaData>): List<GraphQLFieldDefinition> {
         return metaDatas
                 .map { md ->
+                    val hasProperties = md.properties.isNotEmpty()
                     withFirstOffset(
                             newFieldDefinition()
                             .name(md.type)
                             .type(GraphQLList(GraphQLTypeReference(md.type))) // todo
                             .argument(propertiesAsArguments(md))
                             .argument(propertiesAsListArguments(md))
-                            .argument(orderByArgument(md))
+                            .argumentIf(hasProperties,{orderByArgument(md)})
                             .dataFetcher({ env -> fetchGraphData(md, env) })
                     ).build()
                 }
