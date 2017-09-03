@@ -51,6 +51,19 @@ public class GraphQLResourceTest {
     }
 
     @Test
+    public void quotedVariables() throws Exception {
+        HTTP.Response response = HTTP.POST(serverURI.toString(), map("query", "query AllPeopleQuery { Person {name,born} }","variables","\"{}\""));
+
+        assertEquals(200, response.status());
+    }
+    @Test
+    public void quotedVariablesContent() throws Exception {
+        HTTP.Response response = HTTP.POST(serverURI.toString(), map("query", "query AllPeopleQuery { Person {name,born} }","variables","\"{\"answer\":42}\""));
+
+        assertEquals(200, response.status());
+    }
+
+    @Test
     public void allPeople() throws Exception {
         HTTP.Response response = HTTP.POST(serverURI.toString(), map("query", "query AllPeopleQuery { Person {name,born} }"));
 

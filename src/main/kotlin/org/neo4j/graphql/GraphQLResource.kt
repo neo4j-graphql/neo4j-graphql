@@ -90,7 +90,11 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     private fun formatMap(result: Map<String, Any>) = OBJECT_MAPPER.writeValueAsString(result)
 
     @Suppress("UNCHECKED_CAST")
-    private fun parseMap(value: String): Map<String, Any> = 
-        if (value == null || value == "null") emptyMap() else OBJECT_MAPPER.readValue(value, Map::class.java) as Map<String, Any>
+    private fun parseMap(value: String?): Map<String, Any> =
+        if (value == null || value == "null") emptyMap()
+        else {
+            val v = value.trim('"',' ','\t','\n','\r')
+            OBJECT_MAPPER.readValue(v, Map::class.java) as Map<String, Any>
+        }
 
 }
