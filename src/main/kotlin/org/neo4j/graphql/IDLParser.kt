@@ -69,7 +69,7 @@ object IDLParser {
         } catch (e:Exception) {
             val cause = e.cause
             when (cause) {
-                is org.antlr.v4.runtime.InputMismatchException -> {
+                is org.antlr.v4.runtime.RecognitionException -> {
                     val token = cause.offendingToken
                     val expected = cause.expectedTokens.toString(GraphqlParser.VOCABULARY)
                     throw RuntimeException(String.format("Error parsing IDL expected %s got '%s' line %d column %d",  expected, token.text, token.line,token.charPositionInLine),e);
