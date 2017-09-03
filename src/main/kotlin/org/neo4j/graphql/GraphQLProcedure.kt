@@ -43,9 +43,14 @@ class GraphQLProcedure {
     data class StringResult(@JvmField val value: String?)
 
     @Procedure("graphql.idl", mode = Mode.WRITE)
-    fun idl(@Name("idl") idl: String) : Stream<StringResult> {
+    fun idl(@Name("idl") idl: String?) : Stream<StringResult> {
+        if (idl==null) {
+            GraphSchemaScanner.deleteIdl(db!!)
+            return Stream.of(StringResult("Removed stored GraphQL Schema"))
+        } else {
             val storeIdl = GraphSchemaScanner.storeIdl(db!!, idl)
             return Stream.of(StringResult(storeIdl.toString()))
+        }
     }
 
     @Procedure("graphql.schema")

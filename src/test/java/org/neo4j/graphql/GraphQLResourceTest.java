@@ -3,10 +3,7 @@ package org.neo4j.graphql;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.*;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.test.server.HTTP;
@@ -157,6 +154,7 @@ public class GraphQLResourceTest {
         assertEquals(false,result.hasNext());
         result.close();
     }
+
     @Test
     public void testProcedureCallFail() throws Exception {
         try {
@@ -165,6 +163,23 @@ public class GraphQLResourceTest {
             fail("Procedure call should fail");
         } catch(Exception e) {
             assertEquals(true,e.getMessage().contains("InvalidSyntaxError"));
+        }
+    }
+
+    @Test
+    public void testStoreIdl() throws Exception {
+        GraphDatabaseService db = neo4j.graph();
+
+        try (ResourceIterator<String> it = db.execute("CALL graphql.idl('type Person')").columnAs("value")){
+            fail("Incorrect schema should fail");
+        } catch(RuntimeException e) {
+            assertEquals(true, e.getMessage().contains("Error parsing IDL expected '{' got '<EOF>' line 1 column 11"));
+        }
+        try (ResourceIterator<String> it = db.execute("CALL graphql.idl('type Person {name:String}')").columnAs("value")) {
+            assertEquals(true, it.next().startsWith("{Person=MetaData{type='Person', properties={name=PropertyInfo(fieldName=name, type=String"));
+        }
+        try (ResourceIterator<String> it = db.execute("CALL graphql.idl(null)").columnAs("value")) {
+            assertEquals("Removed stored GraphQL Schema",it.next());
         }
     }
 }
