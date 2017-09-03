@@ -327,8 +327,8 @@ graphql.run('WITH {this} AS this RETURN 2', {`this`:`Person`}, false) AS `score`
         assertEquals(
                 """MATCH (`Person`:`Person`)
 RETURN labels(`Person`) AS `_labels`,
-graphql.run('UNWIND range(0,5) AS value RETURN value', {`this`:`Person`}, true) AS `scores`,
-graphql.run('RETURN range(0,5)', {`this`:`Person`}, true) AS `scores2`""",  query)
+graphql.run('WITH {this} AS this UNWIND range(0,5) AS value RETURN value', {`this`:`Person`}, true) AS `scores`,
+graphql.run('WITH {this} AS this RETURN range(0,5)', {`this`:`Person`}, true) AS `scores2`""",  query)
     }
 
     @Test
@@ -414,7 +414,7 @@ RETURN labels(`Person`) AS `_labels`,
                 """MATCH (`Person`:`Person`)
 RETURN labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`,
-graphql.run('RETURN {value}', {`this`:`Person`,`value`:7}, false) AS `born`""",  query)
+graphql.run('WITH {this} AS this RETURN {value}', {`this`:`Person`,`value`:7}, false) AS `born`""",  query)
     }
 
 }
