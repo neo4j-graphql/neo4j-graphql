@@ -366,6 +366,17 @@ public class MetaDataTest {
     }
 
     @Test
+    public void nestedUserParameterQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query UserQuery($name: String!, $loc: String) { User(name:$name) {id, livesIn(name:$loc) { name } } }", map("name", "John 2","loc","Berlin"));
+        List<Map> users = result.get("User");
+        assertEquals(1, users.size());
+        Map user = users.get(0);
+        assertEquals(2L, user.get("id"));
+        Map location = (Map) user.get("livesIn");
+        assertEquals("Berlin", location.get("name"));
+    }
+
+    @Test
     public void oneUserQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query UserQuery { User(id:3) {id,name,age} }", map());
         List<Map> users = result.get("User");
@@ -392,12 +403,12 @@ public class MetaDataTest {
 
     @NotNull
     private ExecutionResult getResult(String query, Map<String, Object> arguments) {
-        GraphQLContext ctx = new GraphQLContext(db,log, map());
+        GraphQLContext ctx = new GraphQLContext(db,log, arguments, map());
         return executeQuery(query, arguments, ctx);
     }
 
     private Map<String, Object> getBacklog(String query, Map<String, Object> arguments) {
-        GraphQLContext ctx = new GraphQLContext(db,log, map());
+        GraphQLContext ctx = new GraphQLContext(db,log, arguments, map());
         executeQuery(query, arguments, ctx);
         return ctx.getBackLog();
     }

@@ -28,7 +28,7 @@ class GraphQLProcedure {
 
     @Procedure("graphql.execute")
     fun execute(@Name("query") query : String , @Name("variables",defaultValue = "{}") variables : Map<String,Any>, @Name(value = "operation",defaultValue = "") operation: String?) : Stream<GraphQLResult> {
-        val ctx = GraphQLContext(db!!, log!!)
+        val ctx = GraphQLContext(db!!, log!!, variables)
         val execution = ExecutionInput.Builder()
                 .query(query).variables(variables).context(ctx).root(ctx) // todo proper mutation root
         if (!operation.isNullOrBlank()) execution.operationName(operation)
