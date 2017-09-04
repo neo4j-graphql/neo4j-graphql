@@ -33,6 +33,30 @@ RETURN labels(`Person`) AS `_labels`,
 
     @Test
     @Throws(Exception::class)
+    fun typeWithArrayProperty() {
+
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: [String]
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val field = Field("Person", SelectionSet(listOf<Selection>(Field("name"))))
+
+        val query = generator.generateQueryForField(field)
+
+        assertEquals(
+"""MATCH (`Person`:`Person`)
+RETURN labels(`Person`) AS `_labels`,
+[x IN `Person`.`name` |x] AS `name`""",  query)
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun matchWhere() {
 
         val metaData = IDLParser.parse("""
