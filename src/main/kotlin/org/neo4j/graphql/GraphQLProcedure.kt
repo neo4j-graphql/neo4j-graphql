@@ -1,5 +1,6 @@
 package org.neo4j.graphql
 
+import graphql.ExecutionInput
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
@@ -26,9 +27,13 @@ class GraphQLProcedure {
     class GraphResult(@JvmField val nodes: List<Node>,@JvmField val rels: List<Relationship>)
 
     @Procedure("graphql.execute")
-    fun execute(@Name("query") query : String , @Name("variables",defaultValue = "{}") variables : Map<String,Any>) : Stream<GraphQLResult> {
+    fun execute(@Name("query") query : String , @Name("variables",defaultValue = "{}") variables : Map<String,Any>, @Name(value = "operation",defaultValue = "") operation: String?) : Stream<GraphQLResult> {
         val ctx = GraphQLContext(db!!, log!!)
-        val result = GraphSchema.getGraphQL(db!!).execute(query, ctx, variables)
+        val execution = ExecutionInput.Builder()
+                .query(query).variables(variables).context(ctx).root(ctx) // todo proper mutation root
+        if (!operation.isNullOrBlank()) execution.operationName(operation)
+
+        val result = GraphSchema.getGraphQL(db!!).execute(execution.build())
 
         if (result.errors.isEmpty()) {
             return Stream.of(GraphQLResult(result.getData()))
