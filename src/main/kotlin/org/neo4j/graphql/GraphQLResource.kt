@@ -1,5 +1,6 @@
 package org.neo4j.graphql
 
+import graphql.ExecutionInput
 import org.codehaus.jackson.map.ObjectMapper
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.logging.Log
@@ -14,7 +15,7 @@ import javax.ws.rs.core.Response
  * @author mh
  * @since 30.10.16
  */
-@Path("/")
+@Path("")
 class GraphQLResource(@Context val provider: LogProvider, @Context val db: GraphDatabaseService) {
     val log: Log
     init {
@@ -25,17 +26,18 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
         val OBJECT_MAPPER: ObjectMapper = ObjectMapper()
     }
 
-    @Path("/")
+    @Path("")
     @OPTIONS
     fun options(@Context headers: HttpHeaders) = Response.ok().build()
 
-    @Path("/")
+    @Path("")
     @GET
-    operator fun get(@QueryParam("query") query: String, @QueryParam("variables") variableParam: String): Response {
+    fun get(@QueryParam("query") query: String?, @QueryParam("variables") variableParam: String?): Response {
+        if (query == null) return Response.noContent().build()
         return executeQuery(hashMapOf("query" to query, "variables" to variableParam))
     }
 
-    @Path("/")
+    @Path("")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -57,14 +59,17 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
         return Response.ok().build() // todo JSON
     }
 
-    private fun executeQuery(params: Map<String, Any>): Response {
+    private fun executeQuery(params: Map<String, Any?>): Response {
         val query = params["query"] as String
         val variables = getVariables(params)
         if (log.isDebugEnabled()) log.debug("Executing {} with {}", query, variables)
 
         val ctx = GraphQLContext(db, log)
         val graphQL = GraphSchema.getGraphQL(db)
-        val executionResult = graphQL.execute(query, ctx, variables)
+        val execution = ExecutionInput.Builder()
+                .query(query).variables(variables).context(ctx).root(ctx) // todo proper mutation root
+        params.get("operationName")?.let { execution.operationName(it.toString()) }
+        val executionResult = graphQL.execute(execution.build())
 
         val result = linkedMapOf("data" to executionResult.getData<Any>())
         if (executionResult.errors.isNotEmpty()) {
@@ -78,7 +83,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun getVariables(requestBody: Map<String, Any>): Map<String, Any> {
+    private fun getVariables(requestBody: Map<String, Any?>): Map<String, Any> {
         val varParam = requestBody["variables"]
         return when (varParam) {
             is String -> parseMap(varParam)
