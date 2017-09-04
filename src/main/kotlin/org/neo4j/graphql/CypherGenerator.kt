@@ -48,8 +48,14 @@ class Cypher31Generator : CypherGenerator() {
         val selectionSet = field.selectionSet ?: return ""
 
         return projectSelectionFields(md, variable, selectionSet, orderBys).map{
-            if (it.second == attr(variable, it.first)) ".`${it.first}`"
-            else "`${it.first}` : ${it.second}"
+            val array = md.properties[it.first]?.type?.array ?: false
+            // todo fix handling of primitive arrays in graphql-java
+            if (array) {
+                "`${it.first}` : [x IN ${it.second} | x]"
+            } else {
+                if (it.second == attr(variable, it.first)) ".`${it.first}`"
+                else "`${it.first}` : ${it.second}"
+            }
         }.joinNonEmpty(", ","`$variable` {","}")
     }
 
@@ -95,7 +101,7 @@ class Cypher31Generator : CypherGenerator() {
     }
 
     fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String, Boolean>>): List<Pair<String, String>> {
-        return listOf(Pair("_labels", "labels(`$variable`)")) +
+        return listOf(Pair("_labels", "labels(`$variable`)")) + // ,Pair("_id", "id(`$variable`)")
                 projectFragments(md, variable, selectionSet.selections, orderBys) +
                 selectionSet.selections.filterIsInstance<Field>().mapNotNull { projectField(it, md, variable, orderBys) }
     }
@@ -221,7 +227,13 @@ class Cypher31Generator : CypherGenerator() {
         val projectFields = projectSelectionFields(md, variable, field.selectionSet, orderBys)
         val resultProjection = projectFields.map { pair ->
             val (fieldName, projection) = pair
-            "$projection AS `$fieldName`"
+            // todo fix handling of primitive arrays in graphql-java
+            val type = md.properties[fieldName]?.type
+            if (type?.array == true && md.cypherFor(fieldName) == null) {
+                "[x IN $projection |x] AS `$fieldName`"
+            } else {
+                "$projection AS `$fieldName`"
+            }
         }.joinToString(",\n","RETURN ")
 
         val resultFieldNames = projectFields.map { it.first }.toSet()

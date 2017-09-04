@@ -19,6 +19,7 @@ import org.neo4j.logging.Log;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -73,6 +74,12 @@ public class MetaDataTest {
     public void countryQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("query { Country { _id } }", map());
         assertEquals(1, result.get("Country").size());
+    }
+
+    @Test
+    public void locationQuery() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query { Location { coord } }", map());
+        assertEquals(1, result.get("Location").size());
     }
 
     @Test
