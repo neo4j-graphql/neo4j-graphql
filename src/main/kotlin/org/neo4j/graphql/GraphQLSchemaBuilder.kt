@@ -2,6 +2,8 @@ package org.neo4j.graphql
 
 import graphql.Scalars
 import graphql.Scalars.*
+import graphql.execution.ExecutionTypeInfo
+import graphql.execution.ValuesResolver
 import graphql.introspection.Introspection
 import graphql.language.*
 import graphql.schema.*
@@ -277,6 +279,20 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             return GraphQLSchemaBuilder(GraphSchemaScanner.allMetaDatas()).buildSchema()
         }
 
+        fun resolveParameters(schema: GraphQLSchema, fields: List<Field>, variables: Map<String, Any>, fieldTypeInfo: ExecutionTypeInfo) : Map<String,Any> {
+            val valuesResolver = ValuesResolver()
+            val result = mutableMapOf<String,Any>()
+            fun resolve(field : Field) : Unit {
+                val parentType = fieldTypeInfo.castType(GraphQLObjectType::class.java)
+                val fieldDef = schema.getFieldVisibility().getFieldDefinition(parentType, field.getName());
+
+                result.putAll(valuesResolver.getArgumentValues(fieldDef.getArguments(), field.getArguments(), variables))
+                field.selectionSet.selections.filterIsInstance<Field>().forEach { resolve(it) }
+            }
+            fields.forEach { resolve(it) }
+            return result
+        }
+
         private fun graphQLDirectives() = listOf<GraphQLDirective>(
                 newFieldDirective("relation", "Relationship"),
                 newFieldDirective("defaultValue", "default value"),
@@ -544,7 +560,9 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     val directives = field.directives.associate { it.name to it }
                     val statement = applyDirectivesToStatement(generator, query, directives)
                     println(statement)
-                    val parameters = env.arguments
+//                    val parameters = resolveParameters(env.graphQLSchema, env.fields,ctx.parameters, env.fieldTypeInfo)
+                    val parameters = ctx.parameters.toMutableMap()
+                    parameters.putAll(env.arguments)
                     val result = db.execute(statement, parameters)
                     val list = Iterators.asList(result)
                     storeResultMetaData(ctx, query, result, directives)

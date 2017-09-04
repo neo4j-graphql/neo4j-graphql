@@ -34,7 +34,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     @GET
     fun get(@QueryParam("query") query: String?, @QueryParam("variables") variableParam: String?): Response {
         if (query == null) return Response.noContent().build()
-        return executeQuery(hashMapOf("query" to query, "variables" to variableParam))
+        return executeQuery(hashMapOf("query" to query, "variables" to (variableParam ?: emptyMap<String,Any>())))
     }
 
     @Path("")
@@ -59,12 +59,12 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
         return Response.ok().build() // todo JSON
     }
 
-    private fun executeQuery(params: Map<String, Any?>): Response {
+    private fun executeQuery(params: Map<String, Any>): Response {
         val query = params["query"] as String
         val variables = getVariables(params)
         if (log.isDebugEnabled()) log.debug("Executing {} with {}", query, variables)
 
-        val ctx = GraphQLContext(db, log)
+        val ctx = GraphQLContext(db, log, variables)
         val graphQL = GraphSchema.getGraphQL(db)
         val execution = ExecutionInput.Builder()
                 .query(query).variables(variables).context(ctx).root(ctx) // todo proper mutation root
