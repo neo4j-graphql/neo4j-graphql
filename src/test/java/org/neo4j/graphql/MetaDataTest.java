@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphql.MetaData.RelationshipInfo;
 import org.neo4j.kernel.impl.proc.Procedures;
@@ -87,6 +88,48 @@ public class MetaDataTest {
         Map<String, List<Map>> result = executeQuery("{ User(first:1) {id,name,age} }", map());
         assertEquals(1, result.get("User").size());
     }
+
+    private void assertUser1(Long id, Map<String, List<Map>> result) {
+        List<Map> users = result.get("User");
+        assertEquals(1, users.size());
+        assertEquals(1L, users.get(0).get("id"));
+        assertEquals(id, users.get(0).get("_id"));
+    }
+
+    @Test
+    public void firstUserIdQuery() throws Exception {
+        try (ResourceIterator<Long> it = db.execute("MATCH (u:User) WHERE u.id = 1 RETURN id(u) as id").columnAs("id")) {
+            Long id = it.next();
+            assertUser1(id, executeQuery("{ User(id:1) {_id,id} }", map()));
+        }
+    }
+
+    @Test
+    public void findById() throws Exception {
+        try (ResourceIterator<Long> it = db.execute("MATCH (u:User) WHERE u.id = 1 RETURN id(u) as id").columnAs("id")) {
+            Long id = it.next();
+            assertUser1(id, executeQuery("{ User(_id:"+ id +") {_id, id} }", map()));
+        }
+    }
+
+    @Test
+    public void findByIdVariable() throws Exception {
+        try (ResourceIterator<Long> it = db.execute("MATCH (u:User) WHERE u.id = 1 RETURN id(u) as id").columnAs("id")) {
+            Long id = it.next();
+            assertUser1(id, executeQuery("query($id:Long) { User(_id:$id) {_id, id} }", map("id",id)));
+        }
+    }
+
+    @Test
+    public void findByIdNested() throws Exception {
+        try (ResourceIterator<Long> it = db.execute("MATCH (u:User) WHERE u.id = 1 RETURN id(u) as id").columnAs("id")) {
+            Long id = it.next();
+            Map<String, List<Map>> result = executeQuery("{ Location(first:1) { User:livesIn(_id:" + id + ") {_id, id} }}", map());
+            Map<String, List<Map>> users = result.get("Location").get(0);
+            assertUser1(id, users);
+        }
+    }
+
 
     @Test
     public void offsetUserQuery() throws Exception {
