@@ -144,6 +144,9 @@ class EndToEndTest {
                             ... on Actor {
                                 name
                                 totalMoviesCount
+                                movies {
+                                  title
+                                  }
                             }
                         }
                         movies {
@@ -162,39 +165,55 @@ class EndToEndTest {
                  }
             }
         """
+        run {
+            val result = executeQuery(query)
 
-        val result = executeQuery(query)
+            assertNull(result["errors"])
 
-        assertNull(result["errors"])
+            val data = result["data"]!!["Person"]
 
-        val data = result["data"]!!["Person"]
+            assertEquals(1, data?.size)
 
-        assertEquals(1, data?.size)
+            val kevinBacon = data!!.get(0)
+            assertEquals(1958, kevinBacon["born"])
+            assertEquals(2, kevinBacon["totalMoviesCount"])
 
-        val kevinBacon = data!!.get(0)
-        assertEquals(1958, kevinBacon["born"])
-        assertEquals(2, kevinBacon["totalMoviesCount"])
+            val namedColleagues = (kevinBacon["namedColleagues"] as List<Map<*, *>>)
+            assertEquals(setOf("Meg Ryan"), namedColleagues.map { println(it); it["name"] }.toSet())
+            assertEquals(setOf("Apollo 13"), namedColleagues.flatMap {
+                (it["movies"] as List<Map<*, *>>).map { it["title"] }
+            }.toSet())
 
-        val namedColleagues = (kevinBacon["namedColleagues"] as List<Map<*, *>>)
-        assertEquals(setOf("Meg Ryan"), namedColleagues.map { it["name"] }.toSet())
+            assertEquals(7, kevinBacon["score"])
 
-        assertEquals(7, kevinBacon["score"])
+            val movies = (kevinBacon["movies"] as List<Map<*, *>>)
+            assertEquals(setOf("Apollo 13", "The Matrix"), movies.map { it["title"] }.toSet())
+            assertEquals(setOf(1995, 2001), movies.map { it["released"] }.toSet())
 
-        val movies = (kevinBacon["movies"] as List<Map<*, *>>)
-        assertEquals(setOf("Apollo 13","The Matrix"), movies.map { it["title"] }.toSet())
-        assertEquals(setOf(1995,2001), movies.map { it["released"] }.toSet())
-
-        val apollo13 = movies.find { it["title"] == "Apollo 13" }!!
-        assertEquals(setOf("Kevin Bacon","Meg Ryan"), (apollo13["actors"] as List<Map<*, *>>).map{ it["name"]}.toSet())
+            val apollo13 = movies.find { it["title"] == "Apollo 13" }!!
+            assertEquals(setOf("Kevin Bacon", "Meg Ryan"), (apollo13["actors"] as List<Map<*, *>>).map { it["name"] }.toSet())
+        }
 
         val queryFields = """
-        query { personByName(name: "Kevin Bacon") { born } }
+        query { personByName(name: "Kevin Bacon") {
+                 born
+                 movies {
+                    title
+                 }
+              } }
         """
+        run {
+            val fieldResult = (executeQuery(queryFields) as Map<String, Map<String, Map<*, *>>>)
+            println(fieldResult)
+            assertNull(fieldResult["errors"])
+            val kevinBacon = fieldResult["data"]!!["personByName"]!!
 
-        val fieldResult = executeQuery(queryFields)
-        println(fieldResult)
-        assertNull(fieldResult["errors"])
-        assertEquals(mapOf("born" to 1958), fieldResult["data"]!!["personByName"])
+            assertEquals(1958, kevinBacon["born"])
+            val movies = (kevinBacon["movies"] as List<Map<*, *>>) // NPE because movies is null
+            assertEquals(setOf("Apollo 13", "The Matrix"), movies.map { it["title"] }.toSet())
+
+        }
+
 
         val queryByGenre = """
         query { movieByGenre(genre: SciFi) { title } }
@@ -228,9 +247,9 @@ class EndToEndTest {
         val queryResult = neo4j!!.graph().execute("MATCH (p:Actor)-[:ACTED_IN]->(m:Movie) RETURN p.name, p.born, m.title")
         assertTrue(queryResult.hasNext())
         val row = queryResult.next()
-        assertEquals("Kevin Bacon",row.get("p.name"))
-        assertEquals(1960L,row.get("p.born"))
-        assertEquals("Apollo 13",row.get("m.title"))
+        assertEquals("Kevin Bacon", row.get("p.name"))
+        assertEquals(1960L, row.get("p.born"))
+        assertEquals("Apollo 13", row.get("m.title"))
         assertFalse(queryResult.hasNext())
     }
 
