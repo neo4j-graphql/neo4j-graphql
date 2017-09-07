@@ -20,7 +20,7 @@ class GraphQLSchemaBuilderTest {
 
         val queryType = schema.queryFields(listOf(md)).first()
         assertEquals("Actor", queryType.name)
-        assertEquals(setOf("first","offset"), queryType.arguments.map { it.name }.toSet())
+        assertEquals(setOf("_id","_ids","first","offset"), queryType.arguments.map { it.name }.toSet())
 
         val graphQLSchema = schema.buildSchema()
         val ordering = graphQLSchema.getType("_ActorOrdering") as GraphQLEnumType?

@@ -109,7 +109,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .name("_id")
                 .description("internal node id")
                 //                    .fetchField().dataFetcher((env) -> null)
-                .type(Scalars.GraphQLID).build())
+                .type(Scalars.GraphQLLong).build())
 
         metaData.labels.mapNotNull { interfaceDefinitions.get(it) }.forEach {  builder = builder.withInterface(it) }
 
@@ -133,7 +133,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .name("_id")
                 .description("internal node id")
                 //                    .fetchField().dataFetcher((env) -> null)
-                .type(Scalars.GraphQLID).build())
+                .type(Scalars.GraphQLLong).build())
 
         // todo relationships, labels etc.
 
@@ -157,7 +157,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 builder = builder.field(newFieldDefinition()
                         .name("_id")
                         .description("internal node id")
-                        .type(Scalars.GraphQLID).build())
+                        .type(Scalars.GraphQLLong).build())
 
                 builder = addProperties(metaData, builder)
                 builder = addRelationships(metaData, builder)
@@ -238,6 +238,8 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     }
 
     private fun withFirstOffset(field: GraphQLFieldDefinition.Builder) = field
+            .argument(newArgument().name("_id").type(GraphQLLong).build())
+            .argument(newArgument().name("_ids").type(GraphQLList(GraphQLLong)).build())
             .argument(newArgument().name("first").type(GraphQLInt).build())
             .argument(newArgument().name("offset").type(GraphQLInt).build())
 

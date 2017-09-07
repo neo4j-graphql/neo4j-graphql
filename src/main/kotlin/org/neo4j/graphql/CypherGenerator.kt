@@ -67,6 +67,8 @@ class Cypher31Generator : CypherGenerator() {
                     extractOrderByEnum(it, orderBys)
                     null
                 }
+                "_id" -> "id(`$variable`) = ${formatValue(it.value)}"
+                "_ids" -> "id(`$variable`) IN ${formatValue(it.value)}"
                 "first" -> null
                 "offset" -> null
                 else -> {
@@ -101,7 +103,7 @@ class Cypher31Generator : CypherGenerator() {
     }
 
     fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String, Boolean>>): List<Pair<String, String>> {
-        return listOf(Pair("_labels", "labels(`$variable`)")) + // ,Pair("_id", "id(`$variable`)")
+        return listOf(Pair("_labels", "labels(`$variable`)")) +
                 projectFragments(md, variable, selectionSet.selections, orderBys) +
                 selectionSet.selections.filterIsInstance<Field>().mapNotNull { projectField(it, md, variable, orderBys) }
     }
@@ -148,7 +150,8 @@ class Cypher31Generator : CypherGenerator() {
             }
         } else {
             if (relationship == null) {
-                Pair(field, attr(variable, field))
+                if (field=="_id") Pair(field, "id(`$variable`)")
+                else Pair(field, attr(variable, field))
             } else {
                 if (f.selectionSet == null) null // todo
                 else {
