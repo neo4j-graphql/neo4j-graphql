@@ -5,6 +5,8 @@ import org.codehaus.jackson.map.ObjectMapper
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.logging.Log
 import org.neo4j.logging.LogProvider
+import java.io.PrintWriter
+import java.io.StringWriter
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.HttpHeaders
@@ -48,8 +50,13 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     @Path("/idl")
     @POST
     fun storeIdl(schema: String): Response {
-        val metaDatas = GraphSchemaScanner.storeIdl(db, schema)
-        return Response.ok().entity(metaDatas.toString()).build() // todo JSON
+        try {
+            val text = if (schema.trim().let { it.startsWith('"') && it.endsWith('"') }) schema.trim('"', ' ', '\t', '\n') else schema
+            val metaDatas = GraphSchemaScanner.storeIdl(db, text)
+            return Response.ok().entity(OBJECT_MAPPER.writeValueAsString(metaDatas)).build()
+        } catch(e: Exception) {
+            return Response.serverError().entity(OBJECT_MAPPER.writeValueAsString(mapOf("error" to e.message,"trace" to e.stackTraceAsString()))).build()
+        }
     }
 
     @Path("/idl")

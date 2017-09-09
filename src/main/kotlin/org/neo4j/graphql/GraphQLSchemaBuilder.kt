@@ -1,6 +1,5 @@
 package org.neo4j.graphql
 
-import graphql.Scalars
 import graphql.Scalars.*
 import graphql.execution.ExecutionTypeInfo
 import graphql.execution.ValuesResolver
@@ -486,7 +485,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         if (idProperty == null)
             return listOf(createMutation)
         else {
-            val nonIdProperties = updatableProperties.filter { !it.isId() }
+            val nonIdProperties = updatableProperties.filter { !it.isIdProperty() }
 
             return listOf(
                 createMutation
@@ -527,7 +526,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         }
 
     }
-    fun idProperty(md: MetaData) : MetaData.PropertyInfo? = md.properties.values.firstOrNull { it.isId() }
+    fun idProperty(md: MetaData) : MetaData.PropertyInfo? = md.properties.values.firstOrNull { it.isIdProperty() }
 
     fun relationshipMutationFields(metaData: MetaData, inputs: Map<String, GraphQLInputType>) : List<GraphQLFieldDefinition> {
         val idProperty = idProperty(metaData)

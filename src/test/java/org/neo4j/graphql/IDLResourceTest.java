@@ -47,9 +47,10 @@ public class IDLResourceTest {
         assertEquals(200, response.status());
 
         String result = response.rawContent();
-        assertEquals(true, result.contains("MetaData{type='Person'"));
-        assertEquals(true, result.contains("fieldName=name, type=String"));
-        assertEquals(true, result.contains("fieldName=born, type=Int"));
+        System.out.println("result = " + result);
+        assertEquals(true, result.contains("\"Person\":{\"type\":\"Person\""));
+        assertEquals(true, result.contains("\"fieldName\":\"name\",\"type\":{\"name\":\"String\""));
+        assertEquals(true, result.contains("\"fieldName\":\"born\",\"type\":{\"name\":\"Int\""));
 
         HTTP.Response graphQlResponse = HTTP.POST(serverURI.toString(), map("query", "{ __schema { queryType { fields { name }}}}"));
 
