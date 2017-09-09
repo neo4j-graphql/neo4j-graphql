@@ -94,9 +94,9 @@ class MetaData(label: String) {
                             val indexed: Boolean = false, val cypher: CypherInfo? = null, val defaultValue : Any? = null,
                             val unique: Boolean = false,val enum : Boolean = false,
                             val parameters : Map<String,ParameterInfo>? = null) {
-        fun isId() = type.name == "ID" || id
+        fun isIdProperty() = type.name == "ID" || id
         fun isComputed() = cypher != null
-        fun  updateable() = !isComputed() && !isId()
+        fun  updateable() = !isComputed() && !isIdProperty()
     }
     data class RelationshipInfo(val fieldName: String, val type: String, val label: String, val out: Boolean = true,
                                 val multi: Boolean = false, val cypher: MetaData.CypherInfo? = null,
