@@ -16,31 +16,29 @@ abstract class CypherGenerator {
         fun instance(): CypherGenerator {
             return Cypher31Generator()
         }
+        fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)!!
+
+        fun attr(variable: String, field: String) = "`$variable`.`$field`"
+
+        fun isPlural(name: String) = name.endsWith("s")
+
+        fun singular(name: String) = name.substring(0, name.length - 1)
+
+        fun formatValue(value: Value?): String =
+                when (value) {
+                    is VariableReference -> "{`${value.name}`}"
+                // todo turn into parameters  !!
+                    is IntValue -> value.value.toString()
+                    is FloatValue -> value.value.toString()
+                    is BooleanValue -> value.isValue.toString()
+                    is StringValue -> "\"${value.value}\""
+                    is EnumValue -> "\"${value.name}\""
+                    is ObjectValue -> "{" + value.objectFields.map { it.name + ":" + formatValue(it.value) }.joinToString(",") + "}"
+                    is ArrayValue -> "[" + value.values.map { formatValue(it) }.joinToString(",") + "]"
+                    else -> "" // todo raise exception ?
+                }
     }
-
     abstract fun generateQueryForField(field: Field): String
-
-    protected fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)!!
-
-    protected fun attr(variable: String, field: String) = "`$variable`.`$field`"
-
-    protected fun isPlural(name: String) = name.endsWith("s")
-
-    protected fun singular(name: String) = name.substring(0, name.length - 1)
-
-    protected fun formatValue(value: Value?): String =
-            when (value) {
-                is VariableReference -> "{`${value.name}`}"
-            // todo turn into parameters  !!
-                is IntValue -> value.value.toString()
-                is FloatValue -> value.value.toString()
-                is BooleanValue -> value.isValue.toString()
-                is StringValue -> "\"${value.value}\""
-                is EnumValue -> "\"${value.name}\""
-                is ObjectValue -> "{" + value.objectFields.map { it.name + ":" + formatValue(it.value) }.joinToString(",") + "}"
-                is ArrayValue -> "[" + value.values.map { formatValue(it) }.joinToString(",") + "]"
-                else -> "" // todo raise exception ?
-            }
 }
 
 class Cypher31Generator : CypherGenerator() {
@@ -67,8 +65,8 @@ class Cypher31Generator : CypherGenerator() {
                     extractOrderByEnum(it, orderBys)
                     null
                 }
-                "_id" -> "id(`$variable`) = ${formatValue(it.value)}"
-                "_ids" -> "id(`$variable`) IN ${formatValue(it.value)}"
+                GraphQLSchemaBuilder.ArgumentProperties.NodeId.name -> GraphQLSchemaBuilder.ArgumentProperties.NodeId.argument(variable,field.name, it.value)
+                GraphQLSchemaBuilder.ArgumentProperties.NodeIds.name -> GraphQLSchemaBuilder.ArgumentProperties.NodeIds.argument(variable,field.name,it.value)
                 "first" -> null
                 "offset" -> null
                 else -> {
@@ -150,7 +148,7 @@ class Cypher31Generator : CypherGenerator() {
             }
         } else {
             if (relationship == null) {
-                if (field=="_id") Pair(field, "id(`$variable`)")
+                if (GraphQLSchemaBuilder.ArgumentProperties.NodeId.matches(field)) GraphQLSchemaBuilder.ArgumentProperties.NodeId.render(variable)
                 else Pair(field, attr(variable, field))
             } else {
                 if (f.selectionSet == null) null // todo
