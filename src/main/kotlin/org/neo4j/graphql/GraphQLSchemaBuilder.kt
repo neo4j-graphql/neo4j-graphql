@@ -13,10 +13,54 @@ import graphql.schema.GraphQLObjectType.newObject
 import org.neo4j.graphdb.*
 import org.neo4j.graphdb.Node
 import org.neo4j.graphql.CypherGenerator.Companion.DEFAULT_CYPHER_VERSION
+import org.neo4j.graphql.CypherGenerator.Companion.formatValue
 import org.neo4j.helpers.collection.Iterators
 import java.util.*
 
 class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
+
+    object ArgumentProperties {
+        interface ArgumentProperty {
+            // clause: Clause
+            val name : String
+            val type : GraphQLType
+            fun description() : String? = null
+            fun render(variable: String) : Pair<String,String>?
+            fun argument(variable: String, field:String, value:Value) : String
+            fun toArgument() = newArgument().name(name).type(type as GraphQLInputType).build()
+            fun toField() = newFieldDefinition().name(name).description(description()).type(type as GraphQLOutputType).build()
+            fun  matches(field: String): Boolean = name == field
+        }
+/*
+        object Property : ArgumentProperty {
+            override val name = null
+            override val type = GraphQLLong
+            override fun description() = "internal node id"
+
+            override fun render(variable: String) = Pair(name, "id(`$variable`)")
+
+            fun argument(variable: String, field:String? = null, value:Value) = "id(`$variable`) = ${formatValue(value)}"
+        }
+*/
+        object NodeId : ArgumentProperty {
+            override val name = "_id"
+            override val type = GraphQLLong
+            override fun description() = "internal node id"
+
+            override fun render(variable: String) = Pair(name, "id(`$variable`)")
+
+            override fun argument(variable: String, field:String, value:Value) = "id(`$variable`) = ${formatValue(value)}"
+        }
+        object NodeIds : ArgumentProperty {
+            override val name = "_ids"
+            override val type = GraphQLList(GraphQLLong)
+            override fun description() = "internal node ids"
+
+            override fun render(variable: String) = Pair(name, "[id(`$variable`)]")
+
+            override fun argument(variable: String, field:String, value:Value) = "id(`$variable`) IN ${formatValue(value)}"
+        }
+    }
 
     fun graphqlTypeFor(arg: Type, existingTypes: Map<String, GraphQLType>): GraphQLType =
             when (arg) {
@@ -105,11 +149,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .name(metaData.type)
                 .description(metaData.type + "-Node")
 
-        builder = builder.field(newFieldDefinition()
-                .name("_id")
-                .description("internal node id")
-                //                    .fetchField().dataFetcher((env) -> null)
-                .type(Scalars.GraphQLLong).build())
+        builder = builder.field(ArgumentProperties.NodeId.toField())
 
         metaData.labels.mapNotNull { interfaceDefinitions.get(it) }.forEach {  builder = builder.withInterface(it) }
 
@@ -129,11 +169,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .name(interfaceName)
                 .description(interfaceName + "-Node")
 
-        builder = builder.field(newFieldDefinition()
-                .name("_id")
-                .description("internal node id")
-                //                    .fetchField().dataFetcher((env) -> null)
-                .type(Scalars.GraphQLLong).build())
+        builder = builder.field(ArgumentProperties.NodeId.toField())
 
         // todo relationships, labels etc.
 
@@ -154,10 +190,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                         .name(interfaceName)
                         .description(interfaceName + "-Node")
 
-                builder = builder.field(newFieldDefinition()
-                        .name("_id")
-                        .description("internal node id")
-                        .type(Scalars.GraphQLLong).build())
+                builder = builder.field(ArgumentProperties.NodeId.toField())
 
                 builder = addProperties(metaData, builder)
                 builder = addRelationships(metaData, builder)
@@ -238,7 +271,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     }
 
     private fun withFirstOffset(field: GraphQLFieldDefinition.Builder) = field
-            .argument(newArgument().name("_id").type(GraphQLLong).build())
+            .argument(ArgumentProperties.NodeId.toArgument())
             .argument(newArgument().name("_ids").type(GraphQLList(GraphQLLong)).build())
             .argument(newArgument().name("first").type(GraphQLInt).build())
             .argument(newArgument().name("offset").type(GraphQLInt).build())
