@@ -1,7 +1,7 @@
 = Neo4j-GraphQL Extension
 :img: docs/img
 
-NOTE: This branch is for supporting Neo4j 3.2.
+NOTE: This branch is for supporting Neo4j 3.1.
 
 image:https://travis-ci.org/neo4j-contrib/neo4j-graphql.svg?branch=3.2["Build Status", link="https://travis-ci.org/neo4j-contrib/neo4j-graphql"]
 
