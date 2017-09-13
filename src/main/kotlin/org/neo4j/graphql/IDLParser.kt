@@ -25,7 +25,7 @@ object IDLParser {
         return parseSchemaType(input, "query")
     }
 
-    private fun parseSchemaType(input: String, schemaType: String): List<FieldDefinition> {
+    fun parseSchemaType(input: String, schemaType: String): List<FieldDefinition> {
         val definitions = parseDocument(input).definitions
         val mutationName: String? =
                 definitions.filterIsInstance<SchemaDefinition>()

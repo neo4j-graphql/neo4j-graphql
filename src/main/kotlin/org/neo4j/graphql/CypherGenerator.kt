@@ -2,7 +2,6 @@ package org.neo4j.graphql
 
 import graphql.language.*
 import org.neo4j.kernel.internal.Version
-import java.util.regex.Pattern
 
 fun <T> Iterable<T>.joinNonEmpty(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((T) -> CharSequence)? = null): String {
     return if (iterator().hasNext()) joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString() else ""
@@ -16,7 +15,7 @@ abstract class CypherGenerator {
         fun instance(): CypherGenerator {
             return Cypher31Generator()
         }
-        fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)!!
+        fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)
 
         fun attr(variable: String, field: String) = "`$variable`.`$field`"
 
@@ -38,7 +37,7 @@ abstract class CypherGenerator {
                     else -> "" // todo raise exception ?
                 }
     }
-    abstract fun generateQueryForField(field: Field): String
+    abstract fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition? = null, isMutation: Boolean = false): String
 }
 
 class Cypher31Generator : CypherGenerator() {
@@ -219,11 +218,20 @@ class Cypher31Generator : CypherGenerator() {
         return Pair(result + subscript(skipLimit),fieldVariable)
     }
 
-    override fun generateQueryForField(field: Field): String {
+    override fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition?, isMutation: Boolean): String {
         val name = field.name
-        val variable = name
-        val md = metaData(name)
+        val typeName = fieldDefinition?.type?.inner() ?: "no field definition"
+        val md = metaData(name) ?: metaData(typeName) ?: throw IllegalArgumentException("Cannot resolve as type $name or $typeName")
+        val variable = md.type
         val orderBys = mutableListOf<Pair<String,Boolean>>()
+        val procedure = if (isMutation) "updateForNodes" else "queryForNodes"
+        val isDynamic = fieldDefinition?.cypher() != null
+        val query = fieldDefinition?.cypher()?.
+                let {
+                    val passedInParams = field.arguments.map { "`${it.name}` : {`${it.name}`}" }.joinToString(",", "{", "}")
+                    """CALL graphql.$procedure("${it.first}",${passedInParams}) YIELD node AS `$variable`"""
+                }
+                ?: "MATCH (`$variable`:`$name`)"
 
         val projectFields = projectSelectionFields(md, variable, field.selectionSet, orderBys)
         val resultProjection = projectFields.map { pair ->
@@ -238,15 +246,18 @@ class Cypher31Generator : CypherGenerator() {
         }.joinToString(",\n","RETURN ")
 
         val resultFieldNames = projectFields.map { it.first }.toSet()
+        val where = if (isDynamic) "" else where(field, variable, md, orderBys)
         val parts = listOf(
-                "MATCH (`$variable`:`$name`)",
-                where(field, variable, md, orderBys),
+                query,
+                where,
                 resultProjection,
                 // todo check if result is in returned projections
                 orderBys.map { (if (!resultFieldNames.contains(it.first))  "`$variable`." else "") + "`${it.first}` ${if (it.second) "asc" else "desc"}" }.joinNonEmpty(",", "ORDER BY ")
         ) +  skipLimitStatements(skipLimit(field))
 
-        return parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
+        val statement = parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
+        println(statement)
+        return statement
     }
 
     private fun cypherDirective(field: Field): Directive? =

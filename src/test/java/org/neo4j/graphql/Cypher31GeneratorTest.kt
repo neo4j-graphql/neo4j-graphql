@@ -33,6 +33,39 @@ RETURN labels(`Person`) AS `_labels`,
 
     @Test
     @Throws(Exception::class)
+    fun dynamicType() {
+
+        val schema = """
+        schema {
+            query : QueryType
+        }
+        type QueryType {
+            people: [Person] @cypher(statement:"MATCH (p:Person) RETURN p")
+        }
+        type Person {
+            name: String
+        }
+        """
+        val metaData = IDLParser.parse(schema)
+        val queryType = IDLParser.parseSchemaType(schema,"query").first()
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val field = Field("people", SelectionSet(listOf<Selection>(Field("name"))))
+
+        val query = generator.generateQueryForField(field, queryType)
+
+        assertEquals(
+                """CALL graphql.queryForNodes("MATCH (p:Person) RETURN p",{}) YIELD node AS `Person`
+RETURN labels(`Person`) AS `_labels`,
+`Person`.`name` AS `name`""",  query)
+    }
+
+
+    @Test
+    @Throws(Exception::class)
     fun typeWithArrayProperty() {
 
         val metaData = IDLParser.parse("""

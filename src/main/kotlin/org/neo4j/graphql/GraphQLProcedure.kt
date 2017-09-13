@@ -77,7 +77,7 @@ class GraphQLProcedure {
     }
 
     @UserFunction("graphql.run")
-    fun run(@Name("query") query: String, @Name("variables") variables : Map<String,Any>, @Name("expectMultipleValues") expectMultipleValues : Boolean) : Any {
+    fun run(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>, @Name("expectMultipleValues",defaultValue = "true") expectMultipleValues : Boolean) : Any {
         val result = db!!.execute(query, variables)
 
         val firstColumn = result.columns()[0]
@@ -89,10 +89,10 @@ class GraphQLProcedure {
         }
     }
 
-    data class Row(@JvmField val value:Any?)
+    data class Row(@JvmField val row:Any?)
 
     @Procedure("graphql.run", mode = Mode.WRITE)
-    fun runProc(@Name("query") query: String, @Name("variables") variables : Map<String,Any>, @Name("expectMultipleValues") expectMultipleValues : Boolean) : Stream<Row> {
+    fun runProc(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>, @Name("expectMultipleValues", defaultValue = "true") expectMultipleValues : Boolean) : Stream<Row> {
         val result = run(query, variables, expectMultipleValues)
 
         return if (result is List<*>) {
@@ -100,6 +100,21 @@ class GraphQLProcedure {
         } else {
             Stream.of(Row(result))
         }
+    }
+
+    data class Nodes(@JvmField val node:Node?)
+    @Procedure("graphql.queryForNodes")
+    fun queryForNodes(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>) : Stream<Nodes> {
+        val result = db!!.execute(query, variables)
+        val firstColumn = result.columns()[0]
+        return result.columnAs<Node>(firstColumn).stream().map{ Nodes(it) }
+    }
+
+    @Procedure("graphql.updateForNodes",mode = Mode.WRITE)
+    fun updateForNodes(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>) : Stream<Nodes> {
+        val result = db!!.execute(query, variables)
+        val firstColumn = result.columns()[0]
+        return result.columnAs<Node>(firstColumn).stream().map{ Nodes(it) }
     }
 
     @UserFunction("graphql.sortColl")

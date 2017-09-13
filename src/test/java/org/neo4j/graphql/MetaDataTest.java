@@ -130,7 +130,6 @@ public class MetaDataTest {
         }
     }
 
-
     @Test
     public void offsetUserQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("{ User(offset:2) {id,name,age} }", map());

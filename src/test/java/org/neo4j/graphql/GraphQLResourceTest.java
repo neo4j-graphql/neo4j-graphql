@@ -30,6 +30,7 @@ public class GraphQLResourceTest {
                 .newInProcessBuilder()
                 .withExtension("/graphql", GraphQLResource.class)
                 .withProcedure(GraphQLProcedure.class)
+                .withFunction(GraphQLProcedure.class)
                 .withFixture("CREATE (:Person {name:'Kevin Bacon',born:1958})-[:ACTED_IN]->(:Movie {title:'Apollo 13',released:1995}),(:Person {name:'Meg Ryan',born:1961})")
                 .newServer();
         serverURI = new URL(neo4j.httpURI().toURL(), "graphql/");
@@ -120,7 +121,38 @@ public class GraphQLResourceTest {
         assertEquals(false,result.hasNext());
         result.close();
     }
-    
+
+
+    @Test
+    public void testCypherProcedure() throws Exception {
+        testCypherCall("CALL graphql.run({query},{born:{born}},true)");
+    }
+
+    @Test
+    public void testCypherFunction() throws Exception {
+        testCypherCall("RETURN graphql.run({query},{born:{born}},false) as row");
+    }
+    @Test
+    public void testComplexProcedureCall() throws Exception {
+        String call = "CALL graphql.queryForNodes(\"MATCH (p:Person {born:1961}) RETURN p\") YIELD node AS `Person`\n" +
+                "RETURN labels(`Person`) AS `_labels`,\n" +
+                "`Person` {.`name`, .`born`} AS `row`";
+        testCypherCall(call);
+    }
+
+    private void testCypherCall(String call) {
+        String query = "MATCH (p:Person {born:{born}}) RETURN p {.name,.born}";
+        GraphDatabaseService db = neo4j.graph();
+        Result result = db.execute(call,map("query",query,"born",1961));
+        assertEquals(true,result.hasNext());
+        Map<String, Object> row = result.next();
+        System.out.println("row = " + row);
+        Map  data = (Map)row.get("row");
+        assertEquals("Meg Ryan",data.get("name"));
+        assertEquals(false,result.hasNext());
+        result.close();
+    }
+
     @Test
     public void testSchemaProcedure() throws Exception {
         GraphDatabaseService db = neo4j.graph();
