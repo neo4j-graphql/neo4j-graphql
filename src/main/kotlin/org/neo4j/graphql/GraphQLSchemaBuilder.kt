@@ -603,9 +603,10 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     private fun fetchGraphData(md: MetaData, env: DataFetchingEnvironment): List<Map<String, Any>> {
         val ctx = env.getContext<GraphQLContext>()
         val db = ctx.db
+        val fragments = env.fragmentsByName
         val generator = CypherGenerator.instance()
         return env.fields
-                .map { it to generator.generateQueryForField(it, env.fieldDefinition.definition) }
+                .map { it to generator.generateQueryForField(it, env.fieldDefinition.definition, fragments = env.fragmentsByName) }
                 .flatMap({ pair ->
                     val (field, query) = pair
                     val directives = field.directives.associate { it.name to it }

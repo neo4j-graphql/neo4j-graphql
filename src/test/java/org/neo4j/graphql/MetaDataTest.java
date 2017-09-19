@@ -286,11 +286,11 @@ public class MetaDataTest {
         assertEquals("Berlin", result.get("Loc").get(0).get("name"));
     }
 
-    @Test @Ignore("seems not to be supported in the graphql library, or our query generation")
+    @Test
     public void fragmentTest() throws Exception {
         Map<String, List<Map>> result = executeQuery("query LocationQuery { Location { ...name } }\nfragment name on Location { name } ", map());
-        assertEquals(1, result.get("Locaction").size());
-        assertEquals("Berlin", result.get("Locaction").get(0).get("name"));
+        assertEquals(1, result.get("Location").size());
+        assertEquals("Berlin", result.get("Location").get(0).get("name"));
     }
 
     @Test
