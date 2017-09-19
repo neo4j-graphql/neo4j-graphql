@@ -33,7 +33,6 @@ class EndToEndTest {
     fun tearDown() {
         neo4j!!.close()
     }
-
     @Test
     @Throws(Exception::class)
     fun testPostIdlAndQueryAgainstIt() {
@@ -167,7 +166,7 @@ class EndToEndTest {
 
         assertNull(result["errors"])
 
-        val data = result["data"]!!["Person"]
+        val data = result["data"]!!["Person"] as List<Map<String,Any>>
 
         assertEquals(1, data?.size)
 
@@ -202,8 +201,9 @@ class EndToEndTest {
         val queryByGenreResult = executeQuery(queryByGenre)
         println(queryByGenreResult)
         assertNull(queryByGenreResult["errors"])
-        assertEquals(1, queryByGenreResult["data"]!!["movieByGenre"]?.size)
-        assertEquals("Apollo 13", queryByGenreResult["data"]!!["movieByGenre"]!!.get(0)["title"])
+        val movieByGenre = queryByGenreResult["data"]!!["movieByGenre"] as List<Map<String,Any>>?
+        assertEquals(1, movieByGenre?.size)
+        assertEquals("Apollo 13", movieByGenre!!.get(0)["title"])
 
         val queryGenre = """
         query { movieGenre(title:"Apollo 13") }
@@ -234,7 +234,97 @@ class EndToEndTest {
         assertFalse(queryResult.hasNext())
     }
 
-    private fun executeQuery(query: String): Map<String, Map<String, List<Map<*, *>>>> {
+
+    @Test
+    @Throws(Exception::class)
+    fun testNestedDynamicFields() {
+        val idlEndpoint = URL(serverURI, "idl").toString()
+
+        val schema = """
+schema {
+  mutation: Mutation
+  query: Query
+}
+
+type Query {
+  ## queriesRootQuery
+  getUser(userId: ID): UserData
+    @cypher(statement: "MATCH (u:User{id: {userId}})-[:CREATED_MAP]->(m:Map) WITH collect({id: m.id, name: m.name}) AS mapsCreated, u RETURN {firstName: u.firstName, lastName: u.lastName, organization: u.organization, mapsCreated: mapsCreated}", passThrough:true)
+}
+
+type Mutation {
+  initializeMap(userId: ID, mapId: ID, name: String): ID
+    @cypher(statement: "MATCH (u:User{id: {userId}}) CREATE (cm:Map{id: {mapId}, name: {name}}), (u)-[:CREATED_MAP]->(cm) RETURN cm.id")
+}
+
+type User {
+  id: ID
+  userName: String
+  firstName: String
+  lastName: String
+  organization: String
+  mapsCreated: [Map] @relation(name:"CREATED_MAP", direction:"OUT")
+}
+
+type Map {
+  id: ID
+  name: String
+}
+
+type UserData {
+  firstName: String
+  lastName: String
+  organization: String
+  mapsCreated: [MapsCreated]
+}
+
+type MapsCreated {
+  id: String
+  name: String
+}
+"""
+
+        val schemaResponse = HTTP.POST(idlEndpoint, HTTP.RawPayload.rawPayload(schema))
+        assertEquals(200, schemaResponse.status().toLong())
+
+
+        val mutation = """
+        mutation {
+            u: createUser(id: "123", userName: "JonDoe", firstName: "Jon", lastName: "Doe", organization: "JD")
+            m: initializeMap(userId: "123", mapId: "321", name: "Map321")
+        }
+        """
+
+        val mutationResponse = HTTP.POST(serverURI!!.toString(), mapOf("query" to mutation))
+        println("mutationResponse = " + mutationResponse.rawContent())
+        assertEquals(200, mutationResponse.status().toLong())
+
+
+        val query = """
+         query queriesRootQuery {
+            user: getUser(userId: "123") {
+              firstName lastName organization
+              mapsCreated {id}
+         } }
+        """
+
+        val result = executeQuery(query)
+
+        println(result)
+
+        assertNull(result["errors"])
+
+        val user = result["data"]!!["user"] as Map<String,Any>
+
+        assertEquals("Jon", user["firstName"])
+        assertEquals("JD", user["organization"])
+        assertEquals(listOf(mapOf("id" to "321")), user["mapsCreated"])
+    }
+
+
+
+
+    private fun executeQuery(query: String): Map<String, Map<String, Any>> {
         val queryResponse = HTTP.POST(serverURI!!.toString(), mapOf("query" to query))
 
         println(ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(queryResponse.content()))

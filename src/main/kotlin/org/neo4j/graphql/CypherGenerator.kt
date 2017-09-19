@@ -225,11 +225,12 @@ class Cypher31Generator : CypherGenerator() {
         val variable = md.type
         val orderBys = mutableListOf<Pair<String,Boolean>>()
         val procedure = if (isMutation) "updateForNodes" else "queryForNodes"
-        val isDynamic = fieldDefinition?.cypher() != null
-        val query = fieldDefinition?.cypher()?.
+        val cypherDefinition = fieldDefinition?.cypher()
+        val isDynamic = cypherDefinition != null
+        val query = cypherDefinition?.
                 let {
                     val passedInParams = field.arguments.map { "`${it.name}` : {`${it.name}`}" }.joinToString(",", "{", "}")
-                    """CALL graphql.$procedure("${it.first}",${passedInParams}) YIELD node AS `$variable`"""
+                    """CALL graphql.$procedure("${it.statement}",${passedInParams}) YIELD node AS `$variable`"""
                 }
                 ?: "MATCH (`$variable`:`$name`)"
 
@@ -255,7 +256,8 @@ class Cypher31Generator : CypherGenerator() {
                 orderBys.map { (if (!resultFieldNames.contains(it.first))  "`$variable`." else "") + "`${it.first}` ${if (it.second) "asc" else "desc"}" }.joinNonEmpty(",", "ORDER BY ")
         ) +  skipLimitStatements(skipLimit(field))
 
-        return parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
+        val statement = parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
+        return statement
     }
 
     private fun cypherDirective(field: Field): Directive? =

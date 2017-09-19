@@ -131,13 +131,14 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
             val targetType = fieldDefinition.type.inner()
             val md = metaDatas.find { it.type == targetType }
-            val needNesting = md?.let { env.selectionSet.get().values.any { selections -> selections.any { md.hasRelationship(it.name) } } } ?: false
-
             val cypher = fieldDefinition.cypher() ?: throw IllegalStateException("No @cypher annotation on field $fieldName")
+
+            val needNesting = !cypher.passThrough && md?.let { env.selectionSet.get().values.any { selections -> selections.any { md.hasRelationship(it.name) } } } ?: false
+
             val arguments = fieldDefinition.inputValueDefinitions.associate { arg -> arg.name to env.getArgument<Any>(arg.name) }
             val params = arguments // + mapOf("__params__" to arguments)
             val isMutation = env.graphQLSchema?.mutationType == env.parentType
-            val statement = if (needNesting) CypherGenerator.instance().generateQueryForField(field, fieldDefinition, isMutation) else cypher.first
+            val statement = if (needNesting) CypherGenerator.instance().generateQueryForField(field, fieldDefinition, isMutation) else cypher.statement
             return execute(statement, params, { result -> asEntityList(result, returnType)})
         }
 
