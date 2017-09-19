@@ -32,7 +32,7 @@ class GraphQLSchemaBuilderTest {
         val md = MetaData("Actor")
         md.addLabel("Person")
         md.addProperty("name", MetaData.PropertyType("String", nonNull = true))
-        val mutationField: GraphQLFieldDefinition = GraphQLSchemaBuilder(listOf(md)).mutationField(md)[0]
+        val mutationField: GraphQLFieldDefinition = GraphQLSchemaBuilder(listOf(md)).mutationField(md, emptySet())[0]
         println("mutationField = ${mutationField}")
         assertEquals("createActor", mutationField.name)
         println(mutationField.dataFetcher.toString())
@@ -91,7 +91,7 @@ type QueryType {
             else -> null
         } })
         val queryFields = builder.toDynamicQueryOrMutationFields(definitions.filterIsInstance<ObjectTypeDefinition>().first().fieldDefinitions, inputTypes)
-        assertEquals(type, queryFields.first().getArgument("test").type)
+        assertEquals(type, queryFields.values.first().getArgument("test").type)
     }
     @Test
     fun enums() {

@@ -78,7 +78,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 else -> throw RuntimeException("Unknown Type " + arg)
             }
 
-    fun toDynamicQueryOrMutationFields(fields: List<FieldDefinition>, objectTypes: Map<String,GraphQLType>) : List<GraphQLFieldDefinition> {
+    fun toDynamicQueryOrMutationFields(fields: List<FieldDefinition>, objectTypes: Map<String,GraphQLType>) : Map<String, GraphQLFieldDefinition> {
 
         fun firstColumn(result: Result) = result.columnAs<Any>(result.columns().first()).asSequence()
 
@@ -144,7 +144,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         return fields.map { field ->
             val returnType = graphqlTypeFor(field.type, objectTypes) as GraphQLOutputType
 
-            GraphQLFieldDefinition.newFieldDefinition()
+            field.name to GraphQLFieldDefinition.newFieldDefinition()
                     .name(field.name)
                     .type(returnType)
                     .dataFetcher { ctx -> executeCypher(field, ctx, returnType) }
@@ -157,7 +157,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                                 .build()
                     })
                     .build()
-        }
+        }.toMap()
     }
 
     fun toGraphQLObjectType(metaData: MetaData, interfaceDefinitions: Map<String, GraphQLInterfaceType> = emptyMap()) : GraphQLObjectType {
@@ -383,22 +383,25 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
         val mutationsFromSchema = GraphSchemaScanner.schema?.
                 let { IDLParser.parseMutations(it) }?.
-                let { parsedMutations -> toDynamicQueryOrMutationFields(parsedMutations, objectTypes) } ?: emptyList()
+                let { parsedMutations -> toDynamicQueryOrMutationFields(parsedMutations, objectTypes) } ?: emptyMap()
 
         val queriesFromSchema = GraphSchemaScanner.schema?.
                 let { IDLParser.parseQueries(it) }?.
-                let { parsedQueries -> toDynamicQueryOrMutationFields(parsedQueries, objectTypes) } ?: emptyList()
-        val mutationFields = GraphSchemaScanner.allMetaDatas()
-                .flatMap { relationshipMutationFields(it,enums) + mutationField(it) } + mutationsFromSchema
+                let { parsedQueries -> toDynamicQueryOrMutationFields(parsedQueries, objectTypes) } ?: emptyMap()
+
+        var existingMutations = mutationsFromSchema.keys
+        val generatedTypeMutations = GraphSchemaScanner.allMetaDatas().flatMap { mutationField(it,existingMutations) }
+        existingMutations += generatedTypeMutations.map { it.name }
+        val generatedRelationshipMutations = GraphSchemaScanner.allMetaDatas().flatMap { relationshipMutationFields(it, enums, existingMutations) }
 
         val mutationType: GraphQLObjectType = newObject().name("MutationType")
-                .fields(mutationFields)
+                .fields(generatedTypeMutations + generatedRelationshipMutations + mutationsFromSchema.values)
                 .build()
 
-        val queriesFromTypes = queryFields(metaDatas)
+        val queriesFromTypes = queryFields(metaDatas, queriesFromSchema)
 
         val queryType = newObject().name("QueryType")
-                .fields(queriesFromTypes + queriesFromSchema)
+                .fields(queriesFromTypes + queriesFromSchema.values)
                 .build()
 
         // todo this was missing, it was only called by the builder: SchemaUtil().replaceTypeReferences(graphQLSchema)
@@ -458,13 +461,14 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         return inType
     }
 
-    fun queryFields(metaDatas: Iterable<MetaData>): List<GraphQLFieldDefinition> {
+    fun queryFields(metaDatas: Iterable<MetaData>, queriesFromSchema: Map<String, GraphQLFieldDefinition> = emptyMap()): List<GraphQLFieldDefinition> {
+        val existing = queriesFromSchema.keys
         return metaDatas
                 .map { md ->
                     val hasProperties = md.properties.isNotEmpty()
                     withFirstOffset(
                             newFieldDefinition()
-                            .name(md.type)
+                            .name(handleCollisions(existing,md.type))
                             .type(GraphQLList(GraphQLTypeReference(md.type))) // todo
                             .argument(propertiesAsArguments(md))
                             .argument(propertiesAsListArguments(md))
@@ -474,13 +478,13 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 }
     }
 
-    fun mutationField(metaData: MetaData) : List<GraphQLFieldDefinition> {
+    fun mutationField(metaData: MetaData, existing: Set<String>) : List<GraphQLFieldDefinition> {
         val idProperty = idProperty(metaData)
 
         val updatableProperties = metaData.properties.values.filter { !it.isComputed() }
 
         val createMutation = GraphQLFieldDefinition.newFieldDefinition()
-                .name("create" + metaData.type)
+                .name(handleCollisions(existing,"create" + metaData.type))
                 .description("Creates a ${metaData.type} entity")
                 .type(GraphQLString)
                 .argument(updatableProperties.map { GraphQLArgument(it.fieldName, graphQlInType(it.type)) })
@@ -498,7 +502,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             val nonIdProperties = updatableProperties.filter { !it.isIdProperty() }
 
             val updateMutation = GraphQLFieldDefinition.newFieldDefinition()
-                    .name("update" + metaData.type)
+                    .name(handleCollisions(existing,"update" + metaData.type))
                     .description("Updates a ${metaData.type} entity")
                     .type(GraphQLString)
                     .argument(GraphQLArgument(idProperty.fieldName, graphQlInType(idProperty.type)))
@@ -514,7 +518,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     }
                     .build()
             val deleteMutation = GraphQLFieldDefinition.newFieldDefinition()
-                    .name("delete" + metaData.type)
+                    .name(handleCollisions(existing,"delete" + metaData.type))
                     .description("Deletes a ${metaData.type} entity")
                     .type(GraphQLString)
                     .argument(GraphQLArgument(idProperty.fieldName, graphQlInType(idProperty.type)))
@@ -534,7 +538,9 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     }
     fun idProperty(md: MetaData) : MetaData.PropertyInfo? = md.properties.values.firstOrNull { it.isIdProperty() }
 
-    fun relationshipMutationFields(metaData: MetaData, inputs: Map<String, GraphQLInputType>) : List<GraphQLFieldDefinition> {
+    private fun handleCollisions(existing: Set<String>, name: String) = if (existing.contains(name)) name + "_" else name
+
+    fun relationshipMutationFields(metaData: MetaData, inputs: Map<String, GraphQLInputType>, existing: Set<String>) : List<GraphQLFieldDefinition> {
         val idProperty = idProperty(metaData)
         return  metaData.relationships.values.flatMap {  rel ->
             val targetMeta = GraphSchemaScanner.getMetaData(rel.label)!!
@@ -546,7 +552,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 val (left,right) = if (rel.out) Pair("",">") else Pair("<","")
                 listOf(
                 GraphQLFieldDefinition.newFieldDefinition()
-                        .name("add" + metaData.type + rel.fieldName.capitalize())
+                        .name(handleCollisions(existing, "add" + metaData.type + rel.fieldName.capitalize()))
                         .description("Adds ${rel.fieldName.capitalize()} to ${metaData.type} entity")
                         .type(GraphQLString)
                         .argument(sourceArgument).argument(targetArguments)
@@ -560,7 +566,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                         }
                         .build(),
                 GraphQLFieldDefinition.newFieldDefinition()
-                        .name("delete" + metaData.type + rel.fieldName.capitalize())
+                        .name(handleCollisions(existing, "delete" + metaData.type + rel.fieldName.capitalize()))
                         .description("Deletes ${rel.fieldName.capitalize()} from ${metaData.type} entity")
                         .type(GraphQLString)
                         .argument(sourceArgument).argument(targetArguments)
