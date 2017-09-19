@@ -9,6 +9,7 @@ import java.util.*
 class MetaData(label: String) {
     var type = ""
     var isInterface = false
+    var description : String? = null
 
     init {
         this.type = label
@@ -38,8 +39,8 @@ class MetaData(label: String) {
         properties.compute(name, {name, prop -> prop?.copy(type = PropertyType(javaClass)) ?: PropertyInfo(name,PropertyType(javaClass)) })
     }
 
-    fun addProperty(name: String, type: PropertyType, defaultValue: Any? = null, unique : Boolean = false, enum : Boolean = false) {
-        properties.compute(name, {name, prop -> (prop ?: PropertyInfo(name,type)).copy(type = type, defaultValue = defaultValue, unique = unique, enum = enum)})
+    fun addProperty(name: String, type: PropertyType, defaultValue: Any? = null, unique : Boolean = false, enum : Boolean = false, description: String? = null) {
+        properties.compute(name, {name, prop -> (prop ?: PropertyInfo(name,type)).copy(type = type, defaultValue = defaultValue, unique = unique, enum = enum, description = description)})
     }
 
     fun addCypher(name: String, statement: String) {
@@ -48,11 +49,11 @@ class MetaData(label: String) {
         relationships.computeIfPresent(name, { name, rel -> rel.copy(cypher = cypherInfo)})
     }
 
-    fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean, multi : Boolean) : RelationshipInfo {
+    fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean, multi : Boolean, description: String?) : RelationshipInfo {
         // fix for up
         val name = if (properties.containsKey(fieldName)) "_" + fieldName else fieldName
 //        val name = if (out) "${typeName}_$label" else "${label}_${typeName}"
-        return relationships.compute(name) { name,rel -> rel?.copy(multi = multi, out = out) ?: RelationshipInfo(name, typeName, label, out, multi) }!!
+        return relationships.compute(name) { name,rel -> rel?.copy(multi = multi, out = out, description = description) ?: RelationshipInfo(name, typeName, label, out, multi, description = description) }!!
     }
 
     fun relationshipFor(fieldName: String) = relationships[fieldName]
@@ -89,19 +90,19 @@ class MetaData(label: String) {
         }
 
      */
-    data class ParameterInfo(val name: String, val type: PropertyType, val defaultValue: Any? = null) // todo directives
-    data class CypherInfo(val cypher: String)
+    data class ParameterInfo(val name: String, val type: PropertyType, val defaultValue: Any? = null, val description: String? = null) // todo directives
+    data class CypherInfo(val cypher: String, val description: String? = null)
     data class PropertyInfo(val fieldName:String, val type: PropertyType, val id: Boolean = false,
                             val indexed: Boolean = false, val cypher: CypherInfo? = null, val defaultValue : Any? = null,
                             val unique: Boolean = false,val enum : Boolean = false,
-                            val parameters : Map<String,ParameterInfo>? = null) {
+                            val parameters : Map<String,ParameterInfo>? = null, val description : String? = null) {
         fun isIdProperty() = type.name == "ID" || id
         fun isComputed() = cypher != null
         fun  updateable() = !isComputed() && !isIdProperty()
     }
     data class RelationshipInfo(val fieldName: String, val type: String, val label: String, val out: Boolean = true,
                                 val multi: Boolean = false, val cypher: MetaData.CypherInfo? = null,
-                                val parameters : Map<String,ParameterInfo>? = null)
+                                val parameters : Map<String,ParameterInfo>? = null,val description : String? = null)
 
     fun addParameters(name: String, parameters: Map<String,ParameterInfo>) {
         if (parameters.isNotEmpty()) {

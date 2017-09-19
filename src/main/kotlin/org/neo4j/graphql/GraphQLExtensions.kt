@@ -27,6 +27,8 @@ fun FieldDefinition.cypher() : CypherDefinition ?=
                     (it.getArgument("passThrough")?.value?.extract() ?: false) as Boolean)
         }
 
+fun Node.description() : String? = this.comments.let {  if (it.isEmpty()) null else it.map { it.content }.joinToString(" ").trim() }
+
 fun Type.inner() : String = when (this) {
     is ListType -> this.type.inner()
     is NonNullType -> this.type.inner()

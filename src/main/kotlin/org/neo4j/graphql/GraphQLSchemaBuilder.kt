@@ -148,11 +148,13 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             field.name to GraphQLFieldDefinition.newFieldDefinition()
                     .name(field.name)
                     .type(returnType)
+                    .description(field.description())
                     .dataFetcher { ctx -> executeCypher(field, ctx, returnType) }
                     .argument(field.inputValueDefinitions.map { arg ->
                         // todo directives
                         GraphQLArgument.newArgument()
                                 .name(arg.name)
+                                .description(arg.description())
                                 .type(graphqlTypeFor(arg.type,objectTypes) as GraphQLInputType)
                                 .defaultValue(arg.defaultValue?.extract())
                                 .build()
@@ -164,7 +166,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     fun toGraphQLObjectType(metaData: MetaData, interfaceDefinitions: Map<String, GraphQLInterfaceType> = emptyMap()) : GraphQLObjectType {
         var builder: GraphQLObjectType.Builder = newObject()
                 .name(metaData.type)
-                .description(metaData.type + "-Node")
+                .description(metaData.description ?: metaData.type + "-Node")
 
         builder = builder.field(ArgumentProperties.NodeId.toField())
 
@@ -223,7 +225,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     private fun addRelationships(md: MetaData, builder: GraphQLObjectType.Builder): GraphQLObjectType.Builder {
         var newBuilder = builder
         for ((key, info) in md.relationships) {
-            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi, info.parameters?.values))
+            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi, info.parameters?.values, description = info.description))
         }
         return newBuilder
     }
@@ -231,7 +233,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     private fun addRelationships(md: MetaData, builder: GraphQLInterfaceType.Builder): GraphQLInterfaceType.Builder {
         var newBuilder = builder
         for ((key, info) in md.relationships) {
-            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi, info.parameters?.values))
+            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi, info.parameters?.values, description = info.description))
         }
         return newBuilder
     }
@@ -253,9 +255,11 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     }
 
     private fun newReferenceField(md: MetaData, name: String, label: String, multi: Boolean,
-                                  parameters: Iterable<MetaData.ParameterInfo>? = emptyList()
+                                  parameters: Iterable<MetaData.ParameterInfo>? = emptyList(),
+                                  description : String? = null
+
     ): GraphQLFieldDefinition {
-        val labelMd = GraphSchemaScanner.getMetaData(label)!!
+        val labelMd = metaDatas.find { it.type == label }!!
         val graphQLType: GraphQLOutputType = if (multi) GraphQLList(GraphQLTypeReference(label)) else GraphQLTypeReference(label)
         val hasProperties = labelMd.properties.isNotEmpty()
         val field = newFieldDefinition()
@@ -268,7 +272,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                         .collect(Collectors.toList());
             })
 */
-                .description(md.type + " " + name + " " + label)
+                .description(description ?: md.type + " " + name + " " + label)
                 .argument(propertiesAsArguments(labelMd))
                 .argument(propertiesAsListArguments(labelMd))
                 .argumentIf(hasProperties, {orderByArgument(labelMd)})
@@ -304,7 +308,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                         .collect(Collectors.toList());
             })
 */
-                .description(name + " of  " + md.type)
+                .description(prop.description ?: name + " of  " + md.type)
                 //                      .type(ids.contains(name) ? Scalars.GraphQLID : graphQlType(value.getClass()))
                 //                      .fetchField().dataFetcher((env) -> null)
                 .type(graphQlOutType(prop.type))
@@ -414,21 +418,21 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         return GraphQLSchemaWithDirectives(schema.queryType, schema.mutationType, schema.additionalTypes, graphQLDirectives())
     }
 
-    fun enumsFromDefinitions(definitions: List<Definition>) = IDLParser.parseEnums(definitions).mapValues { (k, v) ->
-        GraphQLEnumType(k, "Enum for $k", v.map { GraphQLEnumValueDefinition(it, "Value for $it", it) })
+    fun enumsFromDefinitions(definitions: List<Definition>) = IDLParser.filterEnums(definitions).associate { e ->
+        e.name to GraphQLEnumType(e.name, e.description() ?: "Enum for ${e.name}",
+                e.enumValueDefinitions.map { ev -> GraphQLEnumValueDefinition(ev.name, ev.description() ?: "Value for ${ev.name}", ev.name) })
     }
 
     fun inputTypesFromDefinitions(definitions: List<Definition>, inputTypes: Map<String, GraphQLType> = emptyMap()) =
-            IDLParser.parseInputTypes(definitions).map { input ->
-                GraphQLInputObjectType.newInputObject().name(input.key).description("Input Type " + input.key).fields(
-                        input.value.map { field ->
+            IDLParser.filterInputTypes(definitions).associate { input ->
+                input.name to GraphQLInputObjectType.newInputObject().name(input.name).description(input.description() ?: "Input Type " + input.name).fields(
+                        input.inputValueDefinitions.map { field ->
                             GraphQLInputObjectField.newInputObjectField()
-                                    .name(field.name).description("Field ${field.name} of ${input.key}")
+                                    .name(field.name).description(field.description() ?: "Field ${field.name} of ${input.name}")
                                     .type(graphqlTypeFor(field.type, inputTypes) as GraphQLInputType).defaultValue(field.defaultValue?.extract()).build()
                         })
                         .build()
             }
-            .associate { it.name to it }
 
     private fun graphQlOutType(type: MetaData.PropertyType): GraphQLOutputType {
         var outType : GraphQLOutputType = if (type.enum) GraphQLTypeReference(type.name) else graphQLType(type)
