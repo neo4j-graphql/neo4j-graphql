@@ -11,6 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.util.*
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class GraphQLSchemaBuilderTest {
     @Test
@@ -136,6 +137,30 @@ schema {
             assertEquals("otherDesc", type.getFieldDefinition("other").description)
 
 
+        } catch (e:ParseCancellationException) {
+            println("${e.message} cause: ${(e.cause as InputMismatchException?)?.offendingToken}")
+            throw e
+        }
+    }
+
+    @Test
+    fun mandatoryRelationship() {
+        val idl = """
+type TestObject {
+   name: String
+   other: TestObject! @relation(name:"TEST")
+}
+"""
+        try {
+            GraphSchemaScanner.schema = idl
+
+            val document = Parser().parseDocument(idl)
+            val builder = GraphQLSchemaBuilder(IDLParser.parse(idl).values)
+            val schema = builder.buildSchema()
+
+            val other = (schema.getType("TestObject") as GraphQLObjectType).getFieldDefinition("other")
+            assertTrue(other.type is GraphQLNonNull)
+            assertEquals("TestObject",other.type.inner().name)
         } catch (e:ParseCancellationException) {
             println("${e.message} cause: ${(e.cause as InputMismatchException?)?.offendingToken}")
             throw e

@@ -113,16 +113,16 @@ object IDLParser {
                         val relation = directivesByName(child, "relation").firstOrNull()
 
                         if (relation == null) {
-                            metaData.mergeRelationship(fieldName, fieldName, type.name, out = true, multi = type.array, description = description)
+                            metaData.mergeRelationship(fieldName, fieldName, type.name, out = true, multi = type.array, description = description, nonNull =  type.nonNull)
                         } else {
 
                             val typeName = argumentByName(relation, "name").map { it.value.extract() as String }.firstOrNull() ?: fieldName
                             val out = argumentByName(relation, "direction").map { !((it.value.extract() as String).equals( "IN", ignoreCase = true)) }.firstOrNull() ?: true
 
-                            metaData.mergeRelationship(typeName, fieldName, type.name, out, type.array, description = description)
+                            metaData.mergeRelationship(typeName, fieldName, type.name, out, type.array, description = description,nonNull =  type.nonNull)
                         }
                     }
-                    if (type.nonNull) {
+                    if (type.nonNull && type.isBasic()) {
                         metaData.addIdProperty(fieldName)
                     }
                     directivesByName(child, "cypher")

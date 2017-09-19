@@ -49,11 +49,11 @@ class MetaData(label: String) {
         relationships.computeIfPresent(name, { name, rel -> rel.copy(cypher = cypherInfo)})
     }
 
-    fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean, multi : Boolean, description: String?) : RelationshipInfo {
+    fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean, multi : Boolean, description: String?, nonNull:Boolean) : RelationshipInfo {
         // fix for up
         val name = if (properties.containsKey(fieldName)) "_" + fieldName else fieldName
 //        val name = if (out) "${typeName}_$label" else "${label}_${typeName}"
-        return relationships.compute(name) { name,rel -> rel?.copy(multi = multi, out = out, description = description) ?: RelationshipInfo(name, typeName, label, out, multi, description = description) }!!
+        return relationships.compute(name) { name,rel -> rel?.copy(multi = multi, out = out, description = description, nonNull = nonNull) ?: RelationshipInfo(name, typeName, label, out, multi, description = description, nonNull = nonNull) }!!
     }
 
     fun relationshipFor(fieldName: String) = relationships[fieldName]
@@ -102,7 +102,9 @@ class MetaData(label: String) {
     }
     data class RelationshipInfo(val fieldName: String, val type: String, val label: String, val out: Boolean = true,
                                 val multi: Boolean = false, val cypher: MetaData.CypherInfo? = null,
-                                val parameters : Map<String,ParameterInfo>? = null,val description : String? = null)
+                                val parameters : Map<String,ParameterInfo>? = null,val description : String? = null,
+                                val nonNull: Boolean = false
+    )
 
     fun addParameters(name: String, parameters: Map<String,ParameterInfo>) {
         if (parameters.isNotEmpty()) {
