@@ -255,9 +255,7 @@ class Cypher31Generator : CypherGenerator() {
                 orderBys.map { (if (!resultFieldNames.contains(it.first))  "`$variable`." else "") + "`${it.first}` ${if (it.second) "asc" else "desc"}" }.joinNonEmpty(",", "ORDER BY ")
         ) +  skipLimitStatements(skipLimit(field))
 
-        val statement = parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
-        println(statement)
-        return statement
+        return parts.filter { !it.isNullOrEmpty() }.joinToString("\n")
     }
 
     private fun cypherDirective(field: Field): Directive? =
