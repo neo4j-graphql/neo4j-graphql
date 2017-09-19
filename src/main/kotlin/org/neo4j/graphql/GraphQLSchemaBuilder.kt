@@ -225,7 +225,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     private fun addRelationships(md: MetaData, builder: GraphQLObjectType.Builder): GraphQLObjectType.Builder {
         var newBuilder = builder
         for ((key, info) in md.relationships) {
-            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi, info.parameters?.values, description = info.description))
+            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi, info.parameters?.values, description = info.description, nonNull = info.nonNull))
         }
         return newBuilder
     }
@@ -233,7 +233,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     private fun addRelationships(md: MetaData, builder: GraphQLInterfaceType.Builder): GraphQLInterfaceType.Builder {
         var newBuilder = builder
         for ((key, info) in md.relationships) {
-            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi, info.parameters?.values, description = info.description))
+            newBuilder = newBuilder.field(newReferenceField(md, key, info.label, info.multi, info.parameters?.values, description = info.description, nonNull = info.nonNull))
         }
         return newBuilder
     }
@@ -256,11 +256,13 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
     private fun newReferenceField(md: MetaData, name: String, label: String, multi: Boolean,
                                   parameters: Iterable<MetaData.ParameterInfo>? = emptyList(),
-                                  description : String? = null
+                                  description: String? = null, nonNull: Boolean = false
 
     ): GraphQLFieldDefinition {
         val labelMd = metaDatas.find { it.type == label }!!
-        val graphQLType: GraphQLOutputType = if (multi) GraphQLList(GraphQLTypeReference(label)) else GraphQLTypeReference(label)
+        val innerType = GraphQLTypeReference(label)
+        val listType: GraphQLOutputType = if (multi) GraphQLList(innerType) else innerType
+        val type: GraphQLOutputType = if (nonNull) GraphQLNonNull(listType) else listType
         val hasProperties = labelMd.properties.isNotEmpty()
         val field = newFieldDefinition()
                 .name(name)
@@ -277,7 +279,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .argument(propertiesAsListArguments(labelMd))
                 .argumentIf(hasProperties, {orderByArgument(labelMd)})
                 .argument(toArguments(parameters))
-                .type(graphQLType)
+                .type(type)
 
         return if (multi) {
             withFirstOffset(field).build()

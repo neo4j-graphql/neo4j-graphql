@@ -57,10 +57,10 @@ public class MetaDataTest {
     public void sampleRelationships() throws Exception {
         try (Transaction tx = db.beginTx()) {
             MetaData person = GraphSchemaScanner.from(db, label("User"));
-            RelationshipInfo livesInLocation = new RelationshipInfo("livesIn","LIVES_IN", "Location", true, false, null,null,null);
+            RelationshipInfo livesInLocation = new RelationshipInfo("livesIn","LIVES_IN", "Location", true, false, null,null,null,false);
             assertEquals(map("livesIn", livesInLocation), person.relationships);
             MetaData location = GraphSchemaScanner.from(db, label("Location"));
-            RelationshipInfo personLivesIn = new RelationshipInfo("livesIn","LIVES_IN", "User", false, true, null,null, null);
+            RelationshipInfo personLivesIn = new RelationshipInfo("livesIn","LIVES_IN", "User", false, true, null,null, null,false);
             assertEquals(map("livesIn", personLivesIn), location.relationships);
             tx.success();
         }
