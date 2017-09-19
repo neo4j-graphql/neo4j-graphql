@@ -15,8 +15,6 @@ abstract class CypherGenerator {
         fun instance(): CypherGenerator {
             return Cypher31Generator()
         }
-        fun metaData(name: String) = GraphSchemaScanner.getMetaData(name)
-
         fun attr(variable: String, field: String) = "`$variable`.`$field`"
 
         fun isPlural(name: String) = name.endsWith("s")
@@ -37,14 +35,14 @@ abstract class CypherGenerator {
                     else -> "" // todo raise exception ?
                 }
     }
-    abstract fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition? = null, isMutation: Boolean = false): String
+    abstract fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition? = null, isMutation: Boolean = false, fragments: Map<String,FragmentDefinition> = emptyMap()): String
 }
 
 class Cypher31Generator : CypherGenerator() {
-    fun projectMap(field: Field, variable: String, md: MetaData, orderBys: MutableList<Pair<String,Boolean>>): String {
+    fun projectMap(field: Field, variable: String, md: MetaData, ctx: GeneratorContext): String {
         val selectionSet = field.selectionSet ?: return ""
 
-        return projectSelectionFields(md, variable, selectionSet, orderBys).map{
+        return projectSelectionFields(md, variable, selectionSet, ctx).map{
             val array = md.properties[it.first]?.type?.array ?: false
             // todo fix handling of primitive arrays in graphql-java
             if (array) {
@@ -99,28 +97,44 @@ class Cypher31Generator : CypherGenerator() {
         }
     }
 
-    fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String, Boolean>>): List<Pair<String, String>> {
+    fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, ctx: GeneratorContext): List<Pair<String, String>> {
         return listOf(Pair("_labels", "labels(`$variable`)")) +
-                projectFragments(md, variable, selectionSet.selections, orderBys) +
-                selectionSet.selections.filterIsInstance<Field>().mapNotNull { projectField(it, md, variable, orderBys) }
+                projectFragments(md, variable, selectionSet.selections, ctx) +
+                projectNamedFragments(md, variable, selectionSet.selections, ctx) +
+                selectionSet.selections.filterIsInstance<Field>().mapNotNull { projectField(it, md, variable, ctx) }
     }
 
-    fun projectFragments(md: MetaData, variable: String, selections: MutableList<Selection>, orderBys: MutableList<Pair<String, Boolean>>): List<Pair<String, String>> {
+    fun projectFragments(md: MetaData, variable: String, selections: MutableList<Selection>, ctx: GeneratorContext): List<Pair<String, String>> {
         return selections.filterIsInstance<InlineFragment>().flatMap {
             val fragmentTypeName = it.typeCondition.name
             val fragmentMetaData = GraphSchemaScanner.getMetaData(fragmentTypeName)!!
-            if (fragmentMetaData.labels.contains(md.type)) {
+            if (fragmentMetaData.labels.contains(md.type) || fragmentMetaData.type == md.type) {
                 // these are the nested fields of the fragment
                 // it could be that we have to adapt the variable name too, and perhaps add some kind of rename
-                it.selectionSet.selections.filterIsInstance<Field>().map { projectField(it, fragmentMetaData, variable, orderBys) }.filterNotNull()
+                it.selectionSet.selections.filterIsInstance<Field>().map { projectField(it, fragmentMetaData, variable, ctx) }.filterNotNull()
             } else {
                 emptyList<Pair<String, String>>()
             }
         }
     }
+    fun projectNamedFragments(md: MetaData, variable: String, selections: MutableList<Selection>, ctx: GeneratorContext): List<Pair<String, String>> {
+        return selections.filterIsInstance<FragmentSpread>().flatMap {
+            ctx.fragment(it.name)?.let {
+                val fragmentTypeName = it.typeCondition.name
+                val fragmentMetaData = GraphSchemaScanner.getMetaData(fragmentTypeName)!!
+                if (fragmentMetaData.labels.contains(md.type) || fragmentMetaData.type == md.type) {
+                    // these are the nested fields of the fragment
+                    // it could be that we have to adapt the variable name too, and perhaps add some kind of rename
+                    it.selectionSet.selections.filterIsInstance<Field>().map { projectField(it, fragmentMetaData, variable, ctx) }.filterNotNull()
+                } else {
+                    emptyList<Pair<String, String>>()
+                }
+            }?: emptyList<Pair<String, String>>()
+        }
+    }
 
 
-    private fun projectField(f: Field, md: MetaData, variable: String, orderBys: MutableList<Pair<String, Boolean>>): Pair<String, String>? {
+    private fun projectField(f: Field, md: MetaData, variable: String, ctx: GeneratorContext): Pair<String, String>? {
         val field = f.name
 
         val cypherStatement = md.cypherFor(field)
@@ -140,7 +154,7 @@ class Cypher31Generator : CypherGenerator() {
             val cypherFragment = "graphql.run('${prefix}${cypherStatement}', $params, $expectMultipleValues)"
 
             if (relationship != null) {
-                val (patternComp, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f)
+                val (patternComp, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f, ctx.copy(orderBys = mutableListOf()))
                 Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
             } else {
                 Pair(field, cypherFragment) // TODO escape cypher statement quotes
@@ -152,28 +166,28 @@ class Cypher31Generator : CypherGenerator() {
             } else {
                 if (f.selectionSet == null) null // todo
                 else {
-                    val (patternComp, _) = formatPatternComprehension(md, variable, f, orderBys) // metaData(info.label)
+                    val (patternComp, _) = formatPatternComprehension(md, variable, f, ctx.copy(orderBys = mutableListOf())) // metaData(info.label)
                     Pair(field, if (relationship.multi) patternComp else "head(${patternComp})")
                 }
             }
         }
     }
 
-    fun nestedPatterns(metaData: MetaData, variable: String, selectionSet: SelectionSet, orderBys: MutableList<Pair<String,Boolean>>): String {
-        return projectSelectionFields(metaData, variable, selectionSet, orderBys).map{ pair ->
+    fun nestedPatterns(metaData: MetaData, variable: String, selectionSet: SelectionSet, ctx: GeneratorContext): String {
+        return projectSelectionFields(metaData, variable, selectionSet, ctx).map{ pair ->
             val (fieldName, projection) = pair
             "$projection AS `$fieldName`"
         }.joinToString(",\n","RETURN ")
     }
 
-    fun formatCypherDirectivePatternComprehension(md: MetaData, cypherFragment: String, field: Field): Pair<String,String> {
+    fun formatCypherDirectivePatternComprehension(md: MetaData, cypherFragment: String, field: Field, ctx: GeneratorContext): Pair<String,String> {
         val fieldName = field.name
         val info = md.relationshipFor(fieldName) ?: return Pair("","")
         val fieldMetaData = GraphSchemaScanner.getMetaData(info.label)!!
 
         val pattern = "x IN $cypherFragment"
 
-        val projection = projectMap(field, "x", fieldMetaData, mutableListOf<Pair<String, Boolean>>())
+        val projection = projectMap(field, "x", fieldMetaData, ctx)
         val result = "[ $pattern | $projection ]"
         val skipLimit = skipLimit(field)
         return Pair(result + subscript(skipLimit), "x")
@@ -194,7 +208,7 @@ class Cypher31Generator : CypherGenerator() {
         return "[$skip..$limit]"
     }
 
-    fun formatPatternComprehension(md: MetaData, variable: String, field: Field, orderBysIgnore: MutableList<Pair<String,Boolean>>): Pair<String,String> {
+    fun formatPatternComprehension(md: MetaData, variable: String, field: Field, ctx: GeneratorContext): Pair<String,String> {
         val fieldName = field.name
         val info = md.relationshipFor(fieldName) ?: return Pair("","")
         val fieldVariable = variable + "_" + fieldName
@@ -207,7 +221,7 @@ class Cypher31Generator : CypherGenerator() {
         val pattern = "(`$variable`)$arrowLeft-[:`${info.type}`]-$arrowRight(`$fieldVariable`:`${info.label}`)"
         val orderBys2 = mutableListOf<Pair<String,Boolean>>()
         val where = where(field, fieldVariable, fieldMetaData, orderBys2)
-        val projection = projectMap(field, fieldVariable, fieldMetaData, orderBysIgnore) // [x IN graph.run ... | x {.name, .age } ] as recommendedMovie if it's a relationship/entity Person / Movie
+        val projection = projectMap(field, fieldVariable, fieldMetaData, ctx) // [x IN graph.run ... | x {.name, .age } ] as recommendedMovie if it's a relationship/entity Person / Movie
         var result = "[ $pattern $where | $projection]"
         // todo parameters, use subscripts instead
         val skipLimit = skipLimit(field)
@@ -218,10 +232,15 @@ class Cypher31Generator : CypherGenerator() {
         return Pair(result + subscript(skipLimit),fieldVariable)
     }
 
-    override fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition?, isMutation: Boolean): String {
+    data class GeneratorContext(val orderBys: MutableList<Pair<String,Boolean>> = mutableListOf(), val fragments: Map<String,FragmentDefinition>, val metaDatas:Map<String,MetaData>) {
+        fun metaData(name: String) = metaDatas.get(name)
+        fun fragment(name: String) = fragments.get(name)
+    }
+    override fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition?, isMutation: Boolean,fragments: Map<String,FragmentDefinition>): String {
+        val ctx = GeneratorContext(fragments = fragments, metaDatas = GraphSchemaScanner.allTypes())
         val name = field.name
         val typeName = fieldDefinition?.type?.inner() ?: "no field definition"
-        val md = metaData(name) ?: metaData(typeName) ?: throw IllegalArgumentException("Cannot resolve as type $name or $typeName")
+        val md = ctx.metaData(name) ?: ctx.metaData(typeName) ?: throw IllegalArgumentException("Cannot resolve as type $name or $typeName")
         val variable = md.type
         val orderBys = mutableListOf<Pair<String,Boolean>>()
         val procedure = if (isMutation) "updateForNodes" else "queryForNodes"
@@ -234,7 +253,7 @@ class Cypher31Generator : CypherGenerator() {
                 }
                 ?: "MATCH (`$variable`:`$name`)"
 
-        val projectFields = projectSelectionFields(md, variable, field.selectionSet, orderBys)
+        val projectFields = projectSelectionFields(md, variable, field.selectionSet, ctx)
         val resultProjection = projectFields.map { pair ->
             val (fieldName, projection) = pair
             // todo fix handling of primitive arrays in graphql-java

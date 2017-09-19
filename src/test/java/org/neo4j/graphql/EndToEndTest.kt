@@ -137,11 +137,11 @@ class EndToEndTest {
                     ... on Actor {
                         totalMoviesCount
                         recommendedColleagues {
-                            name
+                            ... name
                         }
                         namedColleagues(name: "Meg") {
+                            ... name
                             ... on Actor {
-                                name
                                 totalMoviesCount
                             }
                         }
@@ -150,7 +150,7 @@ class EndToEndTest {
                             released
                             tagline
                             actors {
-                                name
+                                ... name
                                 born
                             }
                          }
@@ -160,6 +160,7 @@ class EndToEndTest {
 
                  }
             }
+            fragment name on Actor { name }
         """
 
         val result = executeQuery(query)
