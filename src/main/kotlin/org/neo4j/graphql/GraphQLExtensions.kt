@@ -18,7 +18,14 @@ fun Value.extract(): Any =
             else -> throw IllegalArgumentException("Unknown Value $this ${this.javaClass}")
         }
 fun Field.cypher() = this.getDirective("cypher")?.let { Pair(it.getArgument("statement").value.extract(), it.getArgument("params")?.value?.extract()) }
-fun FieldDefinition.cypher() : Pair<String,Map<String,Any>?>?= this.getDirective("cypher")?.let { Pair(it.getArgument("statement").value.extract().toString(), it.getArgument("params")?.value?.extract() as Map<String,Any>?) }
+
+data class CypherDefinition(val statement:String, val  params:Map<String,Any>? = emptyMap(), val passThrough:Boolean = false)
+fun FieldDefinition.cypher() : CypherDefinition ?=
+        this.getDirective("cypher")?.let {
+            CypherDefinition(it.getArgument("statement").value.extract().toString(),
+                    it.getArgument("params")?.value?.extract() as Map<String,Any>?,
+                    (it.getArgument("passThrough")?.value?.extract() ?: false) as Boolean)
+        }
 
 fun Type.inner() : String = when (this) {
     is ListType -> this.type.inner()
