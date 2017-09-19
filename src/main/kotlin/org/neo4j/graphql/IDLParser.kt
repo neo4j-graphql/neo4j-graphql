@@ -10,11 +10,19 @@ object IDLParser {
         return parseSchemaType(input, "mutation")
     }
 
+    fun filterEnums(definitions: List<Definition>)
+            = definitions
+            .filterIsInstance<EnumTypeDefinition>()
+
     // todo directives
     fun parseEnums(definitions: List<Definition>)
             = definitions
             .filterIsInstance<EnumTypeDefinition>()
             .associate { it.name to it.enumValueDefinitions.map { it.name } }
+
+    fun filterInputTypes(definitions: List<Definition>)
+            = definitions
+            .filterIsInstance<InputObjectTypeDefinition>()
 
     fun parseInputTypes(definitions: List<Definition>)
             = definitions
@@ -81,6 +89,7 @@ object IDLParser {
 
     fun toMeta(definition: TypeDefinition, enumNames: Set<String> = emptySet()): MetaData {
         val metaData = MetaData(definition.name)
+        metaData.description = definition.description()
         if (definition is ObjectTypeDefinition) {
             val labels = definition.implements.filterIsInstance<TypeName>().map { it.name }
             metaData.labels.addAll(labels)
@@ -94,22 +103,23 @@ object IDLParser {
             when (child) {
                 is FieldDefinition -> {
                     val fieldName = child.name
+                    val description = child.description()
                     val type = typeFromIDL(child.type, enumNames)
                     val defaultValue = directivesByName(child,"defaultValue").flatMap{ it.arguments.map { it.value.extract()  }}.firstOrNull()
                     val isUnique = directivesByName(child,"isUnique").isNotEmpty()
                     if (type.isBasic() || type.enum) {
-                        metaData.addProperty(fieldName, type, defaultValue, unique = isUnique, enum = type.enum)
+                        metaData.addProperty(fieldName, type, defaultValue, unique = isUnique, enum = type.enum, description = description)
                     } else {
                         val relation = directivesByName(child, "relation").firstOrNull()
 
                         if (relation == null) {
-                            metaData.mergeRelationship(fieldName, fieldName, type.name, out = true, multi = type.array)
+                            metaData.mergeRelationship(fieldName, fieldName, type.name, out = true, multi = type.array, description = description)
                         } else {
 
                             val typeName = argumentByName(relation, "name").map { it.value.extract() as String }.firstOrNull() ?: fieldName
                             val out = argumentByName(relation, "direction").map { !((it.value.extract() as String).equals( "IN", ignoreCase = true)) }.firstOrNull() ?: true
 
-                            metaData.mergeRelationship(typeName, fieldName, type.name, out, type.array)
+                            metaData.mergeRelationship(typeName, fieldName, type.name, out, type.array, description = description)
                         }
                     }
                     if (type.nonNull) {
@@ -121,7 +131,7 @@ object IDLParser {
 
                     metaData.addParameters(fieldName,
                             child.inputValueDefinitions.associate {
-                                it.name to ParameterInfo(it.name, typeFromIDL(it.type, enumNames), it.defaultValue?.extract()) })
+                                it.name to ParameterInfo(it.name, typeFromIDL(it.type, enumNames), it.defaultValue?.extract(), it.description()) })
                 }
                 is TypeName -> println("TypeName: " + child.name + " " + child.javaClass + " in " + definition.name)
                 is EnumValueDefinition -> println("EnumValueDef: " + child.name + " " + child.directives.map { it.name })
