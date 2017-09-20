@@ -2,7 +2,6 @@ package org.neo4j.graphql
 
 import graphql.ExecutionInput
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 import org.neo4j.graphql.procedure.VirtualNode
@@ -151,4 +150,25 @@ class GraphQLProcedure {
         else if (limit != -1L) result.subList (0, limit.toInt())
         else result)
     }
+
+    @Procedure("graphql.introspect")
+    fun introspect(@Name("url") url:String, @Name("headers",defaultValue = "{}") headers:Map<String,String>) : Stream<GraphResult> {
+        val metaDatas = Introspection().load(url, headers)
+        // todo store as idl ?
+        val nodes = metaDatas.associate {
+            val props = it.properties.values.associate { " "+it.fieldName to it.type.toString() } + ("name" to it.type)
+            it.type to VirtualNode(listOf(it.type) + it.labels, props)
+        }
+        val rels = metaDatas.flatMap { n ->
+            val node = nodes[n.type]!!
+            n.relationships.values.map { rel ->
+                nodes[rel.label]?.let { labelNode ->
+                    val (start, end) = if (rel.out) node to labelNode!! else labelNode!! to node
+                    VirtualRelationship(start, rel.fieldName, mapOf("type" to rel.type, "multi" to rel.multi), end)
+                }
+            }.filterNotNull()
+        }
+        return Stream.of(GraphResult(nodes.values.toList(),rels))
+    }
+
 }

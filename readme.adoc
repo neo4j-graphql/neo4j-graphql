@@ -189,6 +189,15 @@ CALL graphql.schema()
 
 image::{img}/graphql.schema.jpg[width=600]
 
+And you can even visualize remote graphql schemas, e.g. here from the https://developer.github.com/v4/[GitHub GraphQL API^].
+Make sure to generate the https://developer.github.com/v4/guides/forming-calls/#authenticating-with-graphql[Personal Access Token^] to use in your account settings.
+
+[source,cypher]
+----
+call graphql.introspect("https://api.github.com/graphql",{Authorization:"bearer d8xxxxxxxxxxxxxxxxxxxxxxx"})
+----
+
+image:{img}/graphql.introspect-github.jpg[width=600]
 
 == Examples
 
