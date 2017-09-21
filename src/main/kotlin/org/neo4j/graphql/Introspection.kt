@@ -25,7 +25,7 @@ class Introspection {
     }
     private fun parseSchema(schema: Map<String, Any>): List<MetaData> {
         val types = (schema["data"] as Map<String, Map<String, Any>>)["__schema"]!!["types"] as List<Map<String, Any>>
-        return types.filter { it["kind"] == "OBJECT" }.map {
+        return types.filter { it["kind"] == "OBJECT" && !it.getOrDefault("name","__").toString().startsWith("__") }.map {
             val m = MetaData(it["name"]!!.toString())
             m.description=it["description"]?.toString()
             it["fields"]?.let { fields ->  addFields(m, fields as List<Map<String, Any>>)}
