@@ -57,6 +57,42 @@ echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> $NEO4J_HOM
 $NEO4J_HOME/bin/neo4j restart
 ----
 
+=== Pre-built
+
+The jar files in the `dist/` folder are pre-built and ready to copy into `$NEO4J_HOME/plugins`.
+
+----
+cp dist/neo4j-graphql-*.jar $NEO4J_HOME/plugins
+echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> $NEO4J_HOME/conf/neo4j.conf
+$NEO4J_HOME/bin/neo4j restart
+----
+
+The `Dockerfile` describes an image based on `openjdk:8-jdk` that when built will build neo4j-graphql. Run the following docker commands to pre-build the extension. This should be done anytime changes are made to the extension.
+
+----
+docker build -t 'neo4j-graphql-dist' .
+docker run --rm -i -v ${PWD}/dist:/var/tmp/dist neo4j-graphql-dist sh -s <<EOF
+chown -v $(id -u):$(id -g) target/neo4j-graphql-*.jar
+cp -va target/neo4j-graphql-*.jar /var/tmp/dist
+EOF
+----
+
+=== Using with the neo4j docker image
+
+The https://hub.docker.com/_/neo4j/[`neo4j docker image`] is based on `openjdk:8-jre-alpine`. The JDK, not the JRE, is needed to manually build the package with maven within an extension script. To use in a neo4j docker container, provide an `EXTENSION_SCRIPT` to copy the pre-built jar files before neo4j is started.
+
+----
+#!/bin/bash
+
+apk update && apk add git
+git clone https://github.com/neo4j-graphql/neo4j-graphql
+cd neo4j-graphql
+git checkout 3.2
+cp dist/neo4j-graphql-*.jar /var/lib/neo4j/plugins
+echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> /var/lib/neo4j/conf/neo4j.conf
+cd ..
+----
+
 == GraphQL Schema
 
 === Uploading a Schema
