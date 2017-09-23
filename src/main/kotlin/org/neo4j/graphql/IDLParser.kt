@@ -122,7 +122,7 @@ object IDLParser {
                             metaData.mergeRelationship(typeName, fieldName, type.name, out, type.array, description = description,nonNull =  type.nonNull)
                         }
                     }
-                    if (type.nonNull && type.isBasic()) {
+                    if (type.nonNull > 0 && type.isBasic()) {
                         metaData.addIdProperty(fieldName)
                     }
                     directivesByName(child, "cypher")
@@ -147,7 +147,7 @@ object IDLParser {
 
     private fun typeFromIDL(type: Type, enums: Set<String>, given: MetaData.PropertyType = PropertyType("String")): MetaData.PropertyType = when (type) {
         is TypeName -> given.copy(name = type.name, enum = enums.contains(type.name))
-        is NonNullType -> typeFromIDL(type.type, enums, given.copy(nonNull = true))
+        is NonNullType -> typeFromIDL(type.type, enums, given.copy(nonNull = given.nonNull + 1))
         is ListType -> typeFromIDL(type.type, enums, given.copy(array = true))
         else -> {
             println("Type ${type}"); given

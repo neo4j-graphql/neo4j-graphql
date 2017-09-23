@@ -256,13 +256,14 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
     private fun newReferenceField(md: MetaData, name: String, label: String, multi: Boolean,
                                   parameters: Iterable<MetaData.ParameterInfo>? = emptyList(),
-                                  description: String? = null, nonNull: Boolean = false
+                                  description: String? = null, nonNull: Int = 0
 
     ): GraphQLFieldDefinition {
         val labelMd = metaDatas.find { it.type == label }!!
         val innerType = GraphQLTypeReference(label)
-        val listType: GraphQLOutputType = if (multi) GraphQLList(innerType) else innerType
-        val type: GraphQLOutputType = if (nonNull) GraphQLNonNull(listType) else listType
+        val innerType1: GraphQLOutputType = if (nonNull>1) GraphQLNonNull(innerType) else innerType
+        val listType: GraphQLOutputType = if (multi) GraphQLList(innerType1) else innerType1
+        val type: GraphQLOutputType = if (nonNull>0) GraphQLNonNull(listType) else listType
         val hasProperties = labelMd.properties.isNotEmpty()
         val field = newFieldDefinition()
                 .name(name)
@@ -438,10 +439,12 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
     private fun graphQlOutType(type: MetaData.PropertyType): GraphQLOutputType {
         var outType : GraphQLOutputType = if (type.enum) GraphQLTypeReference(type.name) else graphQLType(type)
+        if (type.nonNull>1)
+            outType = GraphQLNonNull(outType)
         if (type.array) {
             outType = GraphQLList(outType)
         }
-        if (type.nonNull)
+        if (type.nonNull>0)
             outType = GraphQLNonNull(outType)
         return outType
     }
@@ -460,10 +463,12 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
     private fun graphQlInType(type: MetaData.PropertyType, required: Boolean = true): GraphQLInputType {
         var inType : GraphQLInputType = if (type.enum || type.inputType) GraphQLTypeReference(type.name) else graphQLType(type) // todo handle enums differently
+        if (type.nonNull>1 && required)
+            inType = GraphQLNonNull(inType)
         if (type.array) {
             inType = GraphQLList(inType)
         }
-        if (type.nonNull && required)
+        if (type.nonNull>0 && required)
             inType = GraphQLNonNull(inType)
         return inType
     }
