@@ -49,7 +49,7 @@ class MetaData(label: String) {
         relationships.computeIfPresent(name, { name, rel -> rel.copy(cypher = cypherInfo)})
     }
 
-    fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean, multi : Boolean, description: String?, nonNull:Boolean) : RelationshipInfo {
+    fun mergeRelationship(typeName:String, fieldName:String, label:String, out:Boolean, multi : Boolean, description: String?, nonNull:Int = 0) : RelationshipInfo {
         // fix for up
         val name = if (properties.containsKey(fieldName)) "_" + fieldName else fieldName
 //        val name = if (out) "${typeName}_$label" else "${label}_${typeName}"
@@ -61,10 +61,10 @@ class MetaData(label: String) {
 
     fun cypherFor(fieldName: String) = relationships[fieldName]?.cypher?.cypher ?: properties[fieldName]?.cypher?.cypher
 
-    data class PropertyType(val name: String, val array: Boolean = false, val nonNull: Boolean = false, val enum: Boolean = false, val inputType: Boolean = false) {
+    data class PropertyType(val name: String, val array: Boolean = false, val nonNull: Int = 0, val enum: Boolean = false, val inputType: Boolean = false) {
         fun isBasic() : Boolean = basicTypes.contains(name)
 
-        override fun toString(): String = (if (array) "[$name]" else name) + (if (nonNull) "!" else "")
+        override fun toString(): String = (if (array) "[$name${(if (nonNull>1) "!" else "")}]" else name) + (if (nonNull>0) "!" else "")
 
         companion object {
             val basicTypes = setOf("String","Boolean","Float","Int","Number","ID")
@@ -103,7 +103,7 @@ class MetaData(label: String) {
     data class RelationshipInfo(val fieldName: String, val type: String, val label: String, val out: Boolean = true,
                                 val multi: Boolean = false, val cypher: MetaData.CypherInfo? = null,
                                 val parameters : Map<String,ParameterInfo>? = null,val description : String? = null,
-                                val nonNull: Boolean = false
+                                val nonNull: Int = 0
     )
 
     fun addParameters(name: String, parameters: Map<String,ParameterInfo>) {

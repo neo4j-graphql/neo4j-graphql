@@ -15,7 +15,7 @@ class Introspection {
 
     private fun typeOf(typeInfo: Map<String,Any>, type:MetaData.PropertyType = MetaData.PropertyType("String")) : MetaData.PropertyType {
         return when (typeInfo["kind"]) {
-            "NON_NULL" -> typeOf(typeInfo["ofType"] as Map<String,Any>, type.copy(nonNull = true))
+            "NON_NULL" -> typeOf(typeInfo["ofType"] as Map<String,Any>, type.copy(nonNull = type.nonNull + 1))
             "LIST" -> typeOf(typeInfo["ofType"] as Map<String,Any>, type.copy(array = true))
             "OBJECT" -> type.copy(name=typeInfo["name"]!!.toString())
             "SCALAR" -> type.copy(name=typeInfo["name"]!!.toString())
@@ -40,7 +40,7 @@ class Introspection {
             val description = it["description"]?.toString()
             if (type.isBasic()) {
                 m.addProperty(name, type = type, description = description)
-                if (type.nonNull) m.addIdProperty(name)
+                if (type.nonNull > 0) m.addIdProperty(name)
             } else {
                 m.mergeRelationship(type.name, name, type.name, true, type.array, description, type.nonNull)
             }

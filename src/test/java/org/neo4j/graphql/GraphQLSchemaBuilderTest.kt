@@ -37,7 +37,7 @@ class GraphQLSchemaBuilderTest {
         GraphSchemaScanner.schema = null
         val md = MetaData("Actor")
         md.addLabel("Person")
-        md.addProperty("name", MetaData.PropertyType("String", nonNull = true))
+        md.addProperty("name", MetaData.PropertyType("String", nonNull = 1))
         val mutationField: GraphQLFieldDefinition = GraphQLSchemaBuilder(listOf(md)).mutationField(md, emptySet())[0]
         println("mutationField = ${mutationField}")
         assertEquals("createActor", mutationField.name)
