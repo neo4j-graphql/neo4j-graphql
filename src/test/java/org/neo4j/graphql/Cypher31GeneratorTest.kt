@@ -27,7 +27,7 @@ class Cypher31GeneratorTest {
 
         assertEquals(
 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`""",  query)
     }
 
@@ -59,7 +59,7 @@ RETURN labels(`Person`) AS `_labels`,
 
         assertEquals(
                 """CALL graphql.queryForNodes("MATCH (p:Person) RETURN p",{}) YIELD node AS `Person`
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`""",  query)
     }
 
@@ -84,7 +84,7 @@ RETURN labels(`Person`) AS `_labels`,
 
         assertEquals(
 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 [x IN `Person`.`name` |x] AS `name`""",  query)
     }
 
@@ -110,7 +110,7 @@ RETURN labels(`Person`) AS `_labels`,
         assertEquals(
                 """MATCH (`Person`:`Person`)
 WHERE `Person`.`name` = "Michael Hunger"
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`""",  query)
     }
 
@@ -135,7 +135,7 @@ RETURN labels(`Person`) AS `_labels`,
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`
 ORDER BY `name` asc""",  query)
     }
@@ -161,7 +161,7 @@ ORDER BY `name` asc""",  query)
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`
 ORDER BY `Person`.`born` desc""",  query)
     }
@@ -194,7 +194,7 @@ ORDER BY `Person`.`born` desc""",  query)
                 """MATCH (`Person`:`Person`)
 WHERE `Person`.`name` IN ["Michael Hunger","Will Lyon"]
 AND `Person`.`born` = 1960
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`,
 `Person`.`born` AS `born`""",  query)
     }
@@ -226,10 +226,10 @@ RETURN labels(`Person`) AS `_labels`,
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`,
 `Person`.`born` AS `born`,
-[ (`Person`)-[:`ACTED_IN`]->(`Person_movies`:`Movie`)  | `Person_movies` {`_labels` : labels(`Person_movies`), .`title`}] AS `movies`""",  query)
+[ (`Person`)-[:`ACTED_IN`]->(`Person_movies`:`Movie`)  | `Person_movies` {`_labels` : graphql.labels(`Person_movies`), .`title`}] AS `movies`""",  query)
     }
 
     @Test
@@ -257,7 +257,7 @@ RETURN labels(`Person`) AS `_labels`,
 
         assertEquals(
                 """MATCH (`Actor`:`Actor`)
-RETURN labels(`Actor`) AS `_labels`,
+RETURN graphql.labels(`Actor`) AS `_labels`,
 `Actor`.`name` AS `name`,
 `Actor`.`numberOfOscars` AS `numberOfOscars`""",  query)
     }
@@ -287,9 +287,9 @@ RETURN labels(`Actor`) AS `_labels`,
 
         assertEquals(
                 """MATCH (`Actor`:`Actor`)
-RETURN labels(`Actor`) AS `_labels`,
+RETURN graphql.labels(`Actor`) AS `_labels`,
 `Actor`.`name` AS `name`,
-head([ (`Actor`)-[:`friend`]->(`Actor_friend`:`Person`)  | `Actor_friend` {`_labels` : labels(`Actor_friend`), .`name`}]) AS `friend`""",  query)
+head([ (`Actor`)-[:`friend`]->(`Actor_friend`:`Person`)  | `Actor_friend` {`_labels` : graphql.labels(`Actor_friend`), .`name`}]) AS `friend`""",  query)
     }
 
     @Test
@@ -327,7 +327,7 @@ head([ (`Actor`)-[:`friend`]->(`Actor_friend`:`Person`)  | `Actor_friend` {`_lab
         // WITH *, `Person` AS `Actor` ??
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`,
 `Person`.`numberOfOscars` AS `numberOfOscars`""",  query)
     }
@@ -355,7 +355,7 @@ RETURN labels(`Person`) AS `_labels`,
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 graphql.run('WITH {this} AS this RETURN 2', {`this`:`Person`}, false) AS `score`""",  query)
     }
 
@@ -383,7 +383,7 @@ graphql.run('WITH {this} AS this RETURN 2', {`this`:`Person`}, false) AS `score`
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 graphql.run('WITH {this} AS this UNWIND range(0,5) AS value RETURN value', {`this`:`Person`}, true) AS `scores`,
 graphql.run('WITH {this} AS this RETURN range(0,5)', {`this`:`Person`}, true) AS `scores2`""",  query)
     }
@@ -411,8 +411,8 @@ graphql.run('WITH {this} AS this RETURN range(0,5)', {`this`:`Person`}, true) AS
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
-head([ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:`Person`}, true) | `x` {`_labels` : labels(`x`), .`name`, .`born`} ]) AS `bestFriend`""",  query)
+RETURN graphql.labels(`Person`) AS `_labels`,
+head([ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:`Person`}, true) | `x` {`_labels` : graphql.labels(`x`), .`name`, .`born`} ]) AS `bestFriend`""",  query)
     }
 
     @Test
@@ -443,8 +443,8 @@ query Person {
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
-[ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:`Person`}, true) | `x` {`_labels` : labels(`x`), .`name`, .`born`} ] AS `colleagues`""",  query)
+RETURN graphql.labels(`Person`) AS `_labels`,
+[ x IN graphql.run('WITH {this} AS this RETURN this', {`this`:`Person`}, true) | `x` {`_labels` : graphql.labels(`x`), .`name`, .`born`} ] AS `colleagues`""",  query)
     }
 
     @Test
@@ -469,7 +469,7 @@ RETURN labels(`Person`) AS `_labels`,
 
         assertEquals(
                 """MATCH (`Person`:`Person`)
-RETURN labels(`Person`) AS `_labels`,
+RETURN graphql.labels(`Person`) AS `_labels`,
 `Person`.`name` AS `name`,
 graphql.run('WITH {this} AS this RETURN {value}', {`this`:`Person`,`value`:7}, false) AS `born`""",  query)
     }

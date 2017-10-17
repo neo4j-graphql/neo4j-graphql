@@ -98,7 +98,7 @@ class Cypher31Generator : CypherGenerator() {
     }
 
     fun projectSelectionFields(md: MetaData, variable: String, selectionSet: SelectionSet, ctx: GeneratorContext): List<Pair<String, String>> {
-        return listOf(Pair("_labels", "labels(`$variable`)")) +
+        return listOf(Pair("_labels", "graphql.labels(`$variable`)")) +
                 projectFragments(md, variable, selectionSet.selections, ctx) +
                 projectNamedFragments(md, variable, selectionSet.selections, ctx) +
                 selectionSet.selections.filterIsInstance<Field>().mapNotNull { projectField(it, md, variable, ctx) }

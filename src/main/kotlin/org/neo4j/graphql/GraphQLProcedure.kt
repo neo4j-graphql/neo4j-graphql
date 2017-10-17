@@ -89,6 +89,16 @@ class GraphQLProcedure {
         }
     }
 
+    @UserFunction("graphql.labels")
+    fun labels(@Name("entity") entity: Any) : List<String> {
+        return when (entity) {
+            is Node -> entity.labels.map { it.name() }
+            is Relationship -> listOf(entity.type.name())
+            is Map<*,*> -> entity.get("_labels") as List<String>? ?: emptyList<String>()
+            else -> emptyList()
+        }
+    }
+
     data class Row(@JvmField val row:Any?)
 
     @Procedure("graphql.run", mode = Mode.WRITE)
