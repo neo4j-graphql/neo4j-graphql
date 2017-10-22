@@ -5,25 +5,21 @@ NOTE: This branch is for supporting Neo4j 3.2.
 
 image:https://travis-ci.org/neo4j-contrib/neo4j-graphql.svg?branch=3.2["Build Status", link="https://travis-ci.org/neo4j-contrib/neo4j-graphql"]
 
-This implementation provides a GraphQL API to Neo4j, it comes as library but can also be installed as Neo4j server extension to act as a GraphQL endpoint.
-It turns GraphQL queries and mutations into Cypher statements and executes them on Neo4j.
+This is a GraphQL-Endpoint extension for Neo4j.
+Based on your GraphQL schema, it turns GraphQL queries and mutations into Cypher statements and executes them on Neo4j.
 
-We want to explore three approaches:
+NOTE: You have to pass an HTTP Authorization header with the base64 encoded Neo4j credentials for basic auth.
 
-1. read schema / metadata from the database provide GraphQL DataFetcher that generate and run Cypher (WIP) √
-2. make the same work with externally configured schema information (using IDL) √
-3. do a direct GraphQL AST to Cypher transformation without bothering with Schema (TBD)
-
+NOTE: Always add a trailing slash `/graphql/` to your graphql URL when using it from a client.
 
 == License
 
-Apache License v2
+Apache License v2.
 
 == Installation
 
-The extension works with Neo4j 3.1 and 3.2 the code on this branch is for *3.2*.
+The extension works with Neo4j 3.1 and 3.2, the code on this branch is for *3.2*.
 
-////
 === Using a release
 
 * Download the appropriate release for your version from: https://github.com/neo4j-graphql/neo4j-graphql/releases
@@ -32,13 +28,13 @@ The extension works with Neo4j 3.1 and 3.2 the code on this branch is for *3.2*.
 * Restart your Neo4j server
 
 NOTE: Please consult the https://neo4j.com/docs/operations-manual/current/configuration/file-locations/[Neo4j documentation] for file locations for the different operating system and editions.
-////
 
-=== Using with neo4j-graphql-cli
+
+=== Used with neo4j-graphql-cli
 
 This extension is utilized when you use https://www.npmjs.com/package/neo4j-graphql-cli[`neo4j-graphql-cli`]
 
-The script spawns a Neo4j sandbox with your schema and provides the /graphql/ endpoint, a Neo4j server and an hosted GraphiQL for it.
+The command line tool starts a Neo4j Sandbox with your schema and provides the `/graphql/` endpoint, a Neo4j server and an hosted GraphiQL for it.
 
 ----
 npm install -g neo4j-graphql-cli
@@ -48,7 +44,7 @@ neo4j-graphql movies-schema.graphql
 === Building manually
 
 ----
-git clone https://github.com/neo4j-contrib/neo4j-graphql
+git clone https://github.com/neo4j-graphql/neo4j-graphql
 cd neo4j-graphql
 git checkout 3.2
 mvn clean package
@@ -61,37 +57,61 @@ $NEO4J_HOME/bin/neo4j restart
 
 === Uploading a Schema
 
-You can post GraphQL IDL schema to the `/graphql/idl` endpoint or run the `graphql.idl('schema') procedure. The schema is parsed and stored in the graph.
-That schema is then used as GraphQL schema for validating and executing queries.
+You can POST a GraphQL IDL schema to the `/graphql/idl` endpoint or run the `CALL graphql.idl('schema')` procedure. 
+The schema is parsed and stored in Neo4j and then used as the GraphQL schema for validating and executing queries.
 
-We automatically generate query types for each of the types.
+----
+type Movie  {
+  title: String!
+  released: Int
+  actors: [Person] @relation(name:"ACTED_IN",direction:IN)
+}
+type Person {
+  name: String!
+  born: Int
+  movies: [Movie] @relation(name:"ACTED_IN")
+}
+----
 
-* e.g. `User(name,age,first,offset,_id,sort): [User]`
+We automatically generate *query types* for each of the declared types.
+Each attribute is available as query parameter, with an equality check (or the plural form for a IN check in a list).
 
-Also mutations for each type are created, which return the executed graph operations.
-e.g.
+* e.g. `Movie(title,released,first,offset,_id,sort): [User]`
 
-* `createMovie(title: String!, released: Int, tagline: String)` and
-* `addMoviePersons(title: String!, persons:[String]!)`
+Additionally *mutations* for each type are created, which return the executed graph operations.
 
-Those mutations then allow you to create graph data with GraphQL.
+e.g. for the `Movie` type:
+
+* `createMovie(title: ID!, released: Int) : String`
+* `updateMovie(title: ID!, released: Int) : String`
+* `deleteMovie(title: ID!) : String`
+
+and for it's relationships:
+
+* `addMoviePersons(title: ID!, persons:[ID]!) : String`
+* `deleteMoviePersons(title: ID!, persons:[ID]!) : String`
+
+Those mutations then allow you to create and update your data with GraphQL.
 
 === Schema from Graph
 
-The library samples the existing data and adds one GraphQLObject for each Node-Label with all the properties and their types found as outputs and input-arguments.
+If you didn't provide a GraphQL schema, we try to derive one from the existing graph data.
+From sampling the data we add a `type` for each Node-Label with all the properties and their types found as fields.
 
-Relationship information is collected with direction, type, end-node-labels and degree (to determine single element or collection result).
+// Relationship information is collected with direction, type, end-node-labels and degree (to determine single element or collection result).
 // Additional labels on a node are added as GraphQLInterface's.
-Each relationship-type virtual property to the node type, named `aType` for `A_TYPE`.
+Each relationship-type adds a reference field to the node type, named `aType` for `A_TYPE`.
 // Each relationship-type and end-node label is added as a virtual property to the node type, named `TYPE_Label` for outgoing and `Label_TYPE` for incoming relationships.
 
 == Usage
 
-Run `:play movies` in your Neo4j Server, click the statement and run it to insert the basic movie graph.
+=== Your own Neo4j instance
 
-== GraphiQL
+Run `:play movie graph` in your Neo4j Server, click the insert statement and run it to insert the basic movie graph.
 
-Get GraphiQL electron app from: https://github.com/skevy/graphiql-app
+=== GraphiQL
+
+Get the GraphiQL electron app from: https://github.com/skevy/graphiql-app
 
 If your Neo4j Server runs with auth enabled, add the appropriate Basic-Auth header in the "Edit HTTP Headers" screen.
 
@@ -99,11 +119,14 @@ If your Neo4j Server runs with auth enabled, add the appropriate Basic-Auth head
 echo "Authorization: Basic $(echo -n "neo4j:<password>" | base64)"
 ----
 
+Enter your GraphQL URL, like `http://localhost:7474/graphql/` (note the trailing slash).
+
+You should be able to see your schema in the _Docs_ section.
+
 And then run a query like:
 
 ----
-query AllPeopleQuery {
-  Person(name:"Kevin Bacon") {
+{ Person(name:"Kevin Bacon") {
     name
     born
     actedIn {
@@ -164,7 +187,7 @@ query PersonQuery($name: String!) {
 {"name":"Keanu Reeves"}
 ----
 
-== Procedure
+=== Procedures
 
 This library also comes with a User Defined Procedure to execute GraphQL:
 
@@ -180,7 +203,7 @@ RETURN p.name, p.born
 
 image::{img}/graphql.execute.jpg[width=600]
 
-You can also visualize your GraphQL schema in Neo4j Browser via a procedure.
+You can also visualize your GraphQL schema in Neo4j Browser using a procedure.
 
 [source,cypher]
 ----
@@ -240,15 +263,124 @@ query PersonQuery {
 }
 ----
 
-== CURL
+== Features
 
-=== POST IDL
-_(Optional if no data in database)_
+// tag::features[]
+
+[options=header,cols="a,2a,3m"]
+|===
+
+| name | information | example
+| entities
+| each node label represented as entity
+| { Person {name,born} }
+
+| multi entities
+| multiple entities per query turned into `UNION`
+| { Person {name,born} Movie {title,released} }
+
+| property fields
+| via sampling property names and types are determined
+| { Movie {title, released} }
+
+| field parameters
+| all properties can be used as filtering (exact/list) input parameters, will be turned into Cypher parameters
+| { Movie(title:"The Matrix") {released,tagline} }
+
+| query parameters
+| passed through as Cypher parameters
+| query MovieByParameter ($title: String!) { Person(name:$name) {name,born} }
+
+| relationships
+| via a `@relationship` annotated field, optional direction
+| type Person { name: String, movies : Movie @relation(name:"ACTED_IN", direction:OUT) }
+
+| ordering
+| via an extra `orderBy` parameter
+| query PersonSortQuery { Person(orderBy:[name_desc,born_desc]) {name,born}}
+
+| pagination
+| via `first` and `offset` parameters
+| query PagedPeople { Person(first:10, offset:20) {name,born}}
+
+| schema first IDL support
+| define schema via IDL
+| :POST /graphql/idl "type Person {name: String!, born: Int}"
+
+| Mutations | create/delete mutations inferred from the schema |
+createMovie(title:ID!, released:Int)
+updateMovie(title:ID!, released:Int)
+deleteMovie(title:ID!)
+
+createMoviePersons(title:ID!,persons:[ID!]) +
+deleteMoviePersons(title:ID!,persons:[ID!])
+
+| Cypher queries
+| `@cypher` directive on fields and types, parameter support
+| actors : Int @cypher(statement:"RETURN size( (this)< -[:ACTED_IN]-() )")
+
+| Cypher updates
+| Custom mutations by executing `@cypher` directives
+| createPerson(name: String) : Person @cypher(statement:"CREATE (p:Person {name:{name}}) RETURN p")
+
+| extensions
+| extra information returned
+| fields are: columns, query, warnings, plan, type READ_ONLY/READ_WRITE,
+// | directive | directives control cypher prefixes, *note that directives have to be set at the first entity* |
+// | directive - query plan | `@profile / @explain` will be returned in extra field `extensions` | query UserQuery { User @profile {name} }
+
+// | directive - version | set cypher version to use `@version(3.0,3.1,3.2)` | query UserQuery { User @version(3.0) {name} }
+|===
+
+
+[NOTE]
+`@cypher` directives can have a  `passThrough:true` argument, that gives sole responsibility for the nested query result for this field to your Cypher query.
+You will have to provide all data/structure required by client queries.
+Otherwise, we assume if you return object-types that you will return the appropriate nodes from your statement.
+
+// end::features[]
+
+== Resources
+
+=== Neo4j-GraphQL
+
+* http://grandstack.io[GRAND Stack (GraphQL React Apollo Neo4j Database)]
+* https://github.com/neo4j-graphql[neo4j-graphql] Tools and Libraries related to Neo4j's GraphQL support
+* https://neo4j.com/developer/graphql[GraphQL page] on neo4j.com
+* https://neo4j.com/blog/cypher-graphql-neo4j-3-1-preview/[GraphQL inspired Cypher features] Map projections and Pattern comprehensions
+
+=== Libraries & Tools
+
+* https://facebook.github.io/graphq[GraphQL Specification]
+* https://github.com/graphql-java/graphql-java[GraphQL-Java] which we use in this project
+* https://github.com/skevy/graphiql-app[GraphiQL Electron App]
+
+=== Similar Projects
+
+* https://github.com/solidsnack/GraphpostgresQL[GraphQL for Postgres] as an inspiration of schema -> native queries
+* https://github.com/jhwoodward/neo4j-graphQL[Schema Based GraphQL to Cypher in JavaScript]
+* https://github.com/jameskyburz/graphqlcypherquery[GraphQL to Cypher translator (w/o schema)]
+* https://github.com/JamesKyburz/graphql2cypher[GraphQL parser to Cypher]
+
+// * https://github.com/facebook/dataloader
+// * http://graphql.org/learn/serving-over-http/[Serving over HTTP]
+
+////
+echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
+"Authorization: Basic bmVvNGo6dGVzdA=="
+////
+
+== Using an http client (curl)
+
+=== POST Schema IDL
 
 ----
 curl  -u neo4j:<password> -i -XPOST -d'type Person { name: String, born: Int }' http://localhost:7474/graphql/idl/
 
 {Person=MetaData{type='Person', ids=[], indexed=[], properties={name=PropertyType(name=String, array=false, nonNull=false), born=PropertyType(name=Int, array=false, nonNull=false)}, labels=[], relationships={}}}
+
+
+curl  -u neo4j:<password> -i -XPOST -d @movies-schema.graphql http://localhost:7474/graphql/idl/
 ----
 
 
@@ -359,105 +491,6 @@ LIMIT 10
 └──────────────┴─────────────┴─────────────────────────┴──────────────────────────────┘
 ----
 
-== Features
-
-// tag::features[]
-
-[options=header,cols="a,2a,3m"]
-|===
-
-| name | information | example
-| entities
-| each node label represented as entity
-| { Person {name,born} }
-
-| multi entities
-| multiple entities per query turned into `UNION`
-| { Person {name,born} Movie {title,released} }
-
-| properties (out)
-| via sampling property names and types are determined
-| { Movie {title, released} }
-
-| field parameters
-| all properties can be used as filtering (exact/list) input parameters, will be turned into Cypher parameters
-| { Movie(title:"The Matrix") {name,released} }
-
-| query parameters
-| passed through as Cypher parameters
-| query MovieByParameter ($title: String!) { Person(name:$name) {name,born} }
-
-| relationships
-| via a `@relationship` annotated field, optional direction
-| type Person { name: String, movies : Movie @relation(name:"ACTED_IN", direction:OUT) }
-
-| ordering
-| via an extra `orderBy` parameter
-| query PersonSortQuery { Person(orderBy:[name_desc,born_desc]) {name,born}}
-
-| pagination
-| via `first` and `offset` parameters
-| query PagedPeople { Person(first:10, offset:20) {name,born}}
-
-| schema first IDL support
-| define schema via IDL
-| :POST /graphql/idl "type Person {name: String!, born: Int}"
-
-| Mutations | create/delete mutations inferred from the schema |
-createMovie(title:ID!, released:Int)
-updateMovie(title:ID!, released:Int)
-deleteMovie(title:ID!)
-
-createMoviePersons(title:ID!,persons:[ID!])
-deleteMoviePersons(title:ID!,persons:[ID!])
-
-| Cypher queries
-| `@cypher` directive on fields and types, parameter support
-| actors : Int @cypher(statement:"RETURN size((this)<-[:ACTED_IN]-())")
-
-| Cypher updates
-| Custom mutations by executing `@cypher` directives
-| createPerson(name: String) : Person @cypher(statement:"CREATE (p:Person {name:{name}}) RETURN p")
-
-| extensions
-| extra information returned
-| fields are: columns, query, warnings, plan, type READ_ONLY/READ_WRITE,
-// | directive | directives control cypher prefixes, *note that directives have to be set at the first entity* |
-// | directive - query plan | `@profile / @explain` will be returned in extra field `extensions` | query UserQuery { User @profile {name} }
-
-// | directive - version | set cypher version to use `@version(3.0,3.1,3.2)` | query UserQuery { User @version(3.0) {name} }
-|===
-
-
-[NOTE]
-`@cypher` directives can have a  `passThrough:true` argument, that gives sole responsibility for the nested query result for this field to your Cypher query.
-You will have to provide all data/structure required by client queries.
-Otherwise, we assume if you return object-types that you will return the appropriate nodes from your statement.
-
-// end::features[]
-
-== Resources
-
-* https://github.com/graphql-java/graphql-java[GraphQL-Java] which we use in this project
-
-
-* https://github.com/solidsnack/GraphpostgresQL[GraphQL for Postgres] as an inspiration of schema -> native queries
-* https://github.com/jhwoodward/neo4j-graphQL[Schema Based GraphQL to Cypher in JavaScript]
-* https://github.com/jameskyburz/graphqlcypherquery[GraphQL to Cypher translator (w/o schema)]
-** https://github.com/JamesKyburz/graphql2cypher[GraphQL parser to Cypher]
-
-* https://neo4j.com/blog/cypher-graphql-neo4j-3-1-preview/[GraphQL inspired Cypher features] Map projections and Pattern comprehensions
-* https://github.com/facebook/dataloader
-
-* https://github.com/skevy/graphiql-app[GraphiQL Electron App]
-* http://graphql.org/learn/serving-over-http/[Serving over HTTP]
-
-* https://facebook.github.io/graphq[GraphQL Specification]
-////
-echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
-"Authorization: Basic bmVvNGo6dGVzdA=="
-////
-
 == TODO
 
 * Non-Null and Nullable Input and Output Types
@@ -473,7 +506,7 @@ echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 * √ handle nested relationships as optional or non-optional (perhaps via nullable?) or directive
 * √ project non-found nested results as null vs. map with null-value entries
 * https://facebook.github.io/relay/docs/graphql-connections.html#content[Connection] add support for edges / nodes special properties
-* √ Support 3.1 via pattern comprehensions and map projections
+* √ Support 3.1+ via pattern comprehensions and map projections
 * Improvements: consider replacing MetaData with GraphQL types,
 * check if there is a direct conversion from parsed data (AST-Nodes) to graphql-schema types
 
@@ -509,3 +542,4 @@ echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 * make them queryable from graphql with __User {name, roles, admin, active}
 * support the permission queries from graph cool using the user and their roles
 ////
+
