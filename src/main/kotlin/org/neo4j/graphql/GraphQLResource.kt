@@ -70,23 +70,30 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
         val query = params["query"] as String
         val variables = getVariables(params)
         if (log.isDebugEnabled()) log.debug("Executing {} with {}", query, variables)
+        val tx = db.beginTx()
+        try {
+            val ctx = GraphQLContext(db, log, variables)
+            val graphQL = GraphSchema.getGraphQL(db)
+            val execution = ExecutionInput.Builder()
+                    .query(query).variables(variables).context(ctx).root(ctx) // todo proper mutation root
+            params.get("operationName")?.let { execution.operationName(it.toString()) }
+            val executionResult = graphQL.execute(execution.build())
 
-        val ctx = GraphQLContext(db, log, variables)
-        val graphQL = GraphSchema.getGraphQL(db)
-        val execution = ExecutionInput.Builder()
-                .query(query).variables(variables).context(ctx).root(ctx) // todo proper mutation root
-        params.get("operationName")?.let { execution.operationName(it.toString()) }
-        val executionResult = graphQL.execute(execution.build())
-
-        val result = linkedMapOf("data" to executionResult.getData<Any>())
-        if (executionResult.errors.isNotEmpty()) {
-            log.warn("Errors: {}", executionResult.errors)
-            result.put("errors", executionResult.errors)
+            val result = linkedMapOf("data" to executionResult.getData<Any>())
+            if (ctx.backLog.isNotEmpty()) {
+                result["extensions"]=ctx.backLog
+            }
+            if (executionResult.errors.isNotEmpty()) {
+                log.warn("Errors: {}", executionResult.errors)
+                result.put("errors", executionResult.errors)
+                tx.failure()
+            } else {
+                tx.success()
+            }
+            return Response.ok().entity(formatMap(result)).build()
+        } finally {
+            tx.close()
         }
-        if (ctx.backLog.isNotEmpty()) {
-            result["extensions"]=ctx.backLog
-        }
-        return Response.ok().entity(formatMap(result)).build()
     }
 
     @Suppress("UNCHECKED_CAST")
