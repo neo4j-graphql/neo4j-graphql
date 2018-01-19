@@ -25,6 +25,7 @@ The extension works with Neo4j 3.1 and 3.2, the code on this branch is for *3.2*
 * Download the appropriate release for your version from: https://github.com/neo4j-graphql/neo4j-graphql/releases
 * Copy the jar into `$NEO4J_HOME/plugins`
 * Edit `$NEO4J_HOME/conf/neo4j.conf` to add: `dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql`
+* You might need to add `,graphql.*` if your config contains this line: `dbms.security.procedures.whitelist=`
 * Restart your Neo4j server
 
 NOTE: Please consult the https://neo4j.com/docs/operations-manual/current/configuration/file-locations/[Neo4j documentation] for file locations for the different operating system and editions.
@@ -52,6 +53,8 @@ cp target/neo4j-graphql-*.jar $NEO4J_HOME/plugins
 echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> $NEO4J_HOME/conf/neo4j.conf
 $NEO4J_HOME/bin/neo4j restart
 ----
+
+NOTE: You might need to add `,graphql.*` if your config contains this line: `dbms.security.procedures.whitelist=`
 
 == GraphQL Schema
 
