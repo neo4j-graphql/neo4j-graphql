@@ -51,7 +51,11 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     @POST
     fun storeIdl(schema: String): Response {
         try {
-            val text = if (schema.trim().let { it.startsWith('"') && it.endsWith('"') }) schema.trim('"', ' ', '\t', '\n') else schema
+            val text = if (schema.trim().startsWith('{')) {
+                parseMap(schema).get("query")?.toString() ?: throw IllegalArgumentException("Can't read schema as JSON despite starting with '{'")
+            } else {
+                if (schema.trim().let { it.startsWith('"') && it.endsWith('"') }) schema.trim('"', ' ', '\t', '\n') else schema
+            }
             val metaDatas = GraphSchemaScanner.storeIdl(db, text)
             return Response.ok().entity(OBJECT_MAPPER.writeValueAsString(metaDatas)).build()
         } catch(e: Exception) {

@@ -26,8 +26,17 @@ class GraphQLProcedure {
     class GraphQLResult(@JvmField val result: Map<String, Any>)
     class GraphResult(@JvmField val nodes: List<Node>,@JvmField val rels: List<Relationship>)
 
-    @Procedure("graphql.execute")
+    @Procedure("graphql.execute", mode = Mode.WRITE)
     fun execute(@Name("query") query : String , @Name("variables",defaultValue = "{}") variables : Map<String,Any>, @Name(value = "operation",defaultValue = "") operation: String?) : Stream<GraphQLResult> {
+        return doExecute(variables, query, operation)
+    }
+
+    @Procedure("graphql.query", mode = Mode.READ)
+    fun query(@Name("query") query : String , @Name("variables",defaultValue = "{}") variables : Map<String,Any>, @Name(value = "operation",defaultValue = "") operation: String?) : Stream<GraphQLResult> {
+        return doExecute(variables, query, operation)
+    }
+
+    private fun doExecute(variables: Map<String, Any>, query: String, operation: String?): Stream<GraphQLResult> {
         val ctx = GraphQLContext(db!!, log!!, variables)
         val execution = ExecutionInput.Builder()
                 .query(query).variables(variables).context(ctx).root(ctx) // todo proper mutation root

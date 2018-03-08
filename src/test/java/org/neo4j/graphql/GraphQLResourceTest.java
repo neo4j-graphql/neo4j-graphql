@@ -214,4 +214,38 @@ public class GraphQLResourceTest {
             assertEquals("Removed stored GraphQL Schema",it.next());
         }
     }
+    @Test
+    public void testPostIdl() throws Exception {
+        Map<String, Object> result = postIdl("type Person", 500);
+        Object errors = result.get("error");
+        assertNotNull(errors);
+        assertTrue(errors.toString().contains("Error parsing IDL expected '{' got '<EOF>' line 1 column 11"));
+
+        Map<String, Object> result2 = postIdl("type Person {name:String}", 200);
+        assertNull(result2.get("error"));
+        Map data = (Map) result2.get("Person");
+        System.out.println("data = " + data);
+        assertEquals("Person",data.get("type"));
+    }
+    @Test
+    public void testPostIdlJson() throws Exception {
+        Map<String, Object> result = postIdl(map("query","type Person"), 500);
+        Object errors = result.get("error");
+        assertNotNull(errors);
+        assertTrue(errors.toString().contains("Error parsing IDL expected '{' got '<EOF>' line 1 column 11"));
+
+        Map<String, Object> result2 = postIdl(map("query","type Person {name:String}"), 200);
+        assertNull(result2.get("error"));
+        Map data = (Map) result2.get("Person");
+        System.out.println("data = " + data);
+        assertEquals("Person",data.get("type"));
+    }
+
+    private Map<String, Object> postIdl(Object payload, int status) {
+        HTTP.Response response = HTTP.POST(serverURI.toString()+"idl/", payload);
+        assertEquals(status, response.status());
+        Map<String, Object> result = response.content();
+        System.out.println("result = " + result);
+        return result;
+    }
 }
