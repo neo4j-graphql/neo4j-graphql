@@ -279,6 +279,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .argument(propertiesAsArguments(labelMd))
                 .argument(propertiesAsListArguments(labelMd))
                 .argumentIf(hasProperties, {orderByArgument(labelMd)})
+                .argumentIf(hasProperties, {filterArgument(labelMd)})
                 .argument(toArguments(parameters))
                 .type(type)
 
@@ -356,6 +357,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 newFieldDirective("relation", "Relationship"),
                 newFieldDirective("defaultValue", "default value"),
                 newFieldDirective("isUnique", "field is unique in type"),
+                newFieldDirective("model", "entity is a model type"),
                 newFieldDirective("cypher", "Cypher query to run"),
                 newDirective("profile", "Enable query profiling"),
                 newDirective("explain", "Enable query explanation"),
@@ -380,7 +382,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     val typeMetaDatas = metaDatas.filterNot {  it.isInterface }
     val definitions = IDLParser.parseDefintions(GraphSchemaScanner.schema)
     val enums: MutableMap<String, GraphQLEnumType> = enumsFromDefinitions(definitions).toMutableMap()
-    val inputTypes: Map<String, GraphQLInputObjectType> = inputTypesFromDefinitions(definitions, enums)
+    val inputTypes: MutableMap<String, GraphQLInputObjectType> = inputTypesFromDefinitions(definitions, enums).toMutableMap()
 
     fun buildSchema() : GraphQLSchema {
 
@@ -485,6 +487,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                             .argument(propertiesAsArguments(md))
                             .argument(propertiesAsListArguments(md))
                             .argumentIf(hasProperties,{orderByArgument(md)})
+                            .argumentIf(hasProperties, {filterArgument(md)})
                             .dataFetcher({ env -> fetchGraphData(md, env) })
                     ).build()
                 }
@@ -676,6 +679,31 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                                 GraphQLEnumValueDefinition(it+"_asc","Ascending sort for $it",Pair(it,true)),
                                 GraphQLEnumValueDefinition(it+"_desc","Descending sort for $it",Pair(it,false))) })))).build()
     }
+
+    internal fun inputField(name:String, type:GraphQLInputType, desc: String = name) : GraphQLInputObjectField
+            = GraphQLInputObjectField.newInputObjectField().name(name).type(type).description(desc).build()
+
+    internal fun filterArgument(md: MetaData): GraphQLArgument {
+        return newArgument().name("filter").type(filterInputObjectType(md)).build()
+    }
+
+    private fun filterInputObjectType(md: MetaData): GraphQLInputType {
+        return inputTypes.computeIfAbsent("_${md.type}Filter", {
+            inputTypeName ->
+            GraphQLInputObjectType(inputTypeName, "Filter Input Type for ${md.type}",
+                    listOf(inputField("AND", GraphQLList(GraphQLNonNull(GraphQLTypeReference(inputTypeName)))),
+                            inputField("OR", GraphQLList(GraphQLNonNull(GraphQLTypeReference(inputTypeName)))))
+                            + md.properties.values.flatMap { p ->
+                                val fieldType: GraphQLInputType =
+                                if (p.type.isBasic()) graphQLType(p.type)
+                                else if (p.type.enum) obtainEnum(GraphQLEnumType.newEnum().name(p.type.name).build())
+                                else GraphQLTypeReference(p.type.name)
+
+                        Operators.forType(fieldType).map { op -> inputField(op.fieldName(p.fieldName), if (op.list) GraphQLList(GraphQLNonNull(fieldType)) else fieldType) }
+                    })
+        })
+    }
+
     internal fun propertiesAsListArguments(md: MetaData): List<GraphQLArgument> {
         return md.properties.values.map {
             newArgument().name(it.fieldName+"s").description(it.fieldName + "s is list variant of "+it.fieldName + " of " + md.type).type(GraphQLList(graphQlInType(it.type, false))).build()

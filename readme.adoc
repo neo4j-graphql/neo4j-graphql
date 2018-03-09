@@ -294,6 +294,10 @@ query PersonQuery {
 | passed through as Cypher parameters
 | query MovieByParameter ($title: String!) { Person(name:$name) {name,born} }
 
+| filter arguments
+| nested input types for arbitrary filtering on query types and fields
+| { Company(filter: { AND: { name_contains: "Ne", country_in ["SE"]}}) { name } }
+
 | relationships
 | via a `@relationship` annotated field, optional direction
 | type Person { name: String, movies : Movie @relation(name:"ACTED_IN", direction:OUT) }

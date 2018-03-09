@@ -26,9 +26,9 @@ class GraphSchemaScanner {
         }
 
         fun storeIdl(db: GraphDatabaseService, schema: String) : Map<String, MetaData> {
+            val metaDatas = IDLParser.parse(schema)
             val tx = db.beginTx()
             try {
-                val metaDatas = IDLParser.parse(schema)
                 graphProperties(db).setProperty("graphql.idl", schema)
                 tx.success()
                 return metaDatas
@@ -47,7 +47,8 @@ class GraphSchemaScanner {
         fun deleteIdl(db: GraphDatabaseService) {
             val tx = db.beginTx()
             try {
-                graphProperties(db).removeProperty("graphql.idl")
+                val props = graphProperties(db)
+                if (props.hasProperty("graphql.idl")) props.removeProperty("graphql.idl")
                 tx.success()
             } finally {
                 tx.close()

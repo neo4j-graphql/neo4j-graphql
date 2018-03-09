@@ -2,6 +2,7 @@ package org.neo4j.graphql;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.harness.ServerControls;
@@ -214,7 +215,9 @@ public class GraphQLResourceTest {
             assertEquals("Removed stored GraphQL Schema",it.next());
         }
     }
+
     @Test
+    @Ignore
     public void testPostIdl() throws Exception {
         Map<String, Object> result = postIdl("type Person", 500);
         Object errors = result.get("error");
@@ -227,7 +230,9 @@ public class GraphQLResourceTest {
         System.out.println("data = " + data);
         assertEquals("Person",data.get("type"));
     }
+
     @Test
+    @Ignore
     public void testPostIdlJson() throws Exception {
         Map<String, Object> result = postIdl(map("query","type Person"), 500);
         Object errors = result.get("error");

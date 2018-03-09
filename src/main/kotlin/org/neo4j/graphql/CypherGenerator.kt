@@ -54,10 +54,29 @@ class Cypher31Generator : CypherGenerator() {
         }.joinNonEmpty(", ","`$variable` {","}")
     }
 
+
+    interface Predicate {
+        fun toExpression(variable:String) : String
+    }
+
+    data class CompoundPredicate(val parts : List<Predicate>, val op : String = "AND") : Predicate {
+        override fun toExpression(variable: String) = parts.map { it.toExpression(variable) }.joinNonEmpty(" "+op+" ","(",")")
+    }
+
+    data class ExpressionPredicate(val name:String, val op: Operators, val value:Value?) : Predicate {
+        val not = if (op.not) "NOT" else ""
+        override fun toExpression(variable:String) =  "$not `${variable}`.`$name` ${op.op} ${formatValue(value)}"
+    }
+
     fun where(field: Field, variable: String, md: MetaData, orderBys: MutableList<Pair<String,Boolean>>): String {
+        val filterPredicates = mutableListOf<Predicate>()
         val predicates = field.arguments.mapNotNull {
             val name = it.name
             when (name) {
+                "filter" -> {
+                    filterPredicates.add(CompoundPredicate((it.value as ObjectValue).objectFields.map { f -> toExpression(f.name, f.value) }, "AND"))
+                    null
+                }
                 "orderBy" -> {
                     extractOrderByEnum(it, orderBys)
                     null
@@ -73,9 +92,21 @@ class Cypher31Generator : CypherGenerator() {
                         "`${variable}`.`$name` = ${formatValue(it.value)}"
                 }
             // todo directives for more complex filtering
-        }}.joinToString("\nAND ")
-        return if (predicates.isBlank()) "" else "WHERE " + predicates
+        }}
+        return if (predicates.isEmpty() && filterPredicates.isEmpty()) "" else "WHERE " + (predicates + filterPredicates.map { it.toExpression(variable) }).joinToString("\nAND ")
     }
+
+    private fun toExpression(name: String, value: Value): Predicate =
+            if (name == "AND" || name == "OR")
+                if (value is ArrayValue) {
+                    CompoundPredicate(value.values.map { toExpression("AND", it) }, name)
+                } else {
+                    CompoundPredicate((value as ObjectValue).objectFields.map { toExpression(it.name, it.value) }, name)
+                }
+            else {
+                val (fieldName, op) = Operators.resolve(name)
+                ExpressionPredicate(fieldName, op, value)
+            }
 
     private fun extractOrderByEnum(argument: Argument, orderBys: MutableList<Pair<String, Boolean>>) {
         fun extractSortFields(arg: EnumValue) : Unit {
