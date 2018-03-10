@@ -97,7 +97,8 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
         // turn result of update operation into the expected graphql type
         fun asEntityList(result: Result?, returnType: GraphQLOutputType): Any? {
-            if (result == null || !result.hasNext()) return emptyList<Map<String, Any>>()
+            if (result == null || !result.hasNext())
+                return if (returnType.isList()) emptyList<Map<String, Any>>() else null
 
             val isSingleColumn = result.columns().size == 1
             val innerType = returnType.inner()
