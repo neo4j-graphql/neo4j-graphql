@@ -5,6 +5,8 @@
 image::https://github.com/neo4j-graphql/graphql-community/raw/master/images/neo4j-graphql-logo.png[float=right,width=200]
 This is a GraphQL-Endpoint extension for Neo4j.
 
+*This readme assumes you are somewhat familiar with http://graphql.org/[GraphQL^] and minimally with http://neo4j.com/developer/cypher[Cypher].*
+
 Based on your _GraphQL schema_, it translates GraphQL _Queries_ and _Mutations_ into Cypher statements and executes them on Neo4j.
 
 It offers both an *HTTP API*, as well as, Neo4j Cypher *Procedures* to execute and manage your GraphQL API.
@@ -59,14 +61,31 @@ echo "Basic $(echo -n "neo4j:<password>" | base64)"
 
 === Uploading a GraphQL Schema
 
+Here is a small example schema for the movie data.
+Just a Movie with actors, and a Person with movies.
+
+Simple properties are mapped directly while the relationships are mapped to fields `movies` and `actors`
+
+.Movies Schema
+[source,graphql]
+----
+type Movie  {
+  title: String!
+  released: Int
+  actors: [Person] @relation(name:"ACTED_IN",direction:IN)
+}
+type Person {
+  name: String!
+  born: Int
+  movies: [Movie] @relation(name:"ACTED_IN")
+}
+----
+
 You can POST a GraphQL schema to the `/graphql/idl/` endpoint or run the `CALL graphql.idl('schema-text')` procedure.
 
 The payload is parsed and stored in Neo4j and used subsequently as the backing GraphQL schema for validating and executing queries.
 
-Here is a small example schema for the movie data.
-Just a Movie with actors, and a Person with movies.
-
-.Movies Schema
+[source,cypher]
 ----
 CALL graphql.idl('
 type Movie  {
@@ -82,20 +101,15 @@ type Person {
 ')
 ----
 
-You should be able to see your schema in the _Docs_ section of GraphiQL.
+You should then be able to see your schema in the _Docs_ section of GraphiQL.
 
-You will also get auto-completion, validation and hints when writing queries.
+This also gives you auto-completion, validation and hints when writing queries.
 
-You can also visualize your GraphQL schema in Neo4j Browser using a procedure.
-
-[source,cypher]
-----
-CALL graphql.schema()
-----
+To visualize your GraphQL schema in Neo4j Browser use: `call graphql.schema()`.
 
 image::{img}/graphql.schema.jpg[width=600]
 
-=== Query Types
+=== Auto-Generated Query Types
 
 From that schema, the plugin automatically generate *Query Types* for each of the declared types.
 
@@ -109,11 +123,12 @@ e.g. `Movie(title,released,first,offset,_id,orderBy, filter): [User]`
 Now you can for instance run this query:
 
 .Simple query example
+[source,graphql]
 ----
 { Person(name:"Kevin Bacon") {
     name
     born
-    actedIn {
+    movies {
       title
       released
       tagline
@@ -125,10 +140,10 @@ Now you can for instance run this query:
 image::{img}/graphiql-query1.jpg[]
 
 .Advanced query example
+[source,graphql]
 ----
-query Nineties($released: Long, $firstLetter: String) {
-
-  Movie(released: $released,
+query Nineties($released: Long, $firstLetter: String)
+{ Movie(released: $released,
         filter: {title_starts_with: $firstLetter}) {
     title
     released
@@ -142,13 +157,18 @@ query Nineties($released: Long, $firstLetter: String) {
     }
   }
 }
+
+# query variables
+{ "released":1995, "firstLetter":"A"}
 ----
+
+This query declares query name and parameters (first line), which are passed separately ("Query Parameters box") as JSON.
 
 And get this result:
 
 image::{img}/graphiql-query2.jpg[]
 
-=== Mutations
+=== Auto-Generated Mutations
 
 Additionally *Mutations* for each type are created, which return update statistics.
 
@@ -160,36 +180,55 @@ e.g. for the `Movie` type:
 
 and for it's relationships:
 
-* `addMoviePersons(title: ID!, persons:[ID]!) : String`
-* `deleteMoviePersons(title: ID!, persons:[ID]!) : String`
+* `addMovieActors(title: ID!, actors:[ID]!) : String`
+* `deleteMovieActors(title: ID!, actors:[ID]!) : String`
 
 Those mutations then allow you to create and update your data with GraphQL.
 
+.Single Mutation
+[source,graphql]
+----
+mutation {
+    createPerson(name:"Chadwick Boseman", born: 1977)
+}
+----
+
+.Mutation Result
+[source,json]
+----
+{ "data": {
+    "createPerson": "Nodes created: 1\nProperties set: 2\nLabels added: 1\n"
+  }
+}
+----
+
+.Several Mutations at once
 [source,graphql]
 ----
 mutation {
     pp: createMovie(title:"Black Panther", released: 2018)
-    cb: createPerson(name:"Chadwick Boseman", born: 1977)
     lw: createPerson(name:"Letitia Wright", born: 1993)
     cast: addMovieActors(title: "Black Panther",
           actors:["Chadwick Boseman","Letitia Wright"])
 }
 ----
 
-image::{img}/graphiql-mutation.jpg[]
+If the same mutations is called multiple times, you _need to use alias prefixes_ to avoid clashes in the returned data, which is keyed on mutation names.
 
+image::{img}/graphiql-mutation.jpg[]
 
 You can use those mutations also to https://medium.com/@mesirii/better-data-import-with-graphql-548084a35dfd[load data from CSV or JSON^].
 
 === Directives
 
-Directives `@name` can be used to augment the schema with additional meta-information that we use for processing.
+Directives like `@directiveName(param:value)` can be used to augment the schema with additional meta-information that we use for processing.
 
 You have already seen the `@relation(name:"ACTED_IN", direction:"IN")` directive to map entity references to graph relationships.
 
 The `@cypher` directive is a powerful way of declaring _computed_ fields, query types and mutations with a Cypher statement.
 
 .For instance, `directors`
+[source,graphql]
 ----
 type Movie {
   ...
@@ -197,7 +236,8 @@ type Movie {
 }
 ----
 
-.Top-Level Schema Types
+.Register Top-Level Schema Types
+[source,graphql]
 ----
 schema {
    query: QueryType
@@ -206,17 +246,47 @@ schema {
 ----
 
 .A custom query
+[source,graphql]
 ----
 type QueryType {
   ...
-  coActors(name:ID!): [Person] @cypher(statement:"MATCH (p:Person {name:$name})-[:ACTED_IN]->()<-[:ACTED_IN]-(co) RETURN co")
+  coActors(name:ID!): [Person] @cypher(statement:"MATCH (p:Person {name:$name})-[:ACTED_IN]->()<-[:ACTED_IN]-(co) RETURN distinct co")
 }
 ----
 
 .A custom mutation
+[source,graphql]
 ----
 type MutationType {
   ...
+  rateMovie(user:ID!, movie:ID!, rating:Int!): Int
+  @cypher(statement:"MATCH (p:Person {name:$user}),(m:Movie {title:$movie}) MERGE (p)-[r:RATED]->(m) SET r.rating=$rating RETURN r.rating")
+}
+----
+
+
+.Full enhanced Schema
+[source,graphql]
+----
+type Movie  {
+  title: String!
+  released: Int
+  actors: [Person] @relation(name:"ACTED_IN",direction:IN)
+  directors: [Person] @cypher(statement:"MATCH (this)<-[:DIRECTED]-(d) RETURN d")
+}
+type Person {
+  name: String!
+  born: Int
+  movies: [Movie] @relation(name:"ACTED_IN")
+}
+schema {
+   query: QueryType
+   mutation: MutationType
+}
+type QueryType {
+  coActors(name:ID!): [Person] @cypher(statement:"MATCH (p:Person {name:$name})-[:ACTED_IN]->()<-[:ACTED_IN]-(co) RETURN distinct co")
+}
+type MutationType {
   rateMovie(user:ID!, movie:ID!, rating:Int!): Int
   @cypher(statement:"MATCH (p:Person {name:$user}),(m:Movie {title:$movie}) MERGE (p)-[r:RATED]->(m) SET r.rating=$rating RETURN r.rating")
 }
@@ -226,12 +296,30 @@ type MutationType {
 
 This library also comes with Cypher Procedures to execute GraphQL from within Neo4j.
 
+.Simple Procedure Query
 [source,cypher]
 ----
-CALL graphql.execute({ Person(born: 1961) { name, born } })
+CALL graphql.query('{ Person(born: 1961) { name, born } }')
 ----
 
-image::{img}/graphql.execute.jpg[width=600]
+.Advanced Procedure Query with parameters and post-processing
+[source,cypher]
+----
+WITH 'query ($year:Long,$limit:Int) { Movie(released: $year, first:$limit) { title, actors {name} } }' as query
+
+CALL graphql.query(query,{year:1995,limit:5}) YIELD result
+
+UNWIND result.Movie as movie
+RETURN movie.title, [a IN movie.actors | a.name] as actors
+----
+
+image::{img}/graphql.execute.jpg[]
+
+.Update with Mutation
+[source,cypher]
+----
+CALL graphql.execute('mutation { createMovie(title:"The Shape of Water", released:2018)}')
+----
 
 == Other Information
 
@@ -329,35 +417,7 @@ query PersonQuery($name: String!) {
 
 === Procedures
 
-To deconstruct results from a procedure call you can use Cypher features like `UNWIND`, dot, or list expressions
-
-[source, cypher]
-----
-call graphql.execute("query { Person { name born totalMoviesCount recommendedColleagues { name }  }}", {}) yield result
-UNWIND result.Person AS person
-RETURN person.name, person.born, person.totalMoviesCount, [p IN person.recommendedColleagues | p.name]
-LIMIT 10
-----
-
-----
-╒══════════════╤═════════════╤═════════════════════════╤══════════════════════════════╕
-│"person.name" │"person.born"│"person.totalMoviesCount"│"colleagues"                  │
-╞══════════════╪═════════════╪═════════════════════════╪══════════════════════════════╡
-│"Keanu Reeves"│"1964"       │"7"                      │["Diane Keaton","Jack Nicholso│
-│              │             │                         │n","Dina Meyer","Ice-T","Takes│
-│              │             │                         │hi Kitano","Brooke Langton","G│
-│              │             │                         │ene Hackman","Orlando Jones","│
-│              │             │                         │Al Pacino","Charlize Theron","│
-│              │             │                         │Hugo Weaving","Carrie-Anne Mos│
-│              │             │                         │s","Laurence Fishburne","Hugo │
-│              │             │                         │Weaving","Laurence Fishburne",│
-│              │             │                         │"Carrie-Anne Moss","Emil Eifre│
-│              │             │                         │m","Hugo Weaving","Laurence Fi│
-│              │             │                         │shburne","Carrie-Anne Moss"]  │
-└──────────────┴─────────────┴─────────────────────────┴──────────────────────────────┘
-----
-
-And you can even visualize remote graphql schemas, e.g. here from the https://developer.github.com/v4/[GitHub GraphQL API^].
+You can even visualize remote graphql schemas, e.g. here from the https://developer.github.com/v4/[GitHub GraphQL API^].
 Make sure to generate the https://developer.github.com/v4/guides/forming-calls/#authenticating-with-graphql[Personal Access Token^] to use in your account settings.
 
 [source,cypher]
