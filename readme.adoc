@@ -1,46 +1,255 @@
 = Neo4j-GraphQL Extension
 :img: docs/img
+:branch: 3.3
 
-NOTE: This branch is for supporting Neo4j 3.2.
-
-image:https://travis-ci.org/neo4j-contrib/neo4j-graphql.svg?branch=3.2["Build Status", link="https://travis-ci.org/neo4j-contrib/neo4j-graphql"]
-
+image::https://github.com/neo4j-graphql/graphql-community/raw/master/images/neo4j-graphql-logo.png[float=right,width=200]
 This is a GraphQL-Endpoint extension for Neo4j.
-Based on your GraphQL schema, it turns GraphQL queries and mutations into Cypher statements and executes them on Neo4j.
 
-NOTE: You have to pass an HTTP Authorization header with the base64 encoded Neo4j credentials for basic auth.
+Based on your _GraphQL schema_, it translates GraphQL _Queries_ and _Mutations_ into Cypher statements and executes them on Neo4j.
 
-NOTE: Always add a trailing slash `/graphql/` to your graphql URL when using it from a client.
+It offers both an *HTTP API*, as well as, Neo4j Cypher *Procedures* to execute and manage your GraphQL API.
 
-== License
-
-Apache License v2.
 
 == Installation
 
-The extension works with Neo4j 3.1 and 3.2, the code on this branch is for *3.2*.
+Download and install http://neo4j.com/download[Neo4j Desktop^]
 
-=== Using a release
+1. Download the https://github.com/neo4j-graphql/neo4j-graphql/releases[appropriate neo4j-graphql release] for your version.
+2. Copy the _jar-file_ into Neo4j's `plugins` directory
+3. Edit the Neo4j settings (`$NEO4J_HOME/conf/neo4j.conf`) to add: +
+`dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql`
+4. You might need to add `,graphql.*` if your config contains this line: +
+`dbms.security.procedures.whitelist=`
+5. (Re)start your Neo4j server
 
-* Download the appropriate release for your version from: https://github.com/neo4j-graphql/neo4j-graphql/releases
-* Copy the jar into `$NEO4J_HOME/plugins`
-* Edit `$NEO4J_HOME/conf/neo4j.conf` to add: `dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql`
-* You might need to add `,graphql.*` if your config contains this line: `dbms.security.procedures.whitelist=`
-* Restart your Neo4j server
+NOTE: _Neo4j Desktop_: the configuration is available under *Manage -> Settings*, the `plugins` folder via *Open Folder*.
 
-NOTE: Please consult the https://neo4j.com/docs/operations-manual/current/configuration/file-locations/[Neo4j documentation] for file locations for the different operating system and editions.
+=== Use with neo4j-graphql-cli
 
+This extension is utilized, when you use https://www.npmjs.com/package/neo4j-graphql-cli[`neo4j-graphql-cli`]
 
-=== Used with neo4j-graphql-cli
+This tool
 
-This extension is utilized when you use https://www.npmjs.com/package/neo4j-graphql-cli[`neo4j-graphql-cli`]
-
-The command line tool starts a Neo4j Sandbox with your schema and provides the `/graphql/` endpoint, a Neo4j server and an hosted GraphiQL for it.
+1. launches a http://neo4j.com/sandbox[Neo4j Sandbox] with your GraphQL schema
+2. provides the `/graphql/` endpoint,
+3. a Neo4j server,
+4. an hosted GraphiQL for it.
 
 ----
 npm install -g neo4j-graphql-cli
 neo4j-graphql movies-schema.graphql
 ----
+
+== Quickstart
+
+To generate some graph data in Neo4j just run http://localhost:7474/browser?cmd=play&arg=movie%20graph[`:play movie graph`^] in your Neo4j Browser.
+
+=== GraphiQL
+
+The best tool to use is https://electronjs.org/apps/graphiql[GraphiQL^] the GraphQL UI. Get and install it.
+
+Enter your GraphQL URL, like `http://localhost:7474/graphql/` (_note the trailing slash_).
+
+If your Neo4j Server runs with *authentication enabled*, add the appropriate Basic-Auth (https://www.base64encode.org/[base64 encoded^]) `username:password` header in the "Edit HTTP Headers" screen.
+
+.Command to generate the `Authorization` header value.
+----
+echo "Basic $(echo -n "neo4j:<password>" | base64)"
+----
+
+=== Uploading a GraphQL Schema
+
+You can POST a GraphQL schema to the `/graphql/idl/` endpoint or run the `CALL graphql.idl('schema-text')` procedure.
+
+The payload is parsed and stored in Neo4j and used subsequently as the backing GraphQL schema for validating and executing queries.
+
+Here is a small example schema for the movie data.
+Just a Movie with actors, and a Person with movies.
+
+.Movies Schema
+----
+CALL graphql.idl('
+type Movie  {
+  title: String!
+  released: Int
+  actors: [Person] @relation(name:"ACTED_IN",direction:IN)
+}
+type Person {
+  name: String!
+  born: Int
+  movies: [Movie] @relation(name:"ACTED_IN")
+}
+')
+----
+
+You should be able to see your schema in the _Docs_ section of GraphiQL.
+
+You will also get auto-completion, validation and hints when writing queries.
+
+You can also visualize your GraphQL schema in Neo4j Browser using a procedure.
+
+[source,cypher]
+----
+CALL graphql.schema()
+----
+
+image::{img}/graphql.schema.jpg[width=600]
+
+=== Query Types
+
+From that schema, the plugin automatically generate *Query Types* for each of the declared types.
+
+e.g. `Movie(title,released,first,offset,_id,orderBy, filter): [User]`
+
+* Each field of the entity is available as _query argument_, with an equality check (plural for list-contains)
+* We also provide a `filter` argument for more complex filtering with nested predicates.
+* For ordered results there is a `orderBy` argument
+* And `first`, `offset` allow for pagination
+
+Now you can for instance run this query:
+
+.Simple query example
+----
+{ Person(name:"Kevin Bacon") {
+    name
+    born
+    actedIn {
+      title
+      released
+      tagline
+    }
+  }
+}
+----
+
+image::{img}/graphiql-query1.jpg[]
+
+.Advanced query example
+----
+query Nineties($released: Long, $firstLetter: String) {
+
+  Movie(released: $released,
+        filter: {title_starts_with: $firstLetter}) {
+    title
+    released
+    actors(first: 3) {
+      name
+      born
+      movies(first: 1, orderBy: title_desc) {
+        title
+        released
+      }
+    }
+  }
+}
+----
+
+And get this result:
+
+image::{img}/graphiql-query2.jpg[]
+
+=== Mutations
+
+Additionally *Mutations* for each type are created, which return update statistics.
+
+e.g. for the `Movie` type:
+
+* `createMovie(title: ID!, released: Int) : String`
+* `updateMovie(title: ID!, released: Int) : String`
+* `deleteMovie(title: ID!) : String`
+
+and for it's relationships:
+
+* `addMoviePersons(title: ID!, persons:[ID]!) : String`
+* `deleteMoviePersons(title: ID!, persons:[ID]!) : String`
+
+Those mutations then allow you to create and update your data with GraphQL.
+
+[source,graphql]
+----
+mutation {
+    pp: createMovie(title:"Black Panther", released: 2018)
+    cb: createPerson(name:"Chadwick Boseman", born: 1977)
+    lw: createPerson(name:"Letitia Wright", born: 1993)
+    cast: addMovieActors(title: "Black Panther",
+          actors:["Chadwick Boseman","Letitia Wright"])
+}
+----
+
+image::{img}/graphiql-mutation.jpg[]
+
+
+You can use those mutations also to https://medium.com/@mesirii/better-data-import-with-graphql-548084a35dfd[load data from CSV or JSON^].
+
+=== Directives
+
+Directives `@name` can be used to augment the schema with additional meta-information that we use for processing.
+
+You have already seen the `@relation(name:"ACTED_IN", direction:"IN")` directive to map entity references to graph relationships.
+
+The `@cypher` directive is a powerful way of declaring _computed_ fields, query types and mutations with a Cypher statement.
+
+.For instance, `directors`
+----
+type Movie {
+  ...
+  directors: [Person] @cypher(statement:"MATCH (this)<-[:DIRECTED]-(d) RETURN d")
+}
+----
+
+.Top-Level Schema Types
+----
+schema {
+   query: QueryType
+   mutation: MutationType
+}
+----
+
+.A custom query
+----
+type QueryType {
+  ...
+  coActors(name:ID!): [Person] @cypher(statement:"MATCH (p:Person {name:$name})-[:ACTED_IN]->()<-[:ACTED_IN]-(co) RETURN co")
+}
+----
+
+.A custom mutation
+----
+type MutationType {
+  ...
+  rateMovie(user:ID!, movie:ID!, rating:Int!): Int
+  @cypher(statement:"MATCH (p:Person {name:$user}),(m:Movie {title:$movie}) MERGE (p)-[r:RATED]->(m) SET r.rating=$rating RETURN r.rating")
+}
+----
+
+=== Procedures
+
+This library also comes with Cypher Procedures to execute GraphQL from within Neo4j.
+
+[source,cypher]
+----
+CALL graphql.execute({ Person(born: 1961) { name, born } })
+----
+
+image::{img}/graphql.execute.jpg[width=600]
+
+== Other Information
+
+*Please* leave link:/issues[Feedback and Issues^]
+
+You can get quick answers on http://neo4j.com/slack[Neo4j-Users Slack^] in the https://neo4j-users.slack.com/messages/C5ET7S24R[`#neo4j-graphql` channel^]
+
+License: Apache License v2.
+
+This branch for Neo4j {branch}.x
+
+image:https://travis-ci.org/neo4j-contrib/neo4j-graphql.svg?branch={branch}["Build Status", link="https://travis-ci.org/neo4j-contrib/neo4j-graphql"]
+
+== Advanced Usage
+
+The extension works with Neo4j 3.1 and 3.2, the code on this branch is for *{branch}*.
+
+Please consult the https://neo4j.com/docs/operations-manual/current/configuration/file-locations/[Neo4j documentation^] for file locations for the other editions on the different operating systems.
 
 === Building manually
 
@@ -56,46 +265,6 @@ $NEO4J_HOME/bin/neo4j restart
 
 NOTE: You might need to add `,graphql.*` if your config contains this line: `dbms.security.procedures.whitelist=`
 
-== GraphQL Schema
-
-=== Uploading a Schema
-
-You can POST a GraphQL IDL schema to the `/graphql/idl` endpoint or run the `CALL graphql.idl('schema')` procedure. 
-The schema is parsed and stored in Neo4j and then used as the GraphQL schema for validating and executing queries.
-
-----
-type Movie  {
-  title: String!
-  released: Int
-  actors: [Person] @relation(name:"ACTED_IN",direction:IN)
-}
-type Person {
-  name: String!
-  born: Int
-  movies: [Movie] @relation(name:"ACTED_IN")
-}
-----
-
-We automatically generate *query types* for each of the declared types.
-Each attribute is available as query parameter, with an equality check (or the plural form for a IN check in a list).
-
-* e.g. `Movie(title,released,first,offset,_id,sort): [User]`
-
-Additionally *mutations* for each type are created, which return the executed graph operations.
-
-e.g. for the `Movie` type:
-
-* `createMovie(title: ID!, released: Int) : String`
-* `updateMovie(title: ID!, released: Int) : String`
-* `deleteMovie(title: ID!) : String`
-
-and for it's relationships:
-
-* `addMoviePersons(title: ID!, persons:[ID]!) : String`
-* `deleteMoviePersons(title: ID!, persons:[ID]!) : String`
-
-Those mutations then allow you to create and update your data with GraphQL.
-
 === Schema from Graph
 
 If you didn't provide a GraphQL schema, we try to derive one from the existing graph data.
@@ -106,42 +275,8 @@ From sampling the data we add a `type` for each Node-Label with all the properti
 Each relationship-type adds a reference field to the node type, named `aType` for `A_TYPE`.
 // Each relationship-type and end-node label is added as a virtual property to the node type, named `TYPE_Label` for outgoing and `Label_TYPE` for incoming relationships.
 
-== Usage
 
-=== Your own Neo4j instance
-
-Run `:play movie graph` in your Neo4j Server, click the insert statement and run it to insert the basic movie graph.
-
-=== GraphiQL
-
-Get the GraphiQL electron app from: https://github.com/skevy/graphiql-app
-
-If your Neo4j Server runs with auth enabled, add the appropriate Basic-Auth header in the "Edit HTTP Headers" screen.
-
-----
-echo "Authorization: Basic $(echo -n "neo4j:<password>" | base64)"
-----
-
-Enter your GraphQL URL, like `http://localhost:7474/graphql/` (note the trailing slash).
-
-You should be able to see your schema in the _Docs_ section.
-
-And then run a query like:
-
-----
-{ Person(name:"Kevin Bacon") {
-    name
-    born
-    actedIn {
-      title
-      released
-      tagline
-    }
-  }
-}
-----
-
-image::{img}/graphiql.jpg[width=600]
+////
 
 You can also use variables or query the schema:
 
@@ -189,31 +324,38 @@ query PersonQuery($name: String!) {
 # variables
 {"name":"Keanu Reeves"}
 ----
+////
+
 
 === Procedures
 
-This library also comes with a User Defined Procedure to execute GraphQL:
+To deconstruct results from a procedure call you can use Cypher features like `UNWIND`, dot, or list expressions
 
-[source,cypher]
+[source, cypher]
 ----
-WITH '{ Person(born: 1961) { name, born } }' as query, {} as params
-
-CALL graphql.execute(query,params) YIELD result
-
-UNWIND result.Person as p
-RETURN p.name, p.born
+call graphql.execute("query { Person { name born totalMoviesCount recommendedColleagues { name }  }}", {}) yield result
+UNWIND result.Person AS person
+RETURN person.name, person.born, person.totalMoviesCount, [p IN person.recommendedColleagues | p.name]
+LIMIT 10
 ----
 
-image::{img}/graphql.execute.jpg[width=600]
-
-You can also visualize your GraphQL schema in Neo4j Browser using a procedure.
-
-[source,cypher]
 ----
-CALL graphql.schema()
+╒══════════════╤═════════════╤═════════════════════════╤══════════════════════════════╕
+│"person.name" │"person.born"│"person.totalMoviesCount"│"colleagues"                  │
+╞══════════════╪═════════════╪═════════════════════════╪══════════════════════════════╡
+│"Keanu Reeves"│"1964"       │"7"                      │["Diane Keaton","Jack Nicholso│
+│              │             │                         │n","Dina Meyer","Ice-T","Takes│
+│              │             │                         │hi Kitano","Brooke Langton","G│
+│              │             │                         │ene Hackman","Orlando Jones","│
+│              │             │                         │Al Pacino","Charlize Theron","│
+│              │             │                         │Hugo Weaving","Carrie-Anne Mos│
+│              │             │                         │s","Laurence Fishburne","Hugo │
+│              │             │                         │Weaving","Laurence Fishburne",│
+│              │             │                         │"Carrie-Anne Moss","Emil Eifre│
+│              │             │                         │m","Hugo Weaving","Laurence Fi│
+│              │             │                         │shburne","Carrie-Anne Moss"]  │
+└──────────────┴─────────────┴─────────────────────────┴──────────────────────────────┘
 ----
-
-image::{img}/graphql.schema.jpg[width=600]
 
 And you can even visualize remote graphql schemas, e.g. here from the https://developer.github.com/v4/[GitHub GraphQL API^].
 Make sure to generate the https://developer.github.com/v4/guides/forming-calls/#authenticating-with-graphql[Personal Access Token^] to use in your account settings.
@@ -224,6 +366,8 @@ call graphql.introspect("https://api.github.com/graphql",{Authorization:"bearer 
 ----
 
 image:{img}/graphql.introspect-github.jpg[width=600]
+
+////
 
 == Examples
 
@@ -265,6 +409,7 @@ query PersonQuery {
   }
 }
 ----
+////
 
 == Features
 
@@ -351,23 +496,27 @@ Otherwise, we assume if you return object-types that you will return the appropr
 
 === Neo4j-GraphQL
 
-* http://grandstack.io[GRAND Stack (GraphQL React Apollo Neo4j Database)]
-* https://github.com/neo4j-graphql[neo4j-graphql] Tools and Libraries related to Neo4j's GraphQL support
-* https://neo4j.com/developer/graphql[GraphQL page] on neo4j.com
-* https://neo4j.com/blog/cypher-graphql-neo4j-3-1-preview/[GraphQL inspired Cypher features] Map projections and Pattern comprehensions
+* http://grandstack.io[GRAND Stack (GraphQL React Apollo Neo4j Database)^]
+* https://github.com/neo4j-graphql[neo4j-graphql^] Tools and Libraries related to Neo4j's GraphQL support
+* https://neo4j.com/developer/graphql[GraphQL page^] on neo4j.com
+* https://neo4j.com/blog/cypher-graphql-neo4j-3-1-preview/[GraphQL inspired Cypher features^] Map projections and Pattern comprehensions
 
 === Libraries & Tools
 
-* https://facebook.github.io/graphq[GraphQL Specification]
-* https://github.com/graphql-java/graphql-java[GraphQL-Java] which we use in this project
-* https://github.com/skevy/graphiql-app[GraphiQL Electron App]
+* https://facebook.github.io/graphq[GraphQL Specification^]
+* https://github.com/graphql-java/graphql-java[GraphQL-Java^] which we use in this project
+* https://github.com/skevy/graphiql-app[GraphiQL Electron App^]
+
+////
 
 === Similar Projects
 
-* https://github.com/solidsnack/GraphpostgresQL[GraphQL for Postgres] as an inspiration of schema -> native queries
+* https://github.com/solidsnack/GraphpostgresQL[GraphQL for Postgres^] as an inspiration of schema -> native queries
 * https://github.com/jhwoodward/neo4j-graphQL[Schema Based GraphQL to Cypher in JavaScript]
 * https://github.com/jameskyburz/graphqlcypherquery[GraphQL to Cypher translator (w/o schema)]
 * https://github.com/JamesKyburz/graphql2cypher[GraphQL parser to Cypher]
+
+////
 
 // * https://github.com/facebook/dataloader
 // * http://graphql.org/learn/serving-over-http/[Serving over HTTP]
@@ -375,6 +524,8 @@ Otherwise, we assume if you return object-types that you will return the appropr
 ////
 echo "Authorization: Basic $(echo -n "neo4j:test" | base64)"
 "Authorization: Basic bmVvNGo6dGVzdA=="
+////
+
 ////
 
 == Using an http client (curl)
@@ -472,32 +623,9 @@ curl -X POST http://localhost:7474/graphql/idl -d 'type Person {
          }' -u neo4j:****
 ----
 
-[source, cypher]
-----
-call graphql.execute("query { Person { name born totalMoviesCount recommendedColleagues { name }  }}", {}) yield result
-UNWIND result.Person AS person
-RETURN person.name, person.born, person.totalMoviesCount, [p IN person.recommendedColleagues | p.name]
-LIMIT 10
-----
+////
 
-----
-╒══════════════╤═════════════╤═════════════════════════╤══════════════════════════════╕
-│"person.name" │"person.born"│"person.totalMoviesCount"│"colleagues"                  │
-╞══════════════╪═════════════╪═════════════════════════╪══════════════════════════════╡
-│"Keanu Reeves"│"1964"       │"7"                      │["Diane Keaton","Jack Nicholso│
-│              │             │                         │n","Dina Meyer","Ice-T","Takes│
-│              │             │                         │hi Kitano","Brooke Langton","G│
-│              │             │                         │ene Hackman","Orlando Jones","│
-│              │             │                         │Al Pacino","Charlize Theron","│
-│              │             │                         │Hugo Weaving","Carrie-Anne Mos│
-│              │             │                         │s","Laurence Fishburne","Hugo │
-│              │             │                         │Weaving","Laurence Fishburne",│
-│              │             │                         │"Carrie-Anne Moss","Emil Eifre│
-│              │             │                         │m","Hugo Weaving","Laurence Fi│
-│              │             │                         │shburne","Carrie-Anne Moss"]  │
-└──────────────┴─────────────┴─────────────────────────┴──────────────────────────────┘
-----
-
+////
 == TODO
 
 * Non-Null and Nullable Input and Output Types
@@ -516,6 +644,8 @@ LIMIT 10
 * √ Support 3.1+ via pattern comprehensions and map projections
 * Improvements: consider replacing MetaData with GraphQL types,
 * check if there is a direct conversion from parsed data (AST-Nodes) to graphql-schema types
+
+////
 
 ////
 == Rewrite
