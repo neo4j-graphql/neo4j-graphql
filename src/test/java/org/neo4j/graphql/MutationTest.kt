@@ -46,6 +46,11 @@ type Person {
   born: Int
   movies: [Movie] @relation(name:"ACTED_IN")
 }
+type Director {
+  id: ID!
+  name: String!
+  born: Int
+}
 schema {
    query: QueryType
    mutation: MutationType
@@ -71,6 +76,13 @@ type MutationType {
         assertEquals(expected, result.getData())
     }
 
+    @Test
+    fun createDirector() {
+        val result = graphQL!!.execute("""mutation { d: createDirector(id:"123", name:"Lilly Wachowski" born:1967) }""", ctx)
+        if (result.errors.isNotEmpty()) println(result.errors)
+        assertEquals(mapOf("d" to
+                "Nodes created: 1\nProperties set: 3\nLabels added: 1\n"), result.getData())
+    }
     @Test
     fun createMovie() {
         val result = graphQL!!.execute("""mutation { m: createMovie(title:"Forrest Gump", released:1994) }""", ctx)

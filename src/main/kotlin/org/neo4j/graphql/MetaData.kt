@@ -96,6 +96,7 @@ class MetaData(label: String) {
                             val indexed: Boolean = false, val cypher: CypherInfo? = null, val defaultValue : Any? = null,
                             val unique: Boolean = false,val enum : Boolean = false,
                             val parameters : Map<String,ParameterInfo>? = null, val description : String? = null) {
+        fun isId() = type.name == "ID"
         fun isIdProperty() = type.name == "ID" || id
         fun isComputed() = cypher != null
         fun  updateable() = !isComputed() && !isIdProperty()
@@ -116,4 +117,6 @@ class MetaData(label: String) {
     fun isInterface() {
         isInterface = true
     }
+
+    fun  idProperty(): MetaData.PropertyInfo? = properties.values.firstOrNull { it.isId() } ?: properties.values.firstOrNull { it.isIdProperty() }
 }

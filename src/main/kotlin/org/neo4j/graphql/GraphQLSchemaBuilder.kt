@@ -495,7 +495,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     }
 
     fun mutationField(metaData: MetaData, existing: Set<String>) : List<GraphQLFieldDefinition> {
-        val idProperty = idProperty(metaData)
+        val idProperty = metaData.idProperty()
 
         val updatableProperties = metaData.properties.values.filter { !it.isComputed() }
 
@@ -515,7 +515,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         if (idProperty == null)
             return listOf(createMutation)
         else {
-            val nonIdProperties = updatableProperties.filter { !it.isIdProperty() }
+            val nonIdProperties = updatableProperties.filterNot { it == idProperty }
 
             val updateMutation = GraphQLFieldDefinition.newFieldDefinition()
                     .name(handleCollisions(existing,"update" + metaData.type))
@@ -552,15 +552,14 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         }
 
     }
-    fun idProperty(md: MetaData) : MetaData.PropertyInfo? = md.properties.values.firstOrNull { it.isIdProperty() }
 
     private fun handleCollisions(existing: Set<String>, name: String) = if (existing.contains(name)) name + "_" else name
 
     fun relationshipMutationFields(metaData: MetaData, inputs: Map<String, GraphQLInputType>, existing: Set<String>) : List<GraphQLFieldDefinition> {
-        val idProperty = idProperty(metaData)
+        val idProperty = metaData.idProperty()
         return  metaData.relationships.values.flatMap {  rel ->
             val targetMeta = GraphSchemaScanner.getMetaData(rel.label)!!
-            val targetIdProperty = idProperty(targetMeta)
+            val targetIdProperty = targetMeta.idProperty()
             if (idProperty == null || targetIdProperty == null) emptyList()
             else {
                 val sourceArgument = GraphQLArgument(idProperty.fieldName, graphQlInType(idProperty.type))
