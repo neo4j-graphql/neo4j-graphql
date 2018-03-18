@@ -383,6 +383,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     val typeMetaDatas = metaDatas.filterNot {  it.isInterface }
     val definitions = IDLParser.parseDefintions(GraphSchemaScanner.schema)
     val enums: MutableMap<String, GraphQLEnumType> = enumsFromDefinitions(definitions).toMutableMap()
+    val scalars = scalarsFromDefinitions(definitions)
     val inputTypes: MutableMap<String, GraphQLInputObjectType> = inputTypesFromDefinitions(definitions, enums).toMutableMap()
 
     fun buildSchema() : GraphQLSchema {
@@ -429,6 +430,9 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 e.enumValueDefinitions.map { ev -> GraphQLEnumValueDefinition(ev.name, ev.description() ?: "Value for ${ev.name}", ev.name) })
     }
 
+    fun scalarsFromDefinitions(definitions: List<Definition>) = IDLParser.filterScalars(definitions).associate {
+        it.name to GraphQLScalarType(it.name, it.description() ?: "Scalar ${it.name}", NoOpCoercing, it)}
+
     fun inputTypesFromDefinitions(definitions: List<Definition>, inputTypes: Map<String, GraphQLType> = emptyMap()) =
             IDLParser.filterInputTypes(definitions).associate { input ->
                 input.name to GraphQLInputObjectType.newInputObject().name(input.name).description(input.description() ?: "Input Type " + input.name).fields(
@@ -453,7 +457,8 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     }
 
     private fun graphQLType(type: MetaData.PropertyType): GraphQLScalarType {
-        return when (type.name) {
+        return scalars.get(type.name) ?:
+         when (type.name) {
             "String" -> GraphQLString
             "ID" -> GraphQLID
             "Boolean" -> GraphQLBoolean
@@ -494,6 +499,11 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 }
     }
 
+    fun argumentValue(env:DataFetchingEnvironment, name: String) =
+            env.getArgument<Any>(name).let { v -> if (v is Value) v.extract() else v }
+    fun toArguments(props: Iterable<MetaData.PropertyInfo>, env: DataFetchingEnvironment) = props.associate {
+        it.fieldName to argumentValue(env, it.fieldName) }
+
     fun mutationField(metaData: MetaData, existing: Set<String>) : List<GraphQLFieldDefinition> {
         val idProperty = metaData.idProperty()
 
@@ -506,7 +516,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .argument(updatableProperties.map { GraphQLArgument(it.fieldName, graphQlInType(it.type)) })
                 .dataFetcher{ env ->
                     val statement = "CREATE (node:${metaData.type}) SET node = {properties} " + metaData.labels.map { "SET node:`$it`" }.joinToString(", ")
-                    val params = mapOf<String, Any>("properties" to updatableProperties.associate { it.fieldName to env.getArgument<Any>(it.fieldName) })
+                    val params = mapOf<String, Any>("properties" to toArguments(updatableProperties,env))
                     executeUpdate(env, statement, params)
                 }
                 .build()
@@ -525,8 +535,8 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     .argument(nonIdProperties.map { GraphQLArgument(it.fieldName, graphQlInType(it.type)) })
                     .dataFetcher { env ->
                         val params = mapOf<String, Any>(
-                                "id" to env.getArgument<Any>(idProperty.fieldName),
-                                "properties" to nonIdProperties.associate { it.fieldName to env.getArgument<Any>(it.fieldName) })
+                                "id" to argumentValue(env,idProperty.fieldName),
+                                "properties" to toArguments(nonIdProperties,env))
 
                         val statement = "MATCH (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) SET node += {properties}"
 
@@ -539,7 +549,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     .type(GraphQLString)
                     .argument(GraphQLArgument(idProperty.fieldName, graphQlInType(idProperty.type)))
                     .dataFetcher { env ->
-                        val params = mapOf<String, Any>("id" to env.getArgument<Any>(idProperty.fieldName))
+                        val params = mapOf<String, Any>("id" to argumentValue(env,idProperty.fieldName))
 
                         val statement = "MATCH (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) DETACH DELETE node"
 
@@ -576,7 +586,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                                                MATCH (to:`${targetMeta.type}`) WHERE to.`${targetIdProperty.fieldName}` IN {targets}
                                                MERGE (from)$left-[:`${rel.type}`]-$right(to)"""
 
-                            val params = mapOf<String,Any>("source" to env.getArgument<Any>(idProperty.fieldName), "targets" to  env.getArgument<Any>(rel.fieldName))
+                            val params = mapOf<String,Any>("source" to argumentValue(env,idProperty.fieldName), "targets" to  argumentValue(env,rel.fieldName))
                             executeUpdate(env, statement, params)
                         }
                         .build(),
@@ -592,7 +602,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                                                DELETE rel
                                             """
 
-                            val params = mapOf<String,Any>("source" to env.getArgument<Any>(idProperty.fieldName), "targets" to  env.getArgument<Any>(rel.fieldName))
+                            val params = mapOf<String,Any>("source" to argumentValue(env,idProperty.fieldName), "targets" to  argumentValue(env,rel.fieldName))
                             executeUpdate(env, statement, params)
                         }
                         .build()
@@ -718,3 +728,11 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         }
     }
 }
+object NoOpCoercing : Coercing<Any,Any> {
+    override fun parseLiteral(input: Any?) = input
+
+    override fun serialize(dataFetcherResult: Any?) = dataFetcherResult
+
+    override fun parseValue(input: Any?) = input
+}
+

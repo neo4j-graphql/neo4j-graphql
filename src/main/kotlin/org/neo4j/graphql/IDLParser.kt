@@ -14,6 +14,10 @@ object IDLParser {
             = definitions
             .filterIsInstance<EnumTypeDefinition>()
 
+    fun filterScalars(definitions: List<Definition>)
+            = definitions
+            .filterIsInstance<ScalarTypeDefinition>()
+
     // todo directives
     fun parseEnums(definitions: List<Definition>)
             = definitions
@@ -53,16 +57,17 @@ object IDLParser {
     fun parse(input: String): Map<String,MetaData> {
         val definitions = parseDocument(input).definitions
         val schemaTypes = parseSchemaTypes(definitions)
-        val enums = definitions.filterIsInstance<EnumTypeDefinition>().map { it.name }.toSet()
+        val enums = filterEnums(definitions).map { it.name }.toSet()
+        val scalars = filterScalars(definitions).map { it.name }.toSet()
         return (definitions.map {
             when (it) {
 //            is TypeDefinition -> toMeta(x)
 //            is UnionTypeDefinition -> toMeta(x)
 //            is EnumTypeDefinition -> toMeta(x)
-                is InterfaceTypeDefinition -> toMeta(it,enums)
+                is InterfaceTypeDefinition -> toMeta(it,enums, scalars)
 //            is InputObjectTypeDefinition -> toMeta(x)
 //            is ScalarTypeDefinition -> toMeta(x)
-                is ObjectTypeDefinition -> if (schemaTypes.values.contains(it.name)) null else toMeta(it,enums)
+                is ObjectTypeDefinition -> if (schemaTypes.values.contains(it.name)) null else toMeta(it,enums,scalars)
                 else -> {
                     println(it.javaClass); null
                 }
@@ -87,7 +92,7 @@ object IDLParser {
         }
     }
 
-    fun toMeta(definition: TypeDefinition, enumNames: Set<String> = emptySet()): MetaData {
+    fun toMeta(definition: TypeDefinition, enumNames: Set<String> = emptySet(), scalarNames : Set<String> = emptySet()): MetaData {
         val metaData = MetaData(definition.name)
         metaData.description = definition.description()
         if (definition is ObjectTypeDefinition) {
@@ -104,7 +109,7 @@ object IDLParser {
                 is FieldDefinition -> {
                     val fieldName = child.name
                     val description = child.description()
-                    val type = typeFromIDL(child.type, enumNames)
+                    val type = typeFromIDL(child.type, enumNames, scalarNames)
                     val defaultValue = directivesByName(child,"defaultValue").flatMap{ it.arguments.map { it.value.extract()  }}.firstOrNull()
                     val isUnique = directivesByName(child,"isUnique").isNotEmpty()
                     if (type.isBasic() || type.enum) {
@@ -131,7 +136,7 @@ object IDLParser {
 
                     metaData.addParameters(fieldName,
                             child.inputValueDefinitions.associate {
-                                it.name to ParameterInfo(it.name, typeFromIDL(it.type, enumNames), it.defaultValue?.extract(), it.description()) })
+                                it.name to ParameterInfo(it.name, typeFromIDL(it.type, enumNames,scalarNames), it.defaultValue?.extract(), it.description()) })
                 }
                 is TypeName -> println("TypeName: " + child.name + " " + child.javaClass + " in " + definition.name)
                 is EnumValueDefinition -> println("EnumValueDef: " + child.name + " " + child.directives.map { it.name })
@@ -145,10 +150,10 @@ object IDLParser {
 
     private fun directivesByName(child: FieldDefinition, directiveName: String) = child.directives.filter { it.name == directiveName }
 
-    private fun typeFromIDL(type: Type, enums: Set<String>, given: MetaData.PropertyType = PropertyType("String")): MetaData.PropertyType = when (type) {
-        is TypeName -> given.copy(name = type.name, enum = enums.contains(type.name))
-        is NonNullType -> typeFromIDL(type.type, enums, given.copy(nonNull = given.nonNull + 1))
-        is ListType -> typeFromIDL(type.type, enums, given.copy(array = true))
+    private fun typeFromIDL(type: Type, enums: Set<String>, scalars: Set<String>, given: MetaData.PropertyType = PropertyType("String")): MetaData.PropertyType = when (type) {
+        is TypeName -> given.copy(name = type.name, enum = enums.contains(type.name), scalar = scalars.contains(type.name))
+        is NonNullType -> typeFromIDL(type.type, enums,scalars, given.copy(nonNull = given.nonNull + 1))
+        is ListType -> typeFromIDL(type.type, enums,scalars, given.copy(array = true))
         else -> {
             println("Type ${type}"); given
         }

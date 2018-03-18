@@ -3,10 +3,6 @@ package org.neo4j.graphql
 import graphql.language.*
 import org.neo4j.kernel.internal.Version
 
-fun <T> Iterable<T>.joinNonEmpty(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((T) -> CharSequence)? = null): String {
-    return if (iterator().hasNext()) joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString() else ""
-}
-
 abstract class CypherGenerator {
     companion object {
         val VERSION = Version.getNeo4jVersion()

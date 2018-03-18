@@ -61,13 +61,13 @@ class MetaData(label: String) {
 
     fun cypherFor(fieldName: String) = relationships[fieldName]?.cypher?.cypher ?: properties[fieldName]?.cypher?.cypher
 
-    data class PropertyType(val name: String, val array: Boolean = false, val nonNull: Int = 0, val enum: Boolean = false, val inputType: Boolean = false) {
-        fun isBasic() : Boolean = basicTypes.contains(name)
+    data class PropertyType(val name: String, val array: Boolean = false, val nonNull: Int = 0, val enum: Boolean = false, val inputType: Boolean = false, val scalar: Boolean = false) {
+        fun isBasic() : Boolean = basicTypes.contains(name) || scalar
 
         override fun toString(): String = (if (array) "[$name${(if (nonNull>1) "!" else "")}]" else name) + (if (nonNull>0) "!" else "")
 
         companion object {
-            val basicTypes = setOf("String","Boolean","Float","Int","Number","ID")
+            val basicTypes = setOf("String","Boolean","Float","Int","Number","ID","Long")
 
             fun typeName(type: Class<*>): String {
                 if (type.isArray) return typeName(type.componentType)
@@ -96,8 +96,8 @@ class MetaData(label: String) {
                             val indexed: Boolean = false, val cypher: CypherInfo? = null, val defaultValue : Any? = null,
                             val unique: Boolean = false,val enum : Boolean = false,
                             val parameters : Map<String,ParameterInfo>? = null, val description : String? = null) {
-        fun isId() = type.name == "ID"
-        fun isIdProperty() = type.name == "ID" || id
+        fun isGraphQLId() = type.name == "ID"
+        fun isIdProperty() = isGraphQLId() || id
         fun isComputed() = cypher != null
         fun  updateable() = !isComputed() && !isIdProperty()
     }
@@ -118,5 +118,5 @@ class MetaData(label: String) {
         isInterface = true
     }
 
-    fun  idProperty(): MetaData.PropertyInfo? = properties.values.firstOrNull { it.isId() } ?: properties.values.firstOrNull { it.isIdProperty() }
+    fun  idProperty(): MetaData.PropertyInfo? = properties.values.firstOrNull { it.isGraphQLId() } ?: properties.values.firstOrNull { it.isIdProperty() }
 }

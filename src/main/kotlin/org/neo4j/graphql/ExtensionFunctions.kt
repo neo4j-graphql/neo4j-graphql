@@ -8,3 +8,7 @@ fun Throwable.stackTraceAsString(): String {
     this.printStackTrace(PrintWriter(sw))
     return sw.toString()
 }
+
+fun <T> Iterable<T>.joinNonEmpty(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((T) -> CharSequence)? = null): String {
+    return if (iterator().hasNext()) joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString() else ""
+}
