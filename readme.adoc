@@ -116,7 +116,7 @@ From that schema, the plugin automatically generate *Query Types* for each of th
 e.g. `Movie(title,released,first,offset,_id,orderBy, filter): [User]`
 
 * Each field of the entity is available as _query argument_, with an equality check (plural for list-contains)
-* We also provide a `filter` argument for more complex filtering with nested predicates.
+* We also provide a `filter` argument for more complex filtering with nested predicates, also for relation-fields (see https://www.graph.cool/docs/reference/graphql-api/query-api-nia9nushae[graphcool docs])
 * For ordered results there is a `orderBy` argument
 * And `first`, `offset` allow for pagination
 
@@ -142,9 +142,10 @@ image::{img}/graphiql-query1.jpg[]
 .Advanced query example
 [source,graphql]
 ----
-query Nineties($released: Long, $firstLetter: String)
+query Nineties($released: Long, $letter: String)
 { Movie(released: $released,
-        filter: {title_starts_with: $firstLetter}) {
+        filter: {title_starts_with: $letter,
+                 actors_some: { name_contains: $letter}}) {
     title
     released
     actors(first: 3) {
@@ -159,7 +160,7 @@ query Nineties($released: Long, $firstLetter: String)
 }
 
 # query variables
-{ "released":1995, "firstLetter":"A"}
+{ "released":1995, "letter":"A"}
 ----
 
 This query declares query name and parameters (first line), which are passed separately ("Query Parameters box") as JSON.
@@ -502,6 +503,10 @@ query PersonQuery {
 | filter arguments
 | nested input types for arbitrary filtering on query types and fields
 | { Company(filter: { AND: { name_contains: "Ne", country_in ["SE"]}}) { name } }
+
+| filter arguments for relations
+| filtering on relation fields, suffixes ("",not,some, none, single, every)
+| { Company(filter: { employees_none { name_contains: "Jan"}, employees_some: { gender_in : [female]}}) { name } }
 
 | relationships
 | via a `@relationship` annotated field, optional direction

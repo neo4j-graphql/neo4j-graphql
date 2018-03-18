@@ -689,7 +689,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     }
 
     private fun filterInputObjectType(md: MetaData): GraphQLInputType {
-        return inputTypes.computeIfAbsent("_${md.type}Filter", {
+        return inputTypes.computeIfAbsent(filterName(md.type), {
             inputTypeName ->
             GraphQLInputObjectType(inputTypeName, "Filter Input Type for ${md.type}",
                     listOf(inputField("AND", GraphQLList(GraphQLNonNull(GraphQLTypeReference(inputTypeName)))),
@@ -699,11 +699,19 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                                 if (p.type.isBasic()) graphQLType(p.type)
                                 else if (p.type.enum) obtainEnum(GraphQLEnumType.newEnum().name(p.type.name).build())
                                 else GraphQLTypeReference(p.type.name)
+                                Operators.forType(fieldType).map { op -> inputField(op.fieldName(p.fieldName), if (op.list) GraphQLList(GraphQLNonNull(fieldType)) else fieldType) }
+                            }
+                            + md.relationships.values.flatMap { ri ->
+                                val fieldType: GraphQLInputType = GraphQLTypeReference(filterName(ri.label))
+                                val ops = Operators.forType(fieldType) + if (ri.multi) listOf(Operators.SOME, Operators.NONE, Operators.SINGLE, Operators.ALL) else emptyList()
+                                ops.map { op -> inputField(op.fieldName(ri.fieldName), fieldType) }
+                            }
 
-                        Operators.forType(fieldType).map { op -> inputField(op.fieldName(p.fieldName), if (op.list) GraphQLList(GraphQLNonNull(fieldType)) else fieldType) }
-                    })
+                    )
         })
     }
+
+    private fun filterName(name: String) = "_${name}Filter"
 
     internal fun propertiesAsListArguments(md: MetaData): List<GraphQLArgument> {
         return md.properties.values.map {

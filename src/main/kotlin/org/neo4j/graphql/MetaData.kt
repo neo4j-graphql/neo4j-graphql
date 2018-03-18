@@ -57,7 +57,7 @@ class MetaData(label: String) {
     }
 
     fun relationshipFor(fieldName: String) = relationships[fieldName]
-    fun hasRelationship(fieldName: String) = relationships[fieldName] != null
+    fun hasRelationship(fieldName: String) = relationships.containsKey(fieldName)
 
     fun cypherFor(fieldName: String) = relationships[fieldName]?.cypher?.cypher ?: properties[fieldName]?.cypher?.cypher
 

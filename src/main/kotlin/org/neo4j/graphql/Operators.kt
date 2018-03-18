@@ -21,7 +21,12 @@ enum class Operators(val suffix:String, val op:String, val not :Boolean = false)
     NEW("not_ends_with","ENDS WITH", true),
     C("contains","CONTAINS"),
     SW("starts_with","STARTS WITH"),
-    EW("ends_with","ENDS WITH")
+    EW("ends_with","ENDS WITH"),
+
+    SOME("some","ANY"),
+    NONE("none","NONE"),
+    ALL("every","ALL"),
+    SINGLE("single","SINGLE")
     ;
 
     val list = op == "IN"

@@ -73,6 +73,25 @@ type Company {
     }
 
     @Test
+    fun singleRelation() {
+        assertResult("""{ p: Person(filter: { company : { name : "ACME" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "Jane"),mapOf("name" to "Joe"))))
+        assertResult("""{ p: Person(filter: { company_not : { name : "ACME" } }) { name }}""", mapOf("p" to emptyList<Map<String,Any>>()))
+    }
+
+    @Test
+    fun multiRelation() {
+        db?.execute("CREATE (c:Company {name:'ACME2'}) WITH c UNWIND [{id:'jill',name:'Jill', age:32, gender:'female',fun:true, height:1.65}] AS props CREATE (p:Person)-[:WORKS_AT]->(c) SET p = props")?.close()
+
+        assertResult("""{ p: Company(filter: { employees : { name_in : ["Jane","Joe"] } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
+        assertResult("""{ p: Company(filter: { employees_some : { name : "Jane" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
+        assertResult("""{ p: Company(filter: { employees_every : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
+        assertResult("""{ p: Company(filter: { employees_some : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
+        assertResult("""{ p: Company(filter: { employees_none : { name : "Jane" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
+        assertResult("""{ p: Company(filter: { employees_none : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
+        assertResult("""{ p: Company(filter: { employees_single : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
+    }
+
+    @Test
     fun fieldFilter() {
         assertResult("""{ p: Company { employees(filter: { name: "Jane" }) { name }}}""", mapOf("p" to listOf(mapOf("employees" to listOf(mapOf("name" to "Jane"))))))
         assertResult("""{ p: Company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}""", mapOf("p" to listOf(mapOf("employees" to listOf(mapOf("name" to "Joe"), mapOf("name" to "Jane"))))))
