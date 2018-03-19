@@ -66,8 +66,8 @@ type Company {
         assertResult("""{ p: Person(filter: { $filter }) { name }}""", mapOf("p" to listOf(mapOf("name" to expected))))
     }
 
-    private fun assertResult(query: String, expected: Any) {
-        val result = graphQL!!.execute(query, ctx)
+    private fun assertResult(query: String, expected: Any, params: Map<String,Any> = emptyMap()) {
+        val result = graphQL!!.execute(query, ctx, params)
         if (result.errors.isNotEmpty()) println(result.errors)
         assertEquals(expected, result.getData())
     }
@@ -89,6 +89,19 @@ type Company {
         assertResult("""{ p: Company(filter: { employees_none : { name : "Jane" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
         assertResult("""{ p: Company(filter: { employees_none : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
         assertResult("""{ p: Company(filter: { employees_single : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
+    }
+
+    @Test
+    fun parameterFilter() {
+        val params = mapOf("filter" to mapOf("name" to "Jane"))
+        val query = """query filterQuery(${"$"}filter: _PersonFilter) { p: Person(filter: ${"$"}filter) { name }}"""
+        assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))), params)
+    }
+    @Test
+    fun parameterRelationFilter() {
+        val params = mapOf("filter" to mapOf("AND" to mapOf("name" to "Jane", "company" to mapOf("name_ends_with" to "ME"))))
+        val query = """query filterQuery(${"$"}filter: _PersonFilter) { p: Person(filter: ${"$"}filter) { name }}"""
+        assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))), params)
     }
 
     @Test

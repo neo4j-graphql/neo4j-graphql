@@ -67,7 +67,7 @@ class MetaData(label: String) {
         override fun toString(): String = (if (array) "[$name${(if (nonNull>1) "!" else "")}]" else name) + (if (nonNull>0) "!" else "")
 
         companion object {
-            val basicTypes = setOf("String","Boolean","Float","Int","Number","ID","Long")
+            val basicTypes = setOf("String","Boolean","Float","Int","Number","ID")
 
             fun typeName(type: Class<*>): String {
                 if (type.isArray) return typeName(type.componentType)
@@ -75,7 +75,7 @@ class MetaData(label: String) {
                 if (type == Boolean::class.java || type == Boolean::class.javaObjectType) return "Boolean"
                 if (Number::class.java.isAssignableFrom(type) || type.isPrimitive) {
                     if (type == Double::class.java || type == Double::class.javaObjectType || type == Float::class.java || type == Float::class.javaObjectType) return "Float"
-                    return "Int"
+                    return "Long"
                 }
                 throw IllegalArgumentException("Invalid type " + type.name)
             }

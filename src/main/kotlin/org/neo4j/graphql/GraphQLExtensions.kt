@@ -8,7 +8,7 @@ import graphql.schema.GraphQLType
 fun Value.extract(): Any =
         when (this) {
             is ObjectValue -> this.objectFields.associate { it.name to it.value.extract() }
-            is IntValue -> this.value.toInt()
+            is IntValue -> this.value.toLong()
             is FloatValue -> this.value.toDouble()
             is BooleanValue -> this.isValue
             is StringValue -> this.value

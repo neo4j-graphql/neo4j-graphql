@@ -230,7 +230,7 @@ class EndToEndTest {
         assertTrue(queryResult.hasNext())
         val row = queryResult.next()
         assertEquals("Kevin Bacon",row.get("p.name"))
-        assertEquals(1960L,row.get("p.born"))
+        assertEquals(1960,row.get("p.born"))
         assertEquals("Apollo 13",row.get("m.title"))
         assertFalse(queryResult.hasNext())
     }

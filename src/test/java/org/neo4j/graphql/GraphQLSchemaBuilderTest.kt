@@ -64,7 +64,7 @@ input Test {
         val type = inputTypes["Test"]!!
         assertEquals("Test", type.name)
         assertEquals(listOf("name","age","sex"), type.fields.map { it.name })
-        assertEquals(listOf("Foo",42,"Female"), type.fields.map { it.defaultValue })
+        assertEquals(listOf("Foo",42L,"Female"), type.fields.map { it.defaultValue })
         assertEquals(listOf(GraphQLString, GraphQLInt,enums.get("Gender")), type.fields.map { it.type })
     }
 
@@ -189,7 +189,7 @@ type QueryType {
         val type = inputTypes["Test"]!!
         assertEquals("Test", type.name)
         assertEquals(listOf("name","age","sex"), type.fields.map { it.name })
-        assertEquals(listOf("Foo",42, mapOf("female" to true)), type.fields.map { it.defaultValue })
+        assertEquals(listOf("Foo",42L, mapOf("female" to true)), type.fields.map { it.defaultValue })
         assertEquals(listOf("String", "Int", "Gender"), type.fields.map { it.type }.map { when (it) {
             is GraphQLScalarType -> it.name
             is GraphQLTypeReference -> it.name

@@ -167,7 +167,7 @@ public class GraphQLResourceTest {
         assertEquals("Person", person.getLabels().iterator().next().name());
         assertEquals("Person", person.getProperty("name"));
         assertEquals("String", person.getProperty(" name"));
-        assertEquals("Int", person.getProperty(" born"));
+        assertEquals("Long", person.getProperty(" born"));
         List<Relationship> rels = (List<Relationship>)row.get("rels");
         assertEquals(2, rels.size());
         Relationship actedIn = rels.get(0);

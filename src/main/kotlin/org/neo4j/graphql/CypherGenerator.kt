@@ -17,6 +17,15 @@ abstract class CypherGenerator {
 
         fun singular(name: String) = name.substring(0, name.length - 1)
 
+        fun formatAnyValue(value: Any?): String =
+                when (value) {
+                    null -> "null"
+                    is String -> "\"${value}\""
+                    is Map<*, *> -> "{" + value.map { it.key.toString() + ":" + formatAnyValue(it.value) }.joinToString(",") + "}"
+                    is Iterable<*> -> "[" + value.map { formatAnyValue(it) }.joinToString(",") + "]"
+                    else -> value.toString()
+                }
+
         fun formatValue(value: Value?): String =
                 when (value) {
                     is VariableReference -> "{`${value.name}`}"
@@ -31,7 +40,8 @@ abstract class CypherGenerator {
                     else -> "" // todo raise exception ?
                 }
     }
-    abstract fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition? = null, isMutation: Boolean = false, fragments: Map<String,FragmentDefinition> = emptyMap()): String
+    abstract fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition? = null, isMutation: Boolean = false,
+                                       fragments: Map<String, FragmentDefinition> = emptyMap(), params: Map<String, Any> = emptyMap()): String
 }
 
 class Cypher31Generator : CypherGenerator() {
@@ -59,12 +69,12 @@ class Cypher31Generator : CypherGenerator() {
         override fun toExpression(variable: String) = parts.map { it.toExpression(variable) }.joinNonEmpty(" "+op+" ","(",")")
     }
 
-    data class ExpressionPredicate(val name:String, val op: Operators, val value:Value?) : Predicate {
+    data class ExpressionPredicate(val name:String, val op: Operators, val value:Any?) : Predicate {
         val not = if (op.not) "NOT" else ""
-        override fun toExpression(variable:String) =  "$not `${variable}`.`$name` ${op.op} ${formatValue(value)}"
+        override fun toExpression(variable:String) =  "$not `${variable}`.`$name` ${op.op} ${formatAnyValue(value)}"
     }
 
-    data class RelationPredicate(val name: String, val op: Operators, val value: ObjectValue, val md: MetaData) : Predicate {
+    data class RelationPredicate(val name: String, val op: Operators, val value: Map<*,*>, val md: MetaData) : Predicate {
         val not = if (op.not) "NOT" else ""
         // (md)-[:TYPE]->(related) | pred] = 0/1/ > 0 | =
         // ALL/ANY/NONE/SINGLE(p in (md)-[:TYPE]->() WHERE pred(last(nodes(p)))
@@ -79,50 +89,54 @@ class Cypher31Generator : CypherGenerator() {
             val rel = md.relationshipFor(name)!!
             val (left,right) = if (rel.out) "" to ">" else "<" to ""
             val other = variable+"_"+rel.label
-            val pred = CompoundPredicate(value.objectFields.map { it -> val (field,op)=Operators.resolve(it.name);ExpressionPredicate(field, op, it.value) }).toExpression(other)
+            val pred = CompoundPredicate(value.map { it -> val (field,op)=Operators.resolve(it.key.toString());ExpressionPredicate(field, op, it.value) }).toExpression(other)
             return "$not $prefix(x IN [(`$variable`)$left-[:`${rel.type}`]-$right(`$other`) | $pred] WHERE x)"
         }
     }
 
-    fun where(field: Field, variable: String, md: MetaData, orderBys: MutableList<Pair<String,Boolean>>): String {
+    fun where(field: Field, variable: String, md: MetaData, orderBys: MutableList<Pair<String,Boolean>>, parameters: Map<String, Any>): String {
         val filterPredicates = mutableListOf<Predicate>()
         val predicates = field.arguments.mapNotNull {
-            val name = it.name
-            when (name) {
+            val argName = it.name
+            val argValue = it.value
+            val value : Any? = if (argValue is VariableReference) parameters[argValue.name] else argValue.extract()
+            when (argName) {
                 "filter" -> {
-                    filterPredicates.add(CompoundPredicate((it.value as ObjectValue).objectFields.map { f -> toExpression(f.name, f.value, md) }, "AND"))
+                    if (value is Map<*,*>) filterPredicates.add(CompoundPredicate(value.map { (k,v) -> toExpression(k.toString(), v, md) }, "AND"))
                     null
                 }
                 "orderBy" -> {
                     extractOrderByEnum(it, orderBys)
                     null
                 }
-                GraphQLSchemaBuilder.ArgumentProperties.NodeId.name -> GraphQLSchemaBuilder.ArgumentProperties.NodeId.argument(variable,field.name, it.value)
-                GraphQLSchemaBuilder.ArgumentProperties.NodeIds.name -> GraphQLSchemaBuilder.ArgumentProperties.NodeIds.argument(variable,field.name,it.value)
+                GraphQLSchemaBuilder.ArgumentProperties.NodeId.name -> GraphQLSchemaBuilder.ArgumentProperties.NodeId.argument(variable,field.name, value)
+                GraphQLSchemaBuilder.ArgumentProperties.NodeIds.name -> GraphQLSchemaBuilder.ArgumentProperties.NodeIds.argument(variable,field.name,value)
                 "first" -> null
                 "offset" -> null
                 else -> {
-                    if (isPlural(name) && it.value is ArrayValue && md.properties.containsKey(singular(name)))
-                        "`${variable}`.`${singular(name)}` IN ${formatValue(it.value)}"
+                    if (isPlural(argName) && value is Iterable<*> && md.properties.containsKey(singular(argName)))
+                        "`${variable}`.`${singular(argName)}` IN ${formatAnyValue(value)}"
                     else
-                        "`${variable}`.`$name` = ${formatValue(it.value)}"
+                        "`${variable}`.`$argName` = ${formatAnyValue(value)}"
                 }
             // todo directives for more complex filtering
         }}
         return if (predicates.isEmpty() && filterPredicates.isEmpty()) "" else "WHERE " + (predicates + filterPredicates.map { it.toExpression(variable) }).joinToString("\nAND ")
     }
 
-    private fun toExpression(name: String, value: Value, md: MetaData): Predicate =
+    private fun toExpression(name: String, value: Any?, md: MetaData): Predicate =
             if (name == "AND" || name == "OR")
-                if (value is ArrayValue) {
-                    CompoundPredicate(value.values.map { toExpression("AND", it, md) }, name)
+                if (value is Iterable<*>) {
+                    CompoundPredicate(value.map { toExpression("AND", it, md) }, name)
+                } else if (value is Map<*,*>){
+                    CompoundPredicate(value.map { (k,v) -> toExpression(k.toString(), v, md) }, name)
                 } else {
-                    CompoundPredicate((value as ObjectValue).objectFields.map { toExpression(it.name, it.value, md) }, name)
+                    throw IllegalArgumentException("Unexpected value for filter: $value")
                 }
             else {
                 val (fieldName, op) = Operators.resolve(name)
                 if (md.hasRelationship(fieldName)) {
-                    if (value is ObjectValue) RelationPredicate(fieldName,op,value, md)
+                    if (value is Map<*,*>) RelationPredicate(fieldName,op,value, md)
                     else throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
                 } else {
                     ExpressionPredicate(fieldName, op, value)
@@ -272,7 +286,7 @@ class Cypher31Generator : CypherGenerator() {
 
         val pattern = "(`$variable`)$arrowLeft-[:`${info.type}`]-$arrowRight(`$fieldVariable`:`${info.label}`)"
         val orderBys2 = mutableListOf<Pair<String,Boolean>>()
-        val where = where(field, fieldVariable, fieldMetaData, orderBys2)
+        val where = where(field, fieldVariable, fieldMetaData, orderBys2, parameters = ctx.params)
         val projection = projectMap(field, fieldVariable, fieldMetaData, ctx) // [x IN graph.run ... | x {.name, .age } ] as recommendedMovie if it's a relationship/entity Person / Movie
         var result = "[ $pattern $where | $projection]"
         // todo parameters, use subscripts instead
@@ -284,12 +298,15 @@ class Cypher31Generator : CypherGenerator() {
         return Pair(result + subscript(skipLimit),fieldVariable)
     }
 
-    data class GeneratorContext(val orderBys: MutableList<Pair<String,Boolean>> = mutableListOf(), val fragments: Map<String,FragmentDefinition>, val metaDatas:Map<String,MetaData>) {
+    data class GeneratorContext(val orderBys: MutableList<Pair<String,Boolean>> = mutableListOf(),
+                                val fragments: Map<String,FragmentDefinition>,
+                                val metaDatas:Map<String,MetaData>,
+                                val params : Map<String,Any> = emptyMap()) {
         fun metaData(name: String) = metaDatas.get(name)
         fun fragment(name: String) = fragments.get(name)
     }
-    override fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition?, isMutation: Boolean,fragments: Map<String,FragmentDefinition>): String {
-        val ctx = GeneratorContext(fragments = fragments, metaDatas = GraphSchemaScanner.allTypes())
+    override fun generateQueryForField(field: Field, fieldDefinition: FieldDefinition?, isMutation: Boolean, fragments: Map<String, FragmentDefinition>, params: Map<String, Any>): String {
+        val ctx = GeneratorContext(fragments = fragments, metaDatas = GraphSchemaScanner.allTypes(), params = params)
         val name = field.name
         val typeName = fieldDefinition?.type?.inner() ?: "no field definition"
         val md = ctx.metaData(name) ?: ctx.metaData(typeName) ?: throw IllegalArgumentException("Cannot resolve as type $name or $typeName")
@@ -318,7 +335,7 @@ class Cypher31Generator : CypherGenerator() {
         }.joinToString(",\n","RETURN ")
 
         val resultFieldNames = projectFields.map { it.first }.toSet()
-        val where = if (isDynamic) "" else where(field, variable, md, orderBys)
+        val where = if (isDynamic) "" else where(field, variable, md, orderBys, params)
         val parts = listOf(
                 query,
                 where,

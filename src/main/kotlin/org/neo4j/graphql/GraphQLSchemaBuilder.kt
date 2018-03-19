@@ -12,6 +12,7 @@ import graphql.schema.GraphQLObjectType.newObject
 import org.neo4j.graphdb.*
 import org.neo4j.graphdb.Node
 import org.neo4j.graphql.CypherGenerator.Companion.DEFAULT_CYPHER_VERSION
+import org.neo4j.graphql.CypherGenerator.Companion.formatAnyValue
 import org.neo4j.graphql.CypherGenerator.Companion.formatValue
 import org.neo4j.helpers.collection.Iterators
 import java.util.*
@@ -25,7 +26,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             val type : GraphQLType
             fun description() : String? = null
             fun render(variable: String) : Pair<String,String>?
-            fun argument(variable: String, field:String, value:Value) : String
+            fun argument(variable: String, field:String, value:Any?) : String
             fun toArgument() = newArgument().name(name).type(type as GraphQLInputType).build()
             fun toField() = newFieldDefinition().name(name).description(description()).type(type as GraphQLOutputType).build()
             fun  matches(field: String): Boolean = name == field
@@ -48,7 +49,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
             override fun render(variable: String) = Pair(name, "id(`$variable`)")
 
-            override fun argument(variable: String, field:String, value:Value) = "id(`$variable`) = ${formatValue(value)}"
+            override fun argument(variable: String, field:String, value:Any?) = "id(`$variable`) = ${formatAnyValue(value)}"
         }
         object NodeIds : ArgumentProperty {
             override val name = "_ids"
@@ -57,7 +58,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
             override fun render(variable: String) = Pair(name, "[id(`$variable`)]")
 
-            override fun argument(variable: String, field:String, value:Value) = "id(`$variable`) IN ${formatValue(value)}"
+            override fun argument(variable: String, field:String, value:Any?) = "id(`$variable`) IN ${formatAnyValue(value)}"
         }
     }
 
@@ -139,7 +140,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             val arguments = fieldDefinition.inputValueDefinitions.associate { arg -> arg.name to env.getArgument<Any>(arg.name) }
             val params = arguments // + mapOf("__params__" to arguments)
             val isMutation = env.graphQLSchema?.mutationType == env.parentType
-            val statement = if (needNesting) CypherGenerator.instance().generateQueryForField(field, fieldDefinition, isMutation) else cypher.statement
+            val statement = if (needNesting) CypherGenerator.instance().generateQueryForField(field, fieldDefinition, isMutation, params = params) else cypher.statement
             return execute(statement, params, { result -> asEntityList(result, returnType)})
         }
 
@@ -464,7 +465,8 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             "Boolean" -> GraphQLBoolean
             "Number" -> GraphQLFloat
             "Float" -> GraphQLFloat
-            "Int" -> GraphQLLong
+            "Long" -> GraphQLLong
+            "Int" -> GraphQLInt
             else -> throw IllegalArgumentException("Unknown field type " + type)
         }
     }
@@ -625,16 +627,17 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         val db = ctx.db
         val fragments = env.fragmentsByName
         val generator = CypherGenerator.instance()
+        val parameters = ctx.parameters.toMutableMap()
+        parameters.putAll(env.arguments)
         return env.fields
-                .map { it to generator.generateQueryForField(it, env.fieldDefinition.definition, fragments = env.fragmentsByName) }
+                .map { it to generator.generateQueryForField(it, env.fieldDefinition.definition, fragments = env.fragmentsByName, params = parameters) }
                 .flatMap({ pair ->
                     val (field, query) = pair
                     val directives = field.directives.associate { it.name to it }
                     val statement = applyDirectivesToStatement(generator, query, directives)
-                    println(statement)
+                    ctx.log?.debug(statement)
+//                    println(statement)
 //                    val parameters = resolveParameters(env.graphQLSchema, env.fields,ctx.parameters, env.fieldTypeInfo)
-                    val parameters = ctx.parameters.toMutableMap()
-                    parameters.putAll(env.arguments)
                     val result = db.execute(statement, parameters)
                     val list = Iterators.asList(result)
                     storeResultMetaData(ctx, query, result, directives)

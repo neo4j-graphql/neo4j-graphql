@@ -175,7 +175,7 @@ type Movie {
         println(md.properties.keys)
         assertEquals(md.properties.keys, setOf("title", "released", "tagline", "score"))
         val scoreInfo = md.properties["score"]!!
-        assertEquals(scoreInfo.parameters, mapOf("value" to MetaData.ParameterInfo("value", MetaData.PropertyType("Int", nonNull = 1), 1)))
+        assertEquals(scoreInfo.parameters, mapOf("value" to MetaData.ParameterInfo("value", MetaData.PropertyType("Int", nonNull = 1), 1L)))
         assertEquals(scoreInfo.cypher?.cypher, "RETURN {value}")
         assertEquals(md.relationships.keys, setOf("actors"))
         println(md.relationships.values)
@@ -288,7 +288,7 @@ type Movie {
         // todo handle enums ?
         println(metaDatas)
         println(metaDatas.keys)
-        assertEquals(1900, metaDatas.get("Movie")?.properties?.get("released")?.defaultValue)
+        assertEquals(1900L, metaDatas.get("Movie")?.properties?.get("released")?.defaultValue)
         assertEquals(true, metaDatas.get("Movie")?.properties?.get("title")?.unique)
     }
 
