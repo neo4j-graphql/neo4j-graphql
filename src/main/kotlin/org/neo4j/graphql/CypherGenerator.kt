@@ -106,7 +106,7 @@ class Cypher31Generator : CypherGenerator() {
                     null
                 }
                 "orderBy" -> {
-                    extractOrderByEnum(it, orderBys)
+                    extractOrderByEnum(it, orderBys, parameters)
                     null
                 }
                 GraphQLSchemaBuilder.ArgumentProperties.NodeId.name -> GraphQLSchemaBuilder.ArgumentProperties.NodeId.argument(variable,field.name, value)
@@ -143,9 +143,8 @@ class Cypher31Generator : CypherGenerator() {
                 }
             }
 
-    private fun extractOrderByEnum(argument: Argument, orderBys: MutableList<Pair<String, Boolean>>) {
-        fun extractSortFields(arg: EnumValue) : Unit {
-            val name = arg.name
+    private fun extractOrderByEnum(argument: Argument, orderBys: MutableList<Pair<String, Boolean>>, parameters: Map<String, Any>) {
+        fun extractSortFields(name: String) : Unit {
             if (name.endsWith("_desc")) {
                 orderBys.add(Pair(name.substring(0,name.lastIndexOf("_")), false))
             }
@@ -155,11 +154,18 @@ class Cypher31Generator : CypherGenerator() {
         }
 
         val value = argument.value
+        if (value is VariableReference) {
+            val values = parameters.get(value.name)
+            when (values) {
+                is List<*> -> values.forEach{extractSortFields(it.toString())}
+                is String -> extractSortFields(values)
+            }
+        }
         if (value is EnumValue) {
-            extractSortFields(value)
+            extractSortFields(value.name)
         }
         if (value is ArrayValue) {
-            value.values.filterIsInstance<EnumValue>().forEach{extractSortFields(it)}
+            value.values.filterIsInstance<EnumValue>().forEach{extractSortFields(it.name)}
         }
     }
 

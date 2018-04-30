@@ -154,6 +154,7 @@ public class MetaDataTest {
         assertEquals(2, ((List)result.get("Location").get(0).get("livesIn")).size());
     }
     @Test
+
     public void nestedOrderByQuery() throws Exception {
         Map<String, List<Map>> result = executeQuery("{ Location { name, livesIn(orderBy:name_desc) { name, age } } }", map());
         System.out.println("result = " + result);
@@ -205,6 +206,16 @@ public class MetaDataTest {
     @Test
     public void allUsersSort() throws Exception {
         Map<String, List<Map>> result = executeQuery("query UserSortQuery { User(orderBy:[name_desc,age_desc]) {name,age}}", map());
+        List<Map> users = result.get("User");
+        int size = users.size();
+        assertEquals(5, size);
+        for (int i = 0; i < size; i++) {
+            assertEquals(5L-i,users.get(i).get("age"));
+        }
+    }
+    @Test
+    public void allUsersSortParam() throws Exception {
+        Map<String, List<Map>> result = executeQuery("query UserSortQuery($ordering: [_UserOrdering]) { User(orderBy:$ordering) {name,age}}", map("ordering",asList("name_desc","age_desc")));
         List<Map> users = result.get("User");
         int size = users.size();
         assertEquals(5, size);
