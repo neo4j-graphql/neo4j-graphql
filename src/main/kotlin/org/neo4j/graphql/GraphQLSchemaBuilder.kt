@@ -13,7 +13,6 @@ import org.neo4j.graphdb.*
 import org.neo4j.graphdb.Node
 import org.neo4j.graphql.CypherGenerator.Companion.DEFAULT_CYPHER_VERSION
 import org.neo4j.graphql.CypherGenerator.Companion.formatAnyValue
-import org.neo4j.graphql.CypherGenerator.Companion.formatValue
 import org.neo4j.helpers.collection.Iterators
 import java.util.*
 
@@ -141,7 +140,8 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             val params = arguments // + mapOf("__params__" to arguments)
             val isMutation = env.graphQLSchema?.mutationType == env.parentType
             val statement = if (needNesting) CypherGenerator.instance().generateQueryForField(field, fieldDefinition, isMutation, params = params) else cypher.statement
-            return execute(statement, params, { result -> asEntityList(result, returnType)})
+            val finalParams = if (isMutation || cypher.passThrough) params else filterParams(params)
+            return execute(statement, finalParams, { result -> asEntityList(result, returnType)})
         }
 
         return fields.map { field ->
@@ -638,12 +638,14 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     ctx.log?.debug(statement)
 //                    println(statement)
 //                    val parameters = resolveParameters(env.graphQLSchema, env.fields,ctx.parameters, env.fieldTypeInfo)
-                    val result = db.execute(statement, parameters)
+                    val result = db.execute(statement, filterParams(parameters))
                     val list = Iterators.asList(result)
                     storeResultMetaData(ctx, query, result, directives)
                     list
                 })
     }
+
+    private fun filterParams(parameters: Map<String, Any>) = parameters.filterKeys { it != "orderBy" && it != "filter" }.filterNot { it.value is Value }
 
     private fun applyDirectivesToStatement(generator: CypherGenerator, query: String, directives: Map<String, Directive>) :String {
         val parts = mutableListOf<String>()
@@ -689,8 +691,8 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         return newArgument().name("orderBy")
                 .type(GraphQLList(obtainEnum(GraphQLEnumType("_${md.type}Ordering","Ordering Enum for ${md.type}",
                         md.properties.keys.flatMap { listOf(
-                                GraphQLEnumValueDefinition(it+"_asc","Ascending sort for $it",Pair(it,true)),
-                                GraphQLEnumValueDefinition(it+"_desc","Descending sort for $it",Pair(it,false))) })))).build()
+                                GraphQLEnumValueDefinition(it+"_asc","Ascending sort for $it",it+"_asc"),
+                                GraphQLEnumValueDefinition(it+"_desc","Descending sort for $it",it+"_desc")) })))).build()
     }
 
     internal fun inputField(name:String, type:GraphQLInputType, desc: String = name) : GraphQLInputObjectField

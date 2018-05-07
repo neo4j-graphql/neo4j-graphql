@@ -6,7 +6,7 @@ import org.neo4j.kernel.internal.Version
 abstract class CypherGenerator {
     companion object {
         val VERSION = Version.getNeo4jVersion()
-        val DEFAULT_CYPHER_VERSION = "3.2"
+        val DEFAULT_CYPHER_VERSION = "3.4"
 
         fun instance(): CypherGenerator {
             return Cypher31Generator()
@@ -223,7 +223,8 @@ class Cypher31Generator : CypherGenerator() {
                     .joinToString(",", "{", "}") { "`${it.key}`:${it.value}" }
 
             val prefix  = if (!cypherStatement!!.contains(Regex("this\\s*\\}?\\s+AS\\s+",RegexOption.IGNORE_CASE))) "WITH {this} AS this " else ""
-            val cypherFragment = "graphql.run('${prefix}${cypherStatement}', $params, $expectMultipleValues)"
+            val runType = if (expectMultipleValues) "Many" else "Single"
+            val cypherFragment = "graphql.run${runType}('${prefix}${cypherStatement}', $params)"
 
             if (relationship != null) {
                 val (patternComp, _) = formatCypherDirectivePatternComprehension(md, cypherFragment, f, ctx.copy(orderBys = mutableListOf()))

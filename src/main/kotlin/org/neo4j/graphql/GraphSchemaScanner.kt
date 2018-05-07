@@ -5,8 +5,8 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.Label
 import org.neo4j.graphdb.Node
 import org.neo4j.helpers.collection.Iterators
+import org.neo4j.kernel.impl.core.EmbeddedProxySPI
 import org.neo4j.kernel.impl.core.GraphProperties
-import org.neo4j.kernel.impl.core.NodeManager
 import org.neo4j.kernel.internal.GraphDatabaseAPI
 import java.util.*
 
@@ -39,8 +39,8 @@ class GraphSchemaScanner {
         }
 
         private fun graphProperties(db: GraphDatabaseService): GraphProperties {
-            val nodeManager = (db as (GraphDatabaseAPI)).getDependencyResolver().resolveDependency(NodeManager::class.java)
-            val props = nodeManager.newGraphProperties();
+            val nodeManager = (db as (GraphDatabaseAPI)).getDependencyResolver().resolveDependency(EmbeddedProxySPI::class.java)
+            val props = nodeManager.newGraphPropertiesProxy();
             return props
         }
 
