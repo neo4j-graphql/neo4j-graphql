@@ -126,12 +126,12 @@ public class GraphQLResourceTest {
 
     @Test
     public void testCypherProcedure() throws Exception {
-        testCypherCall("CALL graphql.run({query},{born:{born}},true)");
+        testCypherCall("CALL graphql.run({query},{born:{born}}, true)");
     }
 
     @Test
     public void testCypherFunction() throws Exception {
-        testCypherCall("RETURN graphql.run({query},{born:{born}},false) as row");
+        testCypherCall("RETURN graphql.runSingle({query},{born:{born}}) as row");
     }
     @Test
     public void testComplexProcedureCall() throws Exception {

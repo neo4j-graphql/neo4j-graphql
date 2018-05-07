@@ -85,17 +85,21 @@ class GraphQLProcedure {
         return Stream.of(GraphResult(nodes.values.toList(),rels))
     }
 
-    @UserFunction("graphql.run")
-    fun run(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>, @Name("expectMultipleValues",defaultValue = "true") expectMultipleValues : Boolean) : Any {
+    @UserFunction("graphql.runSingle")
+    fun runSingle(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>) : Any {
         val result = db!!.execute(query, variables)
 
         val firstColumn = result.columns()[0]
 
-        if(expectMultipleValues) {
-            return result.columnAs<Any>(firstColumn).asSequence().toList()
-        } else {
-            return result.columnAs<Any>(firstColumn).next()!!
-        }
+        return result.columnAs<Any>(firstColumn).next()!!
+    }
+    @UserFunction("graphql.runMany")
+    fun runMany(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>) : List<*> {
+        val result = db!!.execute(query, variables)
+
+        val firstColumn = result.columns()[0]
+
+        return result.columnAs<Any>(firstColumn).asSequence().toList()
     }
 
     @UserFunction("graphql.labels")
@@ -112,7 +116,7 @@ class GraphQLProcedure {
 
     @Procedure("graphql.run", mode = Mode.WRITE)
     fun runProc(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>, @Name("expectMultipleValues", defaultValue = "true") expectMultipleValues : Boolean) : Stream<Row> {
-        val result = run(query, variables, expectMultipleValues)
+        val result = if (expectMultipleValues) runMany(query, variables) else runSingle(query, variables)
 
         return if (result is List<*>) {
             result.stream().map { Row(it) }
