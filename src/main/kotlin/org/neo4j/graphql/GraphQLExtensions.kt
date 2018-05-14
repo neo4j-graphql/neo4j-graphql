@@ -15,9 +15,13 @@ fun Value.extract(): Any =
             is EnumValue -> this.name
             is VariableReference -> "{`${this.name}`}" // todo $name
             is ArrayValue -> this.values.map { it.extract() }.toList()
+            is NullValue -> IsNullOperator()
             else -> throw IllegalArgumentException("Unknown Value $this ${this.javaClass}")
         }
 fun Field.cypher() = this.getDirective("cypher")?.let { Pair(it.getArgument("statement").value.extract(), it.getArgument("params")?.value?.extract()) }
+
+abstract class UnaryOperator
+class IsNullOperator : UnaryOperator()
 
 data class CypherDefinition(val statement:String, val  params:Map<String,Any>? = emptyMap(), val passThrough:Boolean = false)
 fun FieldDefinition.cypher() : CypherDefinition ?=

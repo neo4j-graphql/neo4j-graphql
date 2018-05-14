@@ -69,6 +69,15 @@ class Cypher31Generator : CypherGenerator() {
         override fun toExpression(variable: String) = parts.map { it.toExpression(variable) }.joinNonEmpty(" "+op+" ","(",")")
     }
 
+    data class IsNullPredicate(val name:String, val op: Operators, val md: MetaData) : Predicate {
+        override fun toExpression(variable:String) : String {
+            val rel = md.relationshipFor(name)!!
+            val (left,right) = if (rel.out) "" to ">" else "<" to ""
+            val not = if (op.not) "" else "NOT"
+            return "$not (`$variable`)$left-[:`${rel.type}`]-$right()"
+        }
+    }
+
     data class ExpressionPredicate(val name:String, val op: Operators, val value:Any?) : Predicate {
         val not = if (op.not) "NOT" else ""
         override fun toExpression(variable:String) =  "$not `${variable}`.`$name` ${op.op} ${formatAnyValue(value)}"
@@ -89,7 +98,7 @@ class Cypher31Generator : CypherGenerator() {
             val rel = md.relationshipFor(name)!!
             val (left,right) = if (rel.out) "" to ">" else "<" to ""
             val other = variable+"_"+rel.label
-            val pred = CompoundPredicate(value.map { it -> val (field,op)=Operators.resolve(it.key.toString());ExpressionPredicate(field, op, it.value) }).toExpression(other)
+            val pred = CompoundPredicate(value.map { it -> val (field,op)=Operators.resolve(it.key.toString(), value);ExpressionPredicate(field, op, it.value) }).toExpression(other)
             return "$not $prefix(x IN [(`$variable`)$left-[:`${rel.type}`]-$right(`$other`) | $pred] WHERE x)"
         }
     }
@@ -134,9 +143,10 @@ class Cypher31Generator : CypherGenerator() {
                     throw IllegalArgumentException("Unexpected value for filter: $value")
                 }
             else {
-                val (fieldName, op) = Operators.resolve(name)
+                val (fieldName, op) = Operators.resolve(name, value)
                 if (md.hasRelationship(fieldName)) {
                     if (value is Map<*,*>) RelationPredicate(fieldName,op,value, md)
+                    else if (value is IsNullOperator) IsNullPredicate(fieldName, op, md)
                     else throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
                 } else {
                     ExpressionPredicate(fieldName, op, value)

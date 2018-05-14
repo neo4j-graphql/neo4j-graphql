@@ -506,7 +506,7 @@ query PersonQuery {
 
 | filter arguments for relations
 | filtering on relation fields, suffixes ("",not,some, none, single, every)
-| { Company(filter: { employees_none { name_contains: "Jan"}, employees_some: { gender_in : [female]}}) { name } }
+| { Company(filter: { employees_none { name_contains: "Jan"}, employees_some: { gender_in : [female]}, company_not: null }) { name } }
 
 | relationships
 | via a `@relationship` annotated field, optional direction

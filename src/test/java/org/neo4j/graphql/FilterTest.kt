@@ -110,6 +110,12 @@ type Company {
         assertResult("""{ p: Company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}""", mapOf("p" to listOf(mapOf("employees" to listOf(mapOf("name" to "Joe"), mapOf("name" to "Jane"))))))
     }
     @Test
+    fun filtersOnNullField() {
+        db?.execute("MATCH (p:Person { id: 'joe'})-[r:WORKS_AT]-(:Company) DELETE r")?.close()
+        assertResult("{ p: Person(filter: { company: null }) { name }}", joe)
+        assertResult("{ p: Person(filter: { company_not: null }) { name }}", jane)
+    }
+    @Test
     fun stringFilter() {
         assertFilter("name: \"Jane\"", "Jane")
         assertFilter("name_starts_with: \"Ja\"", "Jane")
