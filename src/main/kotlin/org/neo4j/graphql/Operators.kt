@@ -8,6 +8,8 @@ import graphql.schema.GraphQLTypeReference
 
 enum class Operators(val suffix:String, val op:String, val not :Boolean = false) {
     EQ("","="),
+    IS_NULL("", ""),
+    IS_NOT_NULL("", "", true),
     NEQ("not","=", true),
     GTE("gte",">="),
     GT("gt",">"),
@@ -36,11 +38,19 @@ enum class Operators(val suffix:String, val op:String, val not :Boolean = false)
         val allNames = ops.map { it.suffix }
         val allOps = ops.map { it.op }
 
-        fun resolve(field:String) : Pair<String, Operators> {
-            val op = ops.find { field.endsWith("_"+it.suffix) } ?: Operators.EQ
+        fun resolve(field: String, value: Any?) : Pair<String, Operators> {
+            val fieldOperator = ops.find { field.endsWith("_" + it.suffix) }
+            val unaryOperator = if (value is UnaryOperator) unaryOperatorOf(field, value) else Operators.EQ
+            val op = fieldOperator ?: unaryOperator
             val name = if (op.suffix.isEmpty()) field else field.substring(0, field.length - op.suffix.length - 1)
             return name to op
         }
+
+        private fun unaryOperatorOf(field: String, value: Any?): Operators =
+            when (value) {
+                is IsNullOperator -> if (field.endsWith("_not")) IS_NOT_NULL else IS_NULL
+                else -> throw IllegalArgumentException("Unknown unary operator $value")
+            }
 
         fun forType(type: GraphQLInputType) : List<Operators> =
                 if (type == Scalars.GraphQLBoolean) listOf(EQ, NEQ)
