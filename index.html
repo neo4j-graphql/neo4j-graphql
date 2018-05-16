@@ -431,7 +431,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>This is a GraphQL-Endpoint extension for Neo4j.</p>
+<p>This is a GraphQL-Endpoint extension for Neo4j.
+It is part of the <a href="https://grandstack.io" target="_blank">GRANDstack</a></p>
 </div>
 <div class="paragraph">
 <p><strong>This readme assumes you are somewhat familiar with <a href="http://graphql.org/" target="_blank">GraphQL</a> and minimally with <a href="http://neo4j.com/developer/cypher">Cypher</a>.</strong></p>
@@ -450,43 +451,21 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Download and install <a href="http://neo4j.com/download" target="_blank">Neo4j Desktop</a></p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Download the <a href="https://github.com/neo4j-graphql/neo4j-graphql/releases">appropriate neo4j-graphql release</a> for your version.</p>
-</li>
-<li>
-<p>Copy the <em>jar-file</em> into Neo4j&#8217;s <code>plugins</code> directory</p>
-</li>
-<li>
-<p>Edit the Neo4j settings (<code>$NEO4J_HOME/conf/neo4j.conf</code>) to add:<br>
-<code>dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql</code></p>
-</li>
-<li>
-<p>You might need to add <code>,graphql.*</code> if your config contains this line:<br>
-<code>dbms.security.procedures.whitelist=</code></p>
-</li>
-<li>
-<p>(Re)start your Neo4j server</p>
-</li>
-</ol>
+<div class="paragraph">
+<p>Neo4j Desktop provides a quick install button for <strong>neo4j-graphql</strong>.</p>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<em>Neo4j Desktop</em>: the configuration is available under <strong>Manage &#8594; Settings</strong>, the <code>plugins</code> folder via <strong>Open Folder</strong>.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>After creating your database you can find it under "Manage" in the "Plugins" tab for a single click install.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="docs/img/desktop-graphql.jpg" alt="desktop graphql" width="600">
+</div>
 </div>
 <div class="sect2">
 <h3 id="_use_with_neo4j_graphql_cli">Use with neo4j-graphql-cli</h3>
 <div class="paragraph">
-<p>This extension is utilized, when you use <a href="https://www.npmjs.com/package/neo4j-graphql-cli"><code>neo4j-graphql-cli</code></a></p>
+<p>This extension is utilized, when you use <a href="https://www.npmjs.com/package/neo4j-graphql-cli" target="_blank"><code>neo4j-graphql-cli</code></a></p>
 </div>
 <div class="paragraph">
 <p>This tool</p>
@@ -894,68 +873,6 @@ RETURN movie.title, [a IN movie.actors | a.name] as actors</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_advanced_usage">Advanced Usage</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The extension works with Neo4j 3.1 and 3.2, the code on this branch is for <strong>3.3</strong>.</p>
-</div>
-<div class="paragraph">
-<p>Please consult the <a href="https://neo4j.com/docs/operations-manual/current/configuration/file-locations/" target="_blank">Neo4j documentation</a> for file locations for the other editions on the different operating systems.</p>
-</div>
-<div class="sect2">
-<h3 id="_building_manually">Building manually</h3>
-<div class="listingblock">
-<div class="content">
-<pre>git clone https://github.com/neo4j-graphql/neo4j-graphql
-cd neo4j-graphql
-git checkout 3.2
-mvn clean package
-cp target/neo4j-graphql-*.jar $NEO4J_HOME/plugins
-echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' &gt;&gt; $NEO4J_HOME/conf/neo4j.conf
-$NEO4J_HOME/bin/neo4j restart</pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-You might need to add <code>,graphql.*</code> if your config contains this line: <code>dbms.security.procedures.whitelist=</code>
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_schema_from_graph">Schema from Graph</h3>
-<div class="paragraph">
-<p>If you didn&#8217;t provide a GraphQL schema, we try to derive one from the existing graph data.
-From sampling the data we add a <code>type</code> for each Node-Label with all the properties and their types found as fields.</p>
-</div>
-<div class="paragraph">
-<p>Each relationship-type adds a reference field to the node type, named <code>aType</code> for <code>A_TYPE</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_procedures_2">Procedures</h3>
-<div class="paragraph">
-<p>You can even visualize remote graphql schemas, e.g. here from the <a href="https://developer.github.com/v4/" target="_blank">GitHub GraphQL API</a>.
-Make sure to generate the <a href="https://developer.github.com/v4/guides/forming-calls/#authenticating-with-graphql" target="_blank">Personal Access Token</a> to use in your account settings.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call graphql.introspect("https://api.github.com/graphql",{Authorization:"bearer d8xxxxxxxxxxxxxxxxxxxxxxx"})</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p><span class="image"><img src="docs/img/graphql.introspect-github.jpg" alt="graphql.introspect github" width="600"></span></p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_features">Features</h2>
 <div class="sectionbody">
 <table class="tableblock frame-all grid-all spread">
@@ -1033,7 +950,7 @@ Make sure to generate the <a href="https://developer.github.com/v4/guides/formin
 <td class="tableblock halign-left valign-top"><div><div class="paragraph">
 <p>filtering on relation fields, suffixes ("",not,some, none, single, every)</p>
 </div></div></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>{ Company(filter: { employees_none { name_contains: "Jan"}, employees_some: { gender_in : [female]}}) { name } }</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>{ Company(filter: { employees_none { name_contains: "Jan"}, employees_some: { gender_in : [female]}, company_not: null }) { name } }</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><div><div class="paragraph">
@@ -1130,6 +1047,104 @@ Otherwise, we assume if you return object-types that you will return the appropr
 </div>
 </div>
 <div class="sect1">
+<h2 id="_advanced_usage">Advanced Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The extension works with Neo4j 3.1 and 3.2, the code on this branch is for <strong>3.3</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Please consult the <a href="https://neo4j.com/docs/operations-manual/current/configuration/file-locations/" target="_blank">Neo4j documentation</a> for file locations for the other editions on the different operating systems.</p>
+</div>
+<div class="sect2">
+<h3 id="_manual_installation">Manual Installation</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Download the <a href="https://github.com/neo4j-graphql/neo4j-graphql/releases" target="_blank">appropriate neo4j-graphql release</a> for your version.</p>
+</li>
+<li>
+<p>Copy the <em>jar-file</em> into Neo4j&#8217;s <code>plugins</code> directory</p>
+</li>
+<li>
+<p>Edit the Neo4j settings (<code>$NEO4J_HOME/conf/neo4j.conf</code>) to add:<br>
+<code>dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql</code></p>
+</li>
+<li>
+<p>You might need to add <code>,graphql.*</code> if your config contains this line:<br>
+<code>dbms.security.procedures.whitelist=</code></p>
+</li>
+<li>
+<p>(Re)start your Neo4j server</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<em>Neo4j Desktop</em>: the configuration is available under <strong>Manage &#8594; Settings</strong>, the <code>plugins</code> folder via <strong>Open Folder</strong>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_building_manually">Building manually</h3>
+<div class="listingblock">
+<div class="content">
+<pre>git clone https://github.com/neo4j-graphql/neo4j-graphql
+cd neo4j-graphql
+git checkout 3.2
+mvn clean package
+cp target/neo4j-graphql-*.jar $NEO4J_HOME/plugins
+echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' &gt;&gt; $NEO4J_HOME/conf/neo4j.conf
+$NEO4J_HOME/bin/neo4j restart</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You might need to add <code>,graphql.*</code> if your config contains this line: <code>dbms.security.procedures.whitelist=</code>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_schema_from_graph">Schema from Graph</h3>
+<div class="paragraph">
+<p>If you didn&#8217;t provide a GraphQL schema, we try to derive one from the existing graph data.
+From sampling the data we add a <code>type</code> for each Node-Label with all the properties and their types found as fields.</p>
+</div>
+<div class="paragraph">
+<p>Each relationship-type adds a reference field to the node type, named <code>aType</code> for <code>A_TYPE</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_procedures_2">Procedures</h3>
+<div class="paragraph">
+<p>You can even visualize remote graphql schemas, e.g. here from the <a href="https://developer.github.com/v4/" target="_blank">GitHub GraphQL API</a>.
+Make sure to generate the <a href="https://developer.github.com/v4/guides/forming-calls/#authenticating-with-graphql" target="_blank">Personal Access Token</a> to use in your account settings.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call graphql.introspect("https://api.github.com/graphql",{Authorization:"bearer d8xxxxxxxxxxxxxxxxxxxxxxx"})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="docs/img/graphql.introspect-github.jpg" alt="graphql.introspect github" width="600"></span></p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_resources">Resources</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -1172,7 +1187,7 @@ Otherwise, we assume if you return object-types that you will return the appropr
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-03-21 11:59:55 CET
+Last updated 2018-05-17 01:28:41 CEST
 </div>
 </div>
 </body>
