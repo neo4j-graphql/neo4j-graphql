@@ -755,3 +755,16 @@ curl -X POST http://localhost:7474/graphql/idl -d 'type Person {
 * support the permission queries from graph cool using the user and their roles
 ////
 
+
+== Neo4j Admin API
+
+The project also contains an experimental endpoint to expose procedures deployed into Neo4j (built-in and external) as a GraphQL admin API endpoint.
+
+If you access `/graphql/admin` in GraphiQL or GraphQL Playground, you should see those separated into queries and mutations in the schema.
+
+For documentation on each please check the provided description or the documentation of the original procedure in the Neo4j or other manuals.
+
+image::{img}/neo4j-graphql-admin-simple.png[]
+
+You will have to provide the appropriate user credentials as HTTP Basic-Auth headers, the procedures are executed under the priviledges of that user.
+
