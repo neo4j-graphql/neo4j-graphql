@@ -94,8 +94,8 @@ class ManagementResourceTest {
 
     @Test
     fun executeComponents() {
-        val result = ManagementResource(log, db).executeQuery(mapOf("query" to "{dbmsComponents { name, versions, edition } }"))
-        assertEquals(mapOf("dbmsComponents" to listOf(mapOf("name" to "Neo4j Kernel", "versions" to listOf("3.3.5"), "edition" to "community"))),result["data"])
+        val result = ManagementResource(log, db).executeQuery(mapOf("query" to "{dbmsComponents { name, edition } }"))
+        assertEquals(mapOf("dbmsComponents" to listOf(mapOf("name" to "Neo4j Kernel", "edition" to "community"))),result["data"])
     }
     @Test
     fun executeJmx() {
@@ -104,7 +104,7 @@ class ManagementResourceTest {
         val data = ((result["data"] as Map<*,*>)["dbmsQueryJmx"] as List<*>).single() as Map<*,*>
         assertEquals("org.neo4j:instance=kernel#0,name=Kernel", data["name"])
         assertTrue((data["description"] as String).contains("about the Neo4j kernel"))
-        assertTrue((data["attributes"].toString()).contains("{key=KernelVersion, value={description=The version of Neo4j, value=neo4j-kernel, version: 3.3.5"))
+        assertTrue((data["attributes"].toString()).contains("{key=KernelVersion, value={description=The version of Neo4j, value=neo4j-kernel, version: 3."))
     }
 
 
