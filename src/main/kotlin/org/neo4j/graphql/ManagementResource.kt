@@ -5,14 +5,14 @@ import graphql.GraphQL
 import graphql.Scalars
 import graphql.schema.*
 import org.codehaus.jackson.map.ObjectMapper
-import org.neo4j.cypher.internal.compatibility.v3_3.runtime.CartesianPoint
-import org.neo4j.cypher.internal.compatibility.v3_3.runtime.GeographicPoint
+import org.neo4j.cypher.internal.compiler.v3_1.CartesianPoint
+import org.neo4j.cypher.internal.compiler.v3_1.GeographicPoint
+import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.kernel.api.proc.FieldSignature
-import org.neo4j.kernel.api.proc.Neo4jTypes
-import org.neo4j.kernel.api.proc.ProcedureSignature
+import org.neo4j.internal.kernel.api.procs.FieldSignature
+import org.neo4j.internal.kernel.api.procs.Neo4jTypes
+import org.neo4j.internal.kernel.api.procs.ProcedureSignature
 import org.neo4j.kernel.impl.proc.Procedures
 import org.neo4j.kernel.internal.GraphDatabaseAPI
 import org.neo4j.logging.Log
@@ -190,8 +190,8 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
             is org.neo4j.graphdb.Path -> mapOf("length" to v.length(), "start" to safeValue(v.startNode()), "end" to safeValue(v.endNode()),
                     "segments" to v.relationships().map { mapOf("start" to safeValue(it.startNode),"end" to safeValue(it.endNode),"relationship" to safeValue(it))})
             is Map<*,*> -> attributes(v)
-            is GeographicPoint -> mapOf("x" to v.x(),"y" to v.y(),"crs" to v.crs.name)
-            is CartesianPoint -> mapOf("x" to v.x(),"y" to v.y(),"crs" to v.crs.name)
+            is GeographicPoint -> mapOf("x" to v.x(),"y" to v.y(),"crs" to v.crs().name())
+            is CartesianPoint -> mapOf("x" to v.x(),"y" to v.y(),"crs" to v.crs().name())
             else -> v.toString()
         }
     }
