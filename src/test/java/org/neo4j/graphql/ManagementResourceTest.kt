@@ -4,7 +4,6 @@ import graphql.Scalars
 import graphql.schema.GraphQLList
 import graphql.schema.GraphQLNonNull
 import graphql.schema.GraphQLObjectType
-import graphql.schema.GraphQLSchema
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -23,12 +22,13 @@ class ManagementResourceTest {
 
     private val log = FormattedLogProvider.toOutputStream(System.out)
     lateinit var db: GraphDatabaseService
-    lateinit var procedureSchema: GraphQLSchema
 
     @Before
     fun setUp() {
-        db = TestGraphDatabaseFactory().newImpermanentDatabase()
-        procedureSchema = ManagementResource(log,db).procedureSchema()
+        db = TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+                .setConfig("graphql.admin.procedures.read","db.*,dbms.components,dbms.queryJ*")
+                .setConfig("graphql.admin.procedures.write","db.create*,dbIndexExplicitForNodes")
+                .newGraphDatabase()
     }
 
     @After
@@ -39,11 +39,11 @@ class ManagementResourceTest {
 
     @Test
     fun readProceduresSchema() {
-        procedureSchema.queryType.fieldDefinitions.forEach { println(it.name) }
+        val procedureSchema = ManagementResource(log,db).procedureSchema()
+        // procedureSchema.queryType.fieldDefinitions.forEach { println(it.name) }
         assertTrue(procedureSchema.queryType.fieldDefinitions.any { it.name == "dbLabels" })
         val label = procedureSchema.queryType.fieldDefinitions.first { it.name == "dbLabels" }
         assertTrue(label.arguments.isEmpty())
-        println(label.type.name)
         assertTrue(label.type.isList())
         val resultType = (label.type as GraphQLList).wrappedType
         assertTrue(resultType is GraphQLObjectType)
@@ -57,8 +57,8 @@ class ManagementResourceTest {
 
     @Test
     fun writeProceduresSchema() {
-        val mutationType = procedureSchema.mutationType
-        mutationType.fieldDefinitions.forEach { println(it.name) }
+        val mutationType = ManagementResource(log, db).procedureSchema().mutationType
+        // mutationType.fieldDefinitions.forEach { println(it.name) }
         assertTrue(mutationType.fieldDefinitions.any { it.name == "dbCreateLabel" })
         val label = mutationType.fieldDefinitions.first { it.name == "dbCreateLabel" }
         assertEquals(1, label.arguments.size)
@@ -68,7 +68,7 @@ class ManagementResourceTest {
     }
     @Test
     fun writeProceduresIndexAddRelationship() {
-        val mutationType = procedureSchema.mutationType
+        val mutationType = ManagementResource(log, db).procedureSchema().mutationType
         val index = mutationType.fieldDefinitions.first { it.name == "dbIndexExplicitAddRelationship" }
         assertEquals(4, index.arguments.size)
         val names = listOf("indexName", "key", "value").toSet()

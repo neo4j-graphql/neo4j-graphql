@@ -762,9 +762,16 @@ The project also contains an experimental endpoint to expose procedures deployed
 
 If you access `/graphql/admin` in GraphiQL or GraphQL Playground, you should see those separated into queries and mutations in the schema.
 
+You have to explicitely allow procedures to be exposed, via the config setting `graphql.admin.procedures.(read/write)` with either Neo4j procedure syntax or admin-endpoint field names.
+By setting it to:
+
+----
+graphql.admin.procedures.read=db.*,dbms.components,dbms.queryJ*
+graphql.admin.procedures.write=db.create*,dbIndexExplicitFor*
+----
+
 For documentation on each please check the provided description or the documentation of the original procedure in the Neo4j or other manuals.
 
 image::{img}/neo4j-graphql-admin-simple.png[]
 
 You will have to provide the appropriate user credentials as HTTP Basic-Auth headers, the procedures are executed under the priviledges of that user.
-
