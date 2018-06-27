@@ -13,6 +13,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.kernel.api.proc.FieldSignature
 import org.neo4j.kernel.api.proc.Neo4jTypes
 import org.neo4j.kernel.api.proc.ProcedureSignature
+import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.proc.Procedures
 import org.neo4j.kernel.internal.GraphDatabaseAPI
 import org.neo4j.logging.Log
@@ -44,7 +45,16 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
             "dbms.cluster.role","dbms.cluster.overview","dbms.cluster.routing.getServers",
             "dbms.cluster.routing.getRoutersForDatabase","dbms.cluster.routing.getRoutersForAllDatabases")
 
-    val schema = procedureSchema()
+    val schema = procedureSchema(filter("read"),filter("write"))
+
+    private fun filter(type:String = "read") : (ProcedureSignature)->Boolean {
+        val params = (db as GraphDatabaseAPI).dependencyResolver.resolveDependency(Config::class.java).getRaw()
+        val filter = params["graphql.admin.procedures."+type] ?: ""
+        if (filter.isEmpty()) return { false }
+        // val re = filter.replace(",","|").replace("[?{}[]().]","\\\\$0").replace("*",".+").toRegex()
+        val filters = filter.replace("*","").split(",").map { fieldName(it.split(".").toTypedArray()) }
+        return { fieldName(it).findAnyOf(filters,0,true) != null}
+    }
 
     enum class CypherTypes {
         Any, Boolean, Float, String, Integer,  List, Map, Point, Date, DateTime, Node, Relationship, Path;
@@ -109,7 +119,7 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
     )
 
 
-    fun procedureSchema(): GraphQLSchema {
+    fun procedureSchema(readFilter: (ProcedureSignature) -> Boolean = {true},writeFilter: (ProcedureSignature) -> Boolean = {true}): GraphQLSchema {
         val attributeTypes = attributeTypes()
         val procedures = (db as GraphDatabaseAPI).dependencyResolver.resolveDependency(Procedures::class.java)
         val builder = GraphQLSchema.newSchema()
@@ -118,10 +128,10 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
         // make all queries ?
         val allProcedures = procedures.allProcedures.associate { fieldName(it) to it }.toSortedMap().values
         val readProcsType = GraphQLObjectType.newObject().name("ReadProcedures").description("Read-only procedures")
-                .fields(allProcedures.filter { isReadProcedure(it) }.map { this.procToField(it, attributeTypes) }).build()
+                .fields(allProcedures.filter { isReadProcedure(it) }.filter(readFilter).map { this.procToField(it, attributeTypes) }).build()
 
         val writeProcsType = GraphQLObjectType.newObject().name("WriteProcedures").description("Write procedures")
-                .fields(allProcedures.filter { it.mode() == Mode.WRITE || !isReadProcedure(it) }.map { this.procToField(it, attributeTypes) }).build()
+                .fields(allProcedures.filter { it.mode() == Mode.WRITE || !isReadProcedure(it) }.filter(writeFilter).map { this.procToField(it, attributeTypes) }).build()
 
         return builder.query(readProcsType).mutation(writeProcsType).additionalTypes(attributeTypes.all() + graphTypes()).build()
     }
@@ -232,7 +242,9 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
                 else -> Scalars.GraphQLString
             }
 
-    private fun fieldName(proc: ProcedureSignature) = (proc.name().namespace() + proc.name().name()).mapIndexed { i, s -> if (i> 0) s.capitalize() else s }.joinToString("")
+    private fun fieldName(proc: ProcedureSignature) = fieldName(proc.name().namespace() + proc.name().name())
+
+    private fun fieldName(parts: Array<String>) = parts.mapIndexed { i, s -> if (i> 0) s.capitalize() else s }.joinToString("")
 
     companion object {
         val OBJECT_MAPPER: ObjectMapper = ObjectMapper()
