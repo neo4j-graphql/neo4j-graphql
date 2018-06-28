@@ -6,7 +6,7 @@
 
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-graphql</artifactId>
-    <version>3.3.0.2</version>
+    <version>3.3.0.3</version>
 
     <licenses>
         <license>
@@ -19,8 +19,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <kotlin.version>1.1.51</kotlin.version>
-        <neo4j.version>3.3.5</neo4j.version>
+        <kotlin.version>1.2.50</kotlin.version>
+        <neo4j.version>3.3.6</neo4j.version>
+        <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
     </properties>
 
     <organization>
