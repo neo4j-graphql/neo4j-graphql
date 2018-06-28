@@ -26,9 +26,9 @@ class Cypher31GeneratorTest {
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-"""MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-`Person`.`name` AS `name`""",  query)
+"""MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+`person`.`name` AS `name`""",  query)
     }
 
     @Test
@@ -58,9 +58,9 @@ RETURN graphql.labels(`Person`) AS `_labels`,
         val query = generator.generateQueryForField(field, queryType)
 
         assertEquals(
-                """CALL graphql.queryForNodes("MATCH (p:Person) RETURN p",{}) YIELD node AS `Person`
-RETURN graphql.labels(`Person`) AS `_labels`,
-`Person`.`name` AS `name`""",  query)
+                """CALL graphql.queryForNodes("MATCH (p:Person) RETURN p",{}) YIELD node AS `person`
+RETURN graphql.labels(`person`) AS `_labels`,
+`person`.`name` AS `name`""",  query)
     }
 
 
@@ -83,9 +83,9 @@ RETURN graphql.labels(`Person`) AS `_labels`,
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-"""MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-[x IN `Person`.`name` |x] AS `name`""",  query)
+"""MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+[x IN `person`.`name` |x] AS `name`""",  query)
     }
 
     @Test
@@ -108,10 +108,10 @@ RETURN graphql.labels(`Person`) AS `_labels`,
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-WHERE `Person`.`name` = "Michael Hunger"
-RETURN graphql.labels(`Person`) AS `_labels`,
-`Person`.`name` AS `name`""",  query)
+                """MATCH (`person`:`Person`)
+WHERE `person`.`name` = "Michael Hunger"
+RETURN graphql.labels(`person`) AS `_labels`,
+`person`.`name` AS `name`""",  query)
     }
 
     @Test
@@ -134,9 +134,9 @@ RETURN graphql.labels(`Person`) AS `_labels`,
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-`Person`.`name` AS `name`
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+`person`.`name` AS `name`
 ORDER BY `name` asc""",  query)
     }
     @Test
@@ -160,10 +160,10 @@ ORDER BY `name` asc""",  query)
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-`Person`.`name` AS `name`
-ORDER BY `Person`.`born` desc""",  query)
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+`person`.`name` AS `name`
+ORDER BY `person`.`born` desc""",  query)
     }
 
     @Test
@@ -191,12 +191,12 @@ ORDER BY `Person`.`born` desc""",  query)
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-WHERE `Person`.`name` IN ["Michael Hunger","Will Lyon"]
-AND `Person`.`born` = 1960
-RETURN graphql.labels(`Person`) AS `_labels`,
-`Person`.`name` AS `name`,
-`Person`.`born` AS `born`""",  query)
+                """MATCH (`person`:`Person`)
+WHERE `person`.`name` IN ["Michael Hunger","Will Lyon"]
+AND `person`.`born` = 1960
+RETURN graphql.labels(`person`) AS `_labels`,
+`person`.`name` AS `name`,
+`person`.`born` AS `born`""",  query)
     }
 
     @Test
@@ -225,11 +225,11 @@ RETURN graphql.labels(`Person`) AS `_labels`,
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-`Person`.`name` AS `name`,
-`Person`.`born` AS `born`,
-[ (`Person`)-[:`ACTED_IN`]->(`Person_movies`:`Movie`)  | `Person_movies` {`_labels` : graphql.labels(`Person_movies`), .`title`}] AS `movies`""",  query)
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+`person`.`name` AS `name`,
+`person`.`born` AS `born`,
+[ (`person`)-[:`ACTED_IN`]->(`person_movies`:`Movie`)  | `person_movies` {`_labels` : graphql.labels(`person_movies`), .`title`}] AS `movies`""",  query)
     }
 
     @Test
@@ -256,10 +256,10 @@ RETURN graphql.labels(`Person`) AS `_labels`,
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Actor`:`Actor`)
-RETURN graphql.labels(`Actor`) AS `_labels`,
-`Actor`.`name` AS `name`,
-`Actor`.`numberOfOscars` AS `numberOfOscars`""",  query)
+                """MATCH (`actor`:`Actor`)
+RETURN graphql.labels(`actor`) AS `_labels`,
+`actor`.`name` AS `name`,
+`actor`.`numberOfOscars` AS `numberOfOscars`""",  query)
     }
     @Test
     fun matchIncludesLabelsProjection() {
@@ -286,10 +286,10 @@ RETURN graphql.labels(`Actor`) AS `_labels`,
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Actor`:`Actor`)
-RETURN graphql.labels(`Actor`) AS `_labels`,
-`Actor`.`name` AS `name`,
-head([ (`Actor`)-[:`friend`]->(`Actor_friend`:`Person`)  | `Actor_friend` {`_labels` : graphql.labels(`Actor_friend`), .`name`}]) AS `friend`""",  query)
+                """MATCH (`actor`:`Actor`)
+RETURN graphql.labels(`actor`) AS `_labels`,
+`actor`.`name` AS `name`,
+head([ (`actor`)-[:`friend`]->(`actor_friend`:`Person`)  | `actor_friend` {`_labels` : graphql.labels(`actor_friend`), .`name`}]) AS `friend`""",  query)
     }
 
     @Test
@@ -324,12 +324,12 @@ head([ (`Actor`)-[:`friend`]->(`Actor_friend`:`Person`)  | `Actor_friend` {`_lab
         // it's like a cast
         // but perhaps we can just ignore it more or less
         // just add a check that the fragment is valid for the label?
-        // WITH *, `Person` AS `Actor` ??
+        // WITH *, `person` AS `actor` ??
         assertEquals(
-                """MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-`Person`.`name` AS `name`,
-`Person`.`numberOfOscars` AS `numberOfOscars`""",  query)
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+`person`.`name` AS `name`,
+`person`.`numberOfOscars` AS `numberOfOscars`""",  query)
     }
 
     @Test
@@ -354,9 +354,9 @@ RETURN graphql.labels(`Person`) AS `_labels`,
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-graphql.runSingle('WITH {this} AS this RETURN 2', {`this`:`Person`}) AS `score`""",  query)
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+graphql.runSingle('WITH {this} AS this RETURN 2', {`this`:`person`}) AS `score`""",  query)
     }
 
     @Test
@@ -382,10 +382,10 @@ graphql.runSingle('WITH {this} AS this RETURN 2', {`this`:`Person`}) AS `score`"
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-graphql.runMany('WITH {this} AS this UNWIND range(0,5) AS value RETURN value', {`this`:`Person`}) AS `scores`,
-graphql.runMany('WITH {this} AS this RETURN range(0,5)', {`this`:`Person`}) AS `scores2`""",  query)
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+graphql.runMany('WITH {this} AS this UNWIND range(0,5) AS value RETURN value', {`this`:`person`}) AS `scores`,
+graphql.runMany('WITH {this} AS this RETURN range(0,5)', {`this`:`person`}) AS `scores2`""",  query)
     }
 
     @Test
@@ -410,9 +410,9 @@ graphql.runMany('WITH {this} AS this RETURN range(0,5)', {`this`:`Person`}) AS `
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-head([ x IN graphql.runMany('WITH {this} AS this RETURN this', {`this`:`Person`}) | `x` {`_labels` : graphql.labels(`x`), .`name`, .`born`} ]) AS `bestFriend`""",  query)
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+head([ x IN graphql.runMany('WITH {this} AS this RETURN this', {`this`:`person`}) | `x` {`_labels` : graphql.labels(`x`), .`name`, .`born`} ]) AS `bestFriend`""",  query)
     }
 
     @Test
@@ -442,9 +442,9 @@ query Person {
  */
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-[ x IN graphql.runMany('WITH {this} AS this RETURN this', {`this`:`Person`}) | `x` {`_labels` : graphql.labels(`x`), .`name`, .`born`} ] AS `colleagues`""",  query)
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+[ x IN graphql.runMany('WITH {this} AS this RETURN this', {`this`:`person`}) | `x` {`_labels` : graphql.labels(`x`), .`name`, .`born`} ] AS `colleagues`""",  query)
     }
 
     @Test
@@ -468,10 +468,10 @@ RETURN graphql.labels(`Person`) AS `_labels`,
         val query = generator.generateQueryForField(field)
 
         assertEquals(
-                """MATCH (`Person`:`Person`)
-RETURN graphql.labels(`Person`) AS `_labels`,
-`Person`.`name` AS `name`,
-graphql.runSingle('WITH {this} AS this RETURN {value}', {`this`:`Person`,`value`:7}) AS `born`""",  query)
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+`person`.`name` AS `name`,
+graphql.runSingle('WITH {this} AS this RETURN {value}', {`this`:`person`,`value`:7}) AS `born`""",  query)
     }
 
 }
