@@ -281,7 +281,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .argument(propertiesAsArguments(labelMd))
                 .argument(propertiesAsListArguments(labelMd))
                 .argumentIf(hasProperties, {orderByArgument(labelMd)})
-                .argumentIf(hasProperties, {filterArgument(labelMd)})
+                .argument(filterArgument(labelMd))
                 .argument(toArguments(parameters))
                 .type(type)
 
@@ -337,6 +337,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
         @JvmStatic fun buildSchema(db: GraphDatabaseService): GraphQLSchema {
             GraphSchemaScanner.databaseSchema(db)
+
 
             return GraphQLSchemaBuilder(GraphSchemaScanner.allMetaDatas()).buildSchema()
         }
@@ -640,7 +641,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     val directives = field.directives.associate { it.name to it }
                     val statement = applyDirectivesToStatement(generator, query, directives)
                     ctx.log?.debug(statement)
-//                    println(statement)
+                    println(statement)
 //                    val parameters = resolveParameters(env.graphQLSchema, env.fields,ctx.parameters, env.fieldTypeInfo)
                     val result = db.execute(statement, filterParams(parameters))
                     val list = Iterators.asList(result)
