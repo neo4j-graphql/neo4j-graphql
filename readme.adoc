@@ -775,3 +775,5 @@ For documentation on each please check the provided description or the documenta
 image::{img}/neo4j-graphql-admin-simple.png[]
 
 You will have to provide the appropriate user credentials as HTTP Basic-Auth headers, the procedures are executed under the priviledges of that user.
+
+You can read more about it https://medium.com/@mesirii/using-a-graphql-api-for-database-administration[in this article^].
