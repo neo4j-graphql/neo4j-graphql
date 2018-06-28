@@ -67,6 +67,22 @@ type Movie  {
     }
 
     @Test
+    fun updateMovieNoProperty() {
+        createMovieData()
+        val result = graphQL!!.execute("""mutation { m: updateMovie(title:"Forrest Gump") }""", ctx)
+        if (result.errors.isNotEmpty()) println(result.errors)
+        assertEquals(mapOf("m" to "<Nothing happened>"), result.getData())
+    }
+    @Test
+    fun updateMovieNullProperty() {
+        createMovieData()
+        val result = graphQL!!.execute("""mutation { m: updateMovie(title:"Forrest Gump", released:null) }""", ctx)
+        if (result.errors.isNotEmpty()) println(result.errors)
+        assertEquals(mapOf("m" to
+                "Properties set: 1\n"), result.getData())
+    }
+
+    @Test
     fun findMovie() {
         createMovieData()
         var result = graphQL!!.execute("""{ Movie(title:"Forrest Gump") { title, released } }""", ctx)
