@@ -100,8 +100,10 @@ class Cypher31Generator : CypherGenerator() {
             val rel = md.relationshipFor(name)!!
             val (left,right) = if (rel.out) "" to ">" else "<" to ""
             val other = variable+"_"+rel.label
-            val pred = CompoundPredicate(value.map { it -> val (field,op)=Operators.resolve(it.key.toString(), value);ExpressionPredicate(field, op, it.value) }).toExpression(other)
-            return "$not $prefix(x IN [(`$variable`)$left-[:`${rel.type}`]-$right(`$other`) | $pred] WHERE x)"
+            val cond = other + "_Cond"
+            val relMetaData = GraphSchemaScanner.getMetaData(rel.label)!!
+            val pred = CompoundPredicate(value.map { it -> resolvePredicate(it.key.toString(), it.value,relMetaData)}).toExpression(other)
+            return "$not $prefix(${cond} IN [(`$variable`)$left-[:`${rel.type}`]-$right(`$other`) | $pred] WHERE ${cond})"
         }
     }
 
@@ -145,15 +147,21 @@ class Cypher31Generator : CypherGenerator() {
                     throw IllegalArgumentException("Unexpected value for filter: $value")
                 }
             else {
-                val (fieldName, op) = Operators.resolve(name, value)
-                if (md.hasRelationship(fieldName)) {
-                    if (value is Map<*,*>) RelationPredicate(fieldName,op,value, md)
-                    else if (value is IsNullOperator) IsNullPredicate(fieldName, op, md)
-                    else throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
-                } else {
-                    ExpressionPredicate(fieldName, op, value)
-                }
+                resolvePredicate(name, value, md)
             }
+
+    companion object {
+        private fun resolvePredicate(name: String, value: Any?, md: MetaData): Predicate {
+            val (fieldName, op) = Operators.resolve(name, value)
+            return if (md.hasRelationship(fieldName)) {
+                if (value is Map<*, *>) RelationPredicate(fieldName, op, value, md)
+                else if (value is IsNullOperator) IsNullPredicate(fieldName, op, md)
+                else throw IllegalArgumentException("Input for $fieldName must be an filter-InputType")
+            } else {
+                ExpressionPredicate(fieldName, op, value)
+            }
+        }
+    }
 
     private fun extractOrderByEnum(argument: Argument, orderBys: MutableList<Pair<String, Boolean>>, parameters: Map<String, Any>) {
         fun extractSortFields(name: String) : Unit {
