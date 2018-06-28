@@ -503,8 +503,12 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
     fun argumentValue(env:DataFetchingEnvironment, name: String) =
             env.getArgument<Any>(name).let { v -> if (v is Value) v.extract() else v }
-    fun toArguments(props: Iterable<MetaData.PropertyInfo>, env: DataFetchingEnvironment) = props.associate {
-        it.fieldName to argumentValue(env, it.fieldName) }
+
+    fun toArguments(props: Iterable<MetaData.PropertyInfo>, env: DataFetchingEnvironment) : Map<String,Any?> {
+        val propNames = props.map { it.fieldName }.toSet()
+        return env.arguments.filterKeys(propNames::contains).mapValues { argumentValue(env, it.key) }
+        // return props.associate { it.fieldName to argumentValue(env, it.fieldName) }
+    }
 
     fun mutationField(metaData: MetaData, existing: Set<String>) : List<GraphQLFieldDefinition> {
         val idProperty = metaData.idProperty()
