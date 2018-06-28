@@ -329,7 +329,7 @@ class Cypher31Generator : CypherGenerator() {
         val name = field.name
         val typeName = fieldDefinition?.type?.inner() ?: "no field definition"
         val md = ctx.metaData(name) ?: ctx.metaData(typeName) ?: throw IllegalArgumentException("Cannot resolve as type $name or $typeName")
-        val variable = md.type
+        val variable = md.type.decapitalize()
         val orderBys = mutableListOf<Pair<String,Boolean>>()
         val procedure = if (isMutation) "updateForNodes" else "queryForNodes"
         val cypherDefinition = fieldDefinition?.cypher()
