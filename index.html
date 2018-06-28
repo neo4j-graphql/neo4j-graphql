@@ -1184,10 +1184,45 @@ Make sure to generate the <a href="https://developer.github.com/v4/guides/formin
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_neo4j_admin_api">Neo4j Admin API</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The project also contains an experimental endpoint to expose procedures deployed into Neo4j (built-in and external) as a GraphQL admin API endpoint.</p>
+</div>
+<div class="paragraph">
+<p>If you access <code>/graphql/admin</code> in GraphiQL or GraphQL Playground, you should see those separated into queries and mutations in the schema.</p>
+</div>
+<div class="paragraph">
+<p>You have to explicitely allow procedures to be exposed, via the config setting <code>graphql.admin.procedures.(read/write)</code> with either Neo4j procedure syntax or admin-endpoint field names.
+By setting it to:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>graphql.admin.procedures.read=db.*,dbms.components,dbms.queryJ*
+graphql.admin.procedures.write=db.create*,dbIndexExplicitFor*</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For documentation on each please check the provided description or the documentation of the original procedure in the Neo4j or other manuals.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="docs/img/neo4j-graphql-admin-simple.png" alt="neo4j graphql admin simple">
+</div>
+</div>
+<div class="paragraph">
+<p>You will have to provide the appropriate user credentials as HTTP Basic-Auth headers, the procedures are executed under the priviledges of that user.</p>
+</div>
+<div class="paragraph">
+<p>You can read more about it <a href="https://medium.com/@mesirii/using-a-graphql-api-for-database-administration">in this article</a>^.</p>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-05-17 01:28:41 CEST
+Last updated 2018-06-28 15:15:07 CEST
 </div>
 </div>
 </body>
