@@ -20,11 +20,13 @@ abstract class CypherGenerator {
         fun formatAnyValue(value: Any?): String =
                 when (value) {
                     null -> "null"
-                    is String -> "\"${value}\""
+                    is String -> if (isParam(value)) value else "\"${value}\""
                     is Map<*, *> -> "{" + value.map { it.key.toString() + ":" + formatAnyValue(it.value) }.joinToString(",") + "}"
                     is Iterable<*> -> "[" + value.map { formatAnyValue(it) }.joinToString(",") + "]"
                     else -> value.toString()
                 }
+
+        private fun isParam(value: String) = value.startsWith("{") && value.endsWith("}")
 
         fun formatValue(value: Value?): String =
                 when (value) {
