@@ -17,7 +17,7 @@ import kotlin.test.assertEquals
  */
 class FilterTest {
     private var db: GraphDatabaseService? = null
-    private var ctx: GraphQLContext? = null
+    private lateinit var ctx: GraphQLContext
     private var graphQL: GraphQL? = null
 
 
@@ -67,7 +67,8 @@ type Company {
     }
 
     private fun assertResult(query: String, expected: Any, params: Map<String,Any> = emptyMap()) {
-        val result = graphQL!!.execute(query, ctx, params)
+        val ctx2 = GraphQLContext(ctx.db, ctx.log, params)
+        val result = graphQL!!.execute(query, ctx2, params)
         if (result.errors.isNotEmpty()) println(result.errors)
         assertEquals(expected, result.getData())
     }
@@ -97,6 +98,14 @@ type Company {
         val query = """query filterQuery(${"$"}filter: _PersonFilter) { p: Person(filter: ${"$"}filter) { name }}"""
         assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))), params)
     }
+
+    @Test
+    fun nestedFilterParam() {
+        val params = mapOf("name" to "Jane")
+        val query = """query filterQuery(${"$"}name: String) { p: Person(filter: {name : ${"$"}name}) { name }}"""
+        assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))), params)
+    }
+
     @Test
     fun parameterRelationFilter() {
         val params = mapOf("filter" to mapOf("AND" to mapOf("name" to "Jane", "company" to mapOf("name_ends_with" to "ME"))))
