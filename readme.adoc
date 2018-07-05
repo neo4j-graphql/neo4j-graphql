@@ -1,6 +1,6 @@
 = Neo4j-GraphQL Extension
 :img: docs/img
-:branch: 3.3
+:branch: 3.4
 
 image::https://github.com/neo4j-graphql/graphql-community/raw/master/images/neo4j-graphql-logo.png[float=right,width=200]
 
@@ -419,7 +419,7 @@ Otherwise, we assume if you return object-types that you will return the appropr
 
 == Advanced Usage
 
-The extension works with Neo4j 3.1 and 3.2, the code on this branch is for *{branch}*.
+The extension works with Neo4j all 3.x versions, and the code on this branch is for *{branch}*.
 
 Please consult the https://neo4j.com/docs/operations-manual/current/configuration/file-locations/[Neo4j documentation^] for file locations for the other editions on the different operating systems.
 
@@ -429,8 +429,8 @@ Please consult the https://neo4j.com/docs/operations-manual/current/configuratio
 2. Copy the _jar-file_ into Neo4j's `plugins` directory
 3. Edit the Neo4j settings (`$NEO4J_HOME/conf/neo4j.conf`) to add: +
 `dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql`
-4. You might need to add `,graphql.*` if your config contains this line: +
-`dbms.security.procedures.whitelist=`
+4. You might need to add this line: +
+`dbms.security.procedures.unrestricted=graphql.*`
 5. (Re)start your Neo4j server
 
 NOTE: _Neo4j Desktop_: the configuration is available under *Manage -> Settings*, the `plugins` folder via *Open Folder*.
@@ -440,14 +440,14 @@ NOTE: _Neo4j Desktop_: the configuration is available under *Manage -> Settings*
 ----
 git clone https://github.com/neo4j-graphql/neo4j-graphql
 cd neo4j-graphql
-git checkout 3.2
+git checkout {branch}
 mvn clean package
 cp target/neo4j-graphql-*.jar $NEO4J_HOME/plugins
 echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> $NEO4J_HOME/conf/neo4j.conf
 $NEO4J_HOME/bin/neo4j restart
 ----
 
-NOTE: You might need to add `,graphql.*` if your config contains this line: `dbms.security.procedures.whitelist=`
+NOTE: You might need to add `,graphql.*` if your config contains this line: `dbms.security.procedures.unrestricted=`
 
 === Schema from Graph
 
@@ -754,4 +754,3 @@ curl -X POST http://localhost:7474/graphql/idl -d 'type Person {
 * make them queryable from graphql with __User {name, roles, admin, active}
 * support the permission queries from graph cool using the user and their roles
 ////
-
