@@ -1,5 +1,11 @@
 [
     {
+        "neo4j": "3.4.7",
+        "version": "3.4.0.1",
+        "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+    },
+    {
         "neo4j": "3.4.6",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
