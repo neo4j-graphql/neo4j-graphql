@@ -38,7 +38,7 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
     }
 
     val readProcedureNames = setOf("db.index.explicit.existsForRelationships",
-            "dbms.functions","dbms.procedures",
+            "dbms.functions","dbms.procedures","dbms.queryJmx",
             "dbms.getTXMetaData","dbms.listActiveLocks","dbms.listConfig","dbms.listQueries","dbms.listTransactions",
             "dbms.security.listRoles","dbms.security.listRolesForUser","dbms.security.listUsers","dbms.security.listUsersForRole",
             "dbms.security.showCurrentUser","dbms.showCurrentUser","dbms.components",

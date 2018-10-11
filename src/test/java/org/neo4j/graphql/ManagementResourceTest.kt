@@ -115,15 +115,19 @@ class ManagementResourceTest {
     }
     @Test
     fun executeCreateIndex() {
-        val result = ManagementResource(log, db).executeQuery(mapOf("query" to """mutation {res:dbIndexExplicitForNodes(indexName:"Foo") {type,name,config { key, value, type }}}"""))
-        val config = listOf(mapOf("key" to "type", "value" to "exact", "type" to "String"), mapOf("key" to "provider", "value" to "lucene", "type" to "String"))
-        assertEquals(mapOf("res" to listOf(mapOf("type" to "NODE", "name" to "Foo", "config" to config))),result["data"])
+        val result = ManagementResource(log, db).executeQuery(mapOf("query" to """mutation {res:dbIndexExplicitForNodes(indexName:"Foo",config:{}) {type,name,config { key, value, type }}}"""))
+        val config = setOf(mapOf("key" to "type", "value" to "exact", "type" to "String"), mapOf("key" to "provider", "value" to "lucene", "type" to "String"))
+        val res2 = ((((result["data"] as Map<*,*>)["res"] as List<*>).first()) as Map<String,Any>).toMutableMap()
+        res2["config"] = (res2["config"] as List<*>).toSet()
+        assertEquals(mapOf("type" to "NODE", "name" to "Foo", "config" to config),res2)
     }
 
     @Test
     fun executeCreateIndexWithConfig() {
         val result = ManagementResource(log, db).executeQuery(mapOf("query" to """mutation {res:dbIndexExplicitForNodes(indexName:"Bar",config:[{key:"type",value:"fulltext"},{key:"provider",value:"lucene"}]) {type,name,config { key, value, type }}}""")) // ,{key:"foo",value:"42",type:Integer}
-        val config = listOf(mapOf("key" to "type", "value" to "fulltext", "type" to "String"), mapOf("key" to "to_lower_case", "value" to "true", "type" to "String"), mapOf("key" to "provider", "value" to "lucene", "type" to "String"))
-        assertEquals(mapOf("res" to listOf(mapOf("type" to "NODE", "name" to "Bar", "config" to config))),result["data"])
+        val config = setOf(mapOf("key" to "type", "value" to "fulltext", "type" to "String"), mapOf("key" to "to_lower_case", "value" to "true", "type" to "String"), mapOf("key" to "provider", "value" to "lucene", "type" to "String"))
+        val res2 = ((((result["data"] as Map<*,*>)["res"] as List<*>).first()) as Map<String,Any>).toMutableMap()
+        res2["config"] = (res2["config"] as List<*>).toSet()
+        assertEquals(mapOf("type" to "NODE", "name" to "Bar", "config" to config),res2)
     }
 }

@@ -1,6 +1,6 @@
 = Neo4j-GraphQL Extension
 :img: docs/img
-:branch: 3.3
+:branch: 3.5
 
 image::https://github.com/neo4j-graphql/graphql-community/raw/master/images/neo4j-graphql-logo.png[float=right,width=200]
 
