@@ -419,7 +419,7 @@ Otherwise, we assume if you return object-types that you will return the appropr
 
 == Advanced Usage
 
-The extension works with Neo4j 3.1 and 3.2, the code on this branch is for *{branch}*.
+The extension works with Neo4j 3.x, the code on this branch is for *{branch}*.
 
 Please consult the https://neo4j.com/docs/operations-manual/current/configuration/file-locations/[Neo4j documentation^] for file locations for the other editions on the different operating systems.
 
@@ -437,10 +437,11 @@ NOTE: _Neo4j Desktop_: the configuration is available under *Manage -> Settings*
 
 === Building manually
 
+[subst=attributes]
 ----
 git clone https://github.com/neo4j-graphql/neo4j-graphql
 cd neo4j-graphql
-git checkout 3.2
+git checkout {branch}
 mvn clean package
 cp target/neo4j-graphql-*.jar $NEO4J_HOME/plugins
 echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' >> $NEO4J_HOME/conf/neo4j.conf
