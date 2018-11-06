@@ -435,6 +435,8 @@ Please consult the https://neo4j.com/docs/operations-manual/current/configuratio
 
 NOTE: _Neo4j Desktop_: the configuration is available under *Manage -> Settings*, the `plugins` folder via *Open Folder*.
 
+NOTE: If you run Neo4j via Docker add to your environment: `-e NEO4J_dbms_unmanaged__extension__classes=org.neo4j.graphql=/graphql`.
+
 === Building manually
 
 ----
