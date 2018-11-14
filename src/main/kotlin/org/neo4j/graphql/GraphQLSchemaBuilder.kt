@@ -524,7 +524,6 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 }
                 .build()
 
-
         if (idProperty == null)
             return listOf(createMutation)
         else {
@@ -539,7 +538,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     .dataFetcher { env ->
                         val params = mapOf<String, Any>(
                                 "id" to argumentValue(env,idProperty.fieldName),
-                                "properties" to toArguments(nonIdProperties,env)).filter { it.value != null }
+                                "properties" to toArguments(nonIdProperties,env).filter { it.value != null })
 
                         val statement = "MATCH (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) SET node += {properties}"
 
@@ -556,9 +555,11 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     .dataFetcher { env ->
                         val params = mapOf<String, Any>(
                                 "id" to argumentValue(env,idProperty.fieldName),
-                                "properties" to toArguments(nonIdProperties,env)).filter { it.value != null }
+                                "properties" to toArguments(nonIdProperties,env).filter { it.value != null })
 
                         val statement = "MERGE (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) SET node += {properties}"
+
+                        println(params.get("properties"))
 
                         executeUpdate(env, statement, params)
                     }
