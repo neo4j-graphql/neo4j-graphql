@@ -117,6 +117,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
         if (value == null || value.isNullOrBlank()|| value == "null") emptyMap()
         else {
             val v = value.trim('"',' ','\t','\n','\r')
+            println(v)
             OBJECT_MAPPER.readValue(v, Map::class.java) as Map<String, Any>
         }
 

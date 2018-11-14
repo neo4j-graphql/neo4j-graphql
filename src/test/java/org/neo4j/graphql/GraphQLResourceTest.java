@@ -237,6 +237,7 @@ public class GraphQLResourceTest {
         Map<String, Object> result = postIdl(map("query","type Person"), 500);
         Object errors = result.get("error");
         assertNotNull(errors);
+        assertNotNull(errors);
         assertTrue(errors.toString().contains("Error parsing IDL expected '{' got '<EOF>' line 1 column 11"));
 
         Map<String, Object> result2 = postIdl(map("query","type Person {name:String}"), 200);

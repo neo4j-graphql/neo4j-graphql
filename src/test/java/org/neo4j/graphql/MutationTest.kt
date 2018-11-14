@@ -90,6 +90,15 @@ type MutationType {
         assertEquals(mapOf("m" to
                 "Nodes created: 1\nProperties set: 2\nLabels added: 1\n"), result.getData())
     }
+
+    @Test
+    fun mergeMovie() {
+        val result = graphQL!!.execute("""mutation { m: mergeMovie(title:"Forrest Gump", released:1994) }""", ctx)
+        if (result.errors.isNotEmpty()) println(result.errors)
+        assertEquals(mapOf("m" to
+                "Nodes created: 1\nProperties set: 2\nLabels added: 1\n"), result.getData())
+    }
+
     @Test
     fun addActors() {
         val result = graphQL!!.execute("""mutation {

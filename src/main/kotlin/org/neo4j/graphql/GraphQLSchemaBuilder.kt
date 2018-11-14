@@ -507,6 +507,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         it.fieldName to argumentValue(env, it.fieldName) }
 
     fun mutationField(metaData: MetaData, existing: Set<String>) : List<GraphQLFieldDefinition> {
+
         val idProperty = metaData.idProperty()
 
         val updatableProperties = metaData.properties.values.filter { !it.isComputed() }
@@ -538,13 +539,31 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     .dataFetcher { env ->
                         val params = mapOf<String, Any>(
                                 "id" to argumentValue(env,idProperty.fieldName),
-                                "properties" to toArguments(nonIdProperties,env))
+                                "properties" to toArguments(nonIdProperties,env)).filter { it.value != null }
 
                         val statement = "MATCH (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) SET node += {properties}"
 
                         executeUpdate(env, statement, params)
                     }
                     .build()
+
+            val mergeMutation = GraphQLFieldDefinition.newFieldDefinition()
+                    .name(handleCollisions(existing,"merge" + metaData.type))
+                    .description("Merge a ${metaData.type} entity")
+                    .type(GraphQLString)
+                    .argument(GraphQLArgument(idProperty.fieldName, graphQlInType(idProperty.type)))
+                    .argument(nonIdProperties.map { GraphQLArgument(it.fieldName, graphQlInType(it.type)) })
+                    .dataFetcher { env ->
+                        val params = mapOf<String, Any>(
+                                "id" to argumentValue(env,idProperty.fieldName),
+                                "properties" to toArguments(nonIdProperties,env)).filter { it.value != null }
+
+                        val statement = "MERGE (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) SET node += {properties}"
+
+                        executeUpdate(env, statement, params)
+                    }
+                    .build()
+
             val deleteMutation = GraphQLFieldDefinition.newFieldDefinition()
                     .name(handleCollisions(existing,"delete" + metaData.type))
                     .description("Deletes a ${metaData.type} entity")
@@ -560,7 +579,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     }
                     .build()
 
-            return listOf(createMutation, updateMutation, deleteMutation)
+            return listOf(createMutation, updateMutation, deleteMutation, mergeMutation)
         }
 
     }
