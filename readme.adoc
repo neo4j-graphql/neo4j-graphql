@@ -107,6 +107,14 @@ To visualize your GraphQL schema in Neo4j Browser use: `call graphql.schema()`.
 
 image::{img}/graphql.schema.jpg[width=600]
 
+Using
+
+----
+RETURN graphql.getIdl()
+----
+
+you'll get back a string representation of the currently used schema.
+
 === Auto-Generated Query Types
 
 From that schema, the plugin automatically generate *Query Types* for each of the declared types.

@@ -141,6 +141,58 @@ public class GraphQLResourceTest {
         testCypherCall(call);
     }
 
+    @Test
+    public void testGetIdl() {
+        String idl = neo4j.graph().execute("return graphql.getIdl() as schema").<String>columnAs("schema").next();
+        idl = idl.replaceAll("(?m)^\\s*#.+\\n","");
+        assertTrue(idl.contains("schema {\n" +
+                "  query: QueryType\n" +
+                "  mutation: MutationType\n" +
+                "}"));
+        assertTrue(idl.contains("type Movie {"));
+        assertTrue(idl.contains("type MutationType {\n" +
+                "  createMovie(released: Long, title: String): String\n" +
+                "  createPerson(born: Long, name: String): String\n" +
+                "}"));
+        assertTrue(idl.contains("\n" +
+                "  Movie(\n" +
+                "  _id: Long, \n" +
+                "  _ids: [Long], \n" +
+                "  filter: _MovieFilter, \n" +
+                "  first: Int, \n" +
+                "  offset: Int, \n" +
+                "  orderBy: [_MovieOrdering], \n" +
+                "  released: Long, \n" +
+                "  releaseds: [Long], \n" +
+                "  title: String, \n" +
+                "  titles: [String]\n" +
+                "  ): [Movie]"));
+        assertTrue(idl.contains("type Person {\n" +
+                "  _id: Long\n" +
+                "  actedIn(\n" +
+                "  filter: _MovieFilter, \n" +
+                "  orderBy: [_MovieOrdering], \n" +
+                "  released: Long, \n" +
+                "  releaseds: [Long], \n" +
+                "  title: String, \n" +
+                "  titles: [String]\n" +
+                "  ): Movie\n" +
+                "  born: Long\n" +
+                "  name: String\n" +
+                "}"));
+        assertTrue(idl.contains("enum _MovieOrdering {"));
+        assertTrue(idl.contains("enum _PersonOrdering {\n" +
+                "  born_asc\n" +
+                "  born_desc\n" +
+                "  name_asc\n" +
+                "  name_desc\n" +
+                "}"));
+        assertTrue(idl.contains("input _MovieFilter {"));
+        assertTrue(idl.contains("input _PersonFilter {"));
+        System.out.println(idl);
+        assertTrue(idl.length() > 2000);
+    }
+
     private void testCypherCall(String call) {
         String query = "MATCH (p:Person {born:{born}}) RETURN p {.name,.born}";
         GraphDatabaseService db = neo4j.graph();

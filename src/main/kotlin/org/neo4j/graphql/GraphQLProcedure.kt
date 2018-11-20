@@ -1,6 +1,7 @@
 package org.neo4j.graphql
 
 import graphql.ExecutionInput
+import graphql.schema.idl.SchemaPrinter
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
@@ -65,6 +66,12 @@ class GraphQLProcedure {
             val storeIdl = GraphSchemaScanner.storeIdl(db!!, idl)
             return Stream.of(StringResult(storeIdl.toString()))
         }
+    }
+
+    @UserFunction( "graphql.getIdl")
+    fun getIdl() : String {
+        val schema = GraphQLSchemaBuilder.buildSchema(db!!)
+        return SchemaPrinter().print(schema)
     }
 
     @Procedure("graphql.schema")
