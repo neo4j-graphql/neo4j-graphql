@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.server.HTTP;
 
 import java.net.URL;
@@ -139,6 +140,12 @@ public class GraphQLResourceTest {
                 "RETURN labels(`Person`) AS `_labels`,\n" +
                 "`Person` {.`name`, .`born`} AS `row`";
         testCypherCall(call);
+    }
+
+    @Test
+    public void testGetIdl() {
+        String idl = Iterators.single(neo4j.graph().execute("return graphql.getIdl() as schema").columnAs("schema"));
+        assertEquals(4164, idl.length());
     }
 
     private void testCypherCall(String call) {
