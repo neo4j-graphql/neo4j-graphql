@@ -14,9 +14,11 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GraphQLSchemaBuilderTest {
+
     @Test
     fun emptyNode() {
         GraphSchemaScanner.schema = null
+        GraphSchemaScanner.allTypes.clear()
         val md = MetaData("Actor")
         val schema = GraphQLSchemaBuilder(listOf(md))
         val type: GraphQLObjectType = schema.toGraphQLObjectType(md)
@@ -35,6 +37,7 @@ class GraphQLSchemaBuilderTest {
     @Test
     fun mutationField() {
         GraphSchemaScanner.schema = null
+        GraphSchemaScanner.allTypes.clear()
         val md = MetaData("Actor")
         md.addLabel("Person")
         md.addProperty("name", MetaData.PropertyType("String", nonNull = 1))
@@ -109,6 +112,7 @@ schema {
 }
 """
         try {
+            GraphSchemaScanner.allTypes.clear()
             GraphSchemaScanner.schema = idl
 
             val document = Parser().parseDocument(idl)
@@ -152,6 +156,7 @@ type TestObject {
 }
 """
         try {
+            GraphSchemaScanner.allTypes.clear()
             GraphSchemaScanner.schema = idl
 
             val document = Parser().parseDocument(idl)

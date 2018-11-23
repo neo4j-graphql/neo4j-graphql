@@ -40,6 +40,7 @@ type Movie  {
     @After
     @Throws(Exception::class)
     fun tearDown() {
+        GraphSchemaScanner.deleteIdl(db!!)
         db?.shutdown()
     }
 
