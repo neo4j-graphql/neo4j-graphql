@@ -1,5 +1,17 @@
 [
     {
+        "neo4j": "3.5.0",
+        "version": "3.5.0.1",
+        "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.1/neo4j-graphql-3.5.0.1.jar"
+    },
+    {
+        "neo4j": "3.5.0-rc01",
+        "version": "3.5.0.0",
+        "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+    },
+    {
         "neo4j": "3.5.0-beta03",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
@@ -70,6 +82,12 @@
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
         "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+    },
+    {
+        "neo4j": "3.4.10",
+        "version": "3.4.0.1",
+        "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
     },
     {
         "neo4j": "3.4.9",
