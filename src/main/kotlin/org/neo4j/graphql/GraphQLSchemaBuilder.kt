@@ -522,7 +522,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 .type(GraphQLString)
                 .argument(updatableProperties.map { GraphQLArgument(it.fieldName, graphQlInType(it.type)) })
                 .dataFetcher{ env ->
-                    val statement = "CREATE (node:${metaData.type}) SET node = {properties} " + metaData.labels.map { "SET node:`$it`" }.joinToString(", ")
+                    val statement = "CREATE (node:${metaData.type}) SET node = {properties} " + metaData.labels.map { "SET node:`$it`" }.joinToString(" ")
                     val params = mapOf<String, Any>("properties" to toArguments(updatableProperties,env))
                     executeUpdate(env, statement, params)
                 }
