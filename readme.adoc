@@ -220,7 +220,7 @@ mutation {
 }
 ----
 
-If the same mutations is called multiple times, you _need to use alias prefixes_ to avoid clashes in the returned data, which is keyed on mutation names.
+If multiple mutations are sent as part of the same request, they will be executed in the same transaction (meaning if one of them fails they will all fail). If the same mutation is called multiple times, you _need to use alias prefixes_ to avoid clashes in the returned data, which is keyed on mutation names.
 
 image::{img}/graphiql-mutation.jpg[]
 
