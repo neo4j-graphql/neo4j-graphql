@@ -48,7 +48,7 @@ To generate some graph data in Neo4j just run http://localhost:7474/browser?cmd=
 
 The best tool to use is https://electronjs.org/apps/graphiql[GraphiQL^] the GraphQL UI. Get and install it.
 
-Enter your GraphQL URL, like `http://localhost:7474/graphql/` (_note the trailing slash_).
+Enter your GraphQL URL, like `+http://localhost:7474/graphql/+` (_note the trailing slash_).
 
 If your Neo4j Server runs with *authentication enabled*, add the appropriate Basic-Auth (https://www.base64encode.org/[base64 encoded^]) `username:password` header in the "Edit HTTP Headers" screen.
 
