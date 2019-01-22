@@ -1,4 +1,4 @@
- = Neo4j-GraphQL Extension
+= Neo4j-GraphQL Extension
 :img: docs/img
 :branch: 3.3
 
