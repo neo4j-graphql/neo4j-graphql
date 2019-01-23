@@ -89,6 +89,7 @@ CALL graphql.idl('
 type Movie  {
   title: String!
   released: Int
+  tagline: String
   actors: [Person] @relation(name:"ACTED_IN",direction:IN)
 }
 type Person {
@@ -148,7 +149,7 @@ image::{img}/graphiql-query1.jpg[]
 .Advanced query example
 [source,graphql]
 ----
-query Nineties($released: Long, $letter: String)
+query Nineties($released: Int, $letter: String)
 { Movie(released: $released,
         filter: {title_starts_with: $letter,
                  actors_some: { name_contains: $letter}}) {
