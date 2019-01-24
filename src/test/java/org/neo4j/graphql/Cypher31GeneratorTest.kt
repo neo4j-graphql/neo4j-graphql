@@ -361,6 +361,33 @@ graphql.runSingle('WITH {this} AS this RETURN 2', {`this`:`person`}) AS `score`"
 
     @Test
     @Throws(Exception::class)
+    fun cypherDirectiveParameterArgument() {
+        val metaData = IDLParser.parse("""
+        type Person {
+            name: String
+            born: Int
+            score(x:Int): Int @cypher(statement: "RETURN {x}")
+        }
+        """)
+
+        GraphSchemaScanner.allTypes.putAll(metaData)
+
+        val generator = Cypher31Generator()
+
+        val selectionSet = SelectionSet(listOf<Selection>(Field("score",listOf(Argument("x", VariableReference("v"))))))
+
+        val field = Field("Person", selectionSet)
+
+        val query = generator.generateQueryForField(field,params = mapOf("v" to 42))
+
+        assertEquals(
+                """MATCH (`person`:`Person`)
+RETURN graphql.labels(`person`) AS `_labels`,
+graphql.runSingle('WITH {this} AS this RETURN {x}', {`this`:`person`,`x`:{`v`}}) AS `score`""",  query)
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun cypherDirectiveScalarArray() {
         val metaData = IDLParser.parse("""
         type Person {
