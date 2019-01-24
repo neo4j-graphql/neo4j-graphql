@@ -236,8 +236,7 @@ class Cypher31Generator : CypherGenerator() {
 
         return if (!cypherStatement.isNullOrEmpty()) {
 
-            val arguments = f.arguments.associate { it.name to it.value.extract() }
-                    .mapValues { if (it.value is String) "\"${it.value}\"" else it.value.toString() }
+            val arguments = f.arguments.associate { it.name to it.value.cypherValue() }
 
             val params = (mapOf("this" to "`$variable`") + arguments).entries
                     .joinToString(",", "{", "}") { "`${it.key}`:${it.value}" }

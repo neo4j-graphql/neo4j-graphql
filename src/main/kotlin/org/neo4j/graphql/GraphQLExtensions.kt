@@ -18,6 +18,20 @@ fun Value.extract(): Any =
             is NullValue -> IsNullOperator()
             else -> throw IllegalArgumentException("Unknown Value $this ${this.javaClass}")
         }
+
+fun Value.cypherValue(): String =
+        when (this) {
+            is ObjectValue -> this.objectFields.map { "`${it.name}` : ${it.value.cypherValue()}" }.joinToString(",","{","}")
+            is IntValue -> this.value.toLong().toString()
+            is FloatValue -> this.value.toDouble().toString()
+            is BooleanValue -> this.isValue.toString()
+            is StringValue -> '"'+this.value+'"'
+            is EnumValue -> '"'+this.name+'"'
+            is VariableReference -> "{`${this.name}`}" // todo $name
+            is ArrayValue -> this.values.map { it.cypherValue() }.toList().joinToString(",","[","]")
+            is NullValue -> "null"
+            else -> throw IllegalArgumentException("Unknown Value $this ${this.javaClass}")
+        }
 fun Field.cypher() = this.getDirective("cypher")?.let { Pair(it.getArgument("statement").value.extract(), it.getArgument("params")?.value?.extract()) }
 
 abstract class UnaryOperator
