@@ -4,7 +4,7 @@ import javax.ws.rs.*
 import javax.ws.rs.core.Response
 
 @Path("ui")
-class GraphiQLRessource() {
+class GraphiQLResource() {
 
   @Path("{path:.*}")
   @GET
