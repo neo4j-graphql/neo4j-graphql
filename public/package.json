@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack -p",
-    "build:dev": "webpack -d"
+    "build": "webpack -p --output-path ../src/main/resources/WEB-INF/public",
+    "build:dev": "webpack -d --output-path ../src/main/resources/WEB-INF/public"
   },
   "author": "",
   "license": "ISC",

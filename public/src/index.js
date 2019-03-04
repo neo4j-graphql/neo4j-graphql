@@ -3,7 +3,6 @@ import 'file-loader?name=./main.css!graphiql/graphiql.css';
 import React from 'react';
 import {render} from 'react-dom';
 import GraphiQL from 'graphiql';
-import fetch from 'isomorphic-fetch';
 
 /**
 * This GraphiQL example illustrates how to use some of GraphiQL's props
