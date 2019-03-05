@@ -6,7 +6,7 @@
 
     <groupId>org.neo4j</groupId>
     <artifactId>neo4j-graphql</artifactId>
-    <version>3.5.0.1</version>
+    <version>3.5.1.0</version>
 
     <licenses>
         <license>
