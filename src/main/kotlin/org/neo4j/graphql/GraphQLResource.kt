@@ -1,6 +1,7 @@
 package org.neo4j.graphql
 
 import graphql.ExecutionInput
+import graphql.schema.idl.SchemaPrinter
 import org.codehaus.jackson.map.ObjectMapper
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.logging.Log
@@ -68,6 +69,14 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     fun deleteIdl(): Response {
         GraphSchemaScanner.deleteIdl(db)
         return Response.ok().build() // todo JSON
+    }
+
+    @Path("/idl")
+    @GET
+    fun getIdl(): Response {
+        val schema = GraphQLSchemaBuilder.buildSchema(db!!)
+        val printed = SchemaPrinter().print(schema)
+        return Response.ok().entity(printed).build() // todo JSON
     }
 
     private fun executeQuery(params: Map<String, Any>): Response {
