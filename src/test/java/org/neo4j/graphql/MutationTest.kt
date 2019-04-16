@@ -91,6 +91,17 @@ type MutationType {
                 "Nodes created: 1\nProperties set: 2\nLabels added: 1\n"), result.getData())
     }
     @Test
+    fun mergeMovie() {
+        var result = graphQL!!.execute("""mutation { m: mergeMovie(title:"Forrest Gump", released:1994) }""", ctx)
+        if (result.errors.isNotEmpty()) println(result.errors)
+        assertEquals(mapOf("m" to
+                "Nodes created: 1\nProperties set: 2\nLabels added: 1\n"), result.getData())
+        result = graphQL!!.execute("""mutation { m: mergeMovie(title:"Forrest Gump", released:1995) }""", ctx)
+        if (result.errors.isNotEmpty()) println(result.errors)
+        assertEquals(mapOf("m" to
+                "Properties set: 1\n"), result.getData())
+    }
+    @Test
     fun addActors() {
         val result = graphQL!!.execute("""mutation {
          m: createMovie(title:"Forrest Gump", released:1994)
