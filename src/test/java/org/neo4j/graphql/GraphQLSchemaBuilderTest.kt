@@ -54,7 +54,7 @@ class GraphQLSchemaBuilderTest {
 
         val mutationField: GraphQLFieldDefinition = GraphQLSchemaBuilder(listOf(md)).mutationField(md, emptySet())[0]
         println("mutationField = ${mutationField}")
-        assertEquals("createActor", mutationField.name)
+        assertEquals("mergeActor", mutationField.name)
         println(mutationField.dataFetcher.toString())
 //        assertEquals(true, mutationField.dataFetcher.toString().contains("SET node:`Person`"))
     }
