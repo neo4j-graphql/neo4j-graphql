@@ -507,7 +507,6 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         it.fieldName to argumentValue(env, it.fieldName) }
 
     fun mutationField(metaData: MetaData, existing: Set<String>) : List<GraphQLFieldDefinition> {
-
         val idProperty = metaData.idProperty()
 
         val updatableProperties = metaData.properties.values.filter { !it.isComputed() }
@@ -524,6 +523,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 }
                 .build()
 
+
         if (idProperty == null)
             return listOf(createMutation)
         else {
@@ -538,7 +538,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     .dataFetcher { env ->
                         val params = mapOf<String, Any>(
                                 "id" to argumentValue(env,idProperty.fieldName),
-                                "properties" to toArguments(nonIdProperties,env).filter { it.value != null })
+                                "properties" to toArguments(nonIdProperties,env))
 
                         val statement = "MATCH (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) SET node += {properties}"
 
