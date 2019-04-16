@@ -41,11 +41,24 @@ class GraphQLSchemaBuilderTest {
         val md = MetaData("Actor")
         md.addLabel("Person")
         md.addProperty("name", MetaData.PropertyType("String", nonNull = 1))
-        val mutationField: GraphQLFieldDefinition = GraphQLSchemaBuilder(listOf(md)).mutationField(md, emptySet())[0]
-        println("mutationField = ${mutationField}")
-        assertEquals("createActor", mutationField.name)
-        println(mutationField.dataFetcher.toString())
-//        assertEquals(true, mutationField.dataFetcher.toString().contains("SET node:`Person`"))
+        val mutationFields = GraphQLSchemaBuilder(listOf(md)).mutationField(md, emptySet())
+        assertEquals(1,mutationFields.size)
+        assertEquals("createActor", mutationFields[0].name)
+    }
+
+    @Test
+    fun mutationFieldID() {
+        GraphSchemaScanner.schema = null
+        GraphSchemaScanner.allTypes.clear()
+        val md = MetaData("Actor")
+        md.addLabel("Person")
+        md.addProperty("name", MetaData.PropertyType("ID", nonNull = 1))
+        val mutationFields = GraphQLSchemaBuilder(listOf(md)).mutationField(md, emptySet())
+        assertEquals(4,mutationFields.size)
+        assertEquals("createActor", mutationFields[0].name)
+        assertEquals("updateActor", mutationFields[1].name)
+        assertEquals("mergeActor",  mutationFields[2].name)
+        assertEquals("deleteActor", mutationFields[3].name)
     }
 
     @Test

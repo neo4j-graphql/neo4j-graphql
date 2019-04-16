@@ -202,7 +202,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         builder = builder.typeResolver { env ->
             val cypherResult = env.`object`
             val row = cypherResult as Map<String,Any>
-            val allLabels = row?.get("_labels") as List<String>?
+            val allLabels = row.get("_labels") as List<String>?
             // we also have to add the interfaces to the mutation on create
             val firstRemainingLabel: String? = allLabels?.filterNot { it == interfaceName }?.firstOrNull() // would be good to have a "Node" superlabel? like Relay has
 
@@ -347,9 +347,9 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             val result = mutableMapOf<String,Any>()
             fun resolve(field : Field) : Unit {
                 val parentType = fieldTypeInfo.castType(GraphQLObjectType::class.java)
-                val fieldDef = schema.getFieldVisibility().getFieldDefinition(parentType, field.getName());
+                val fieldDef = schema.fieldVisibility.getFieldDefinition(parentType, field.name)
 
-                result.putAll(valuesResolver.getArgumentValues(fieldDef.getArguments(), field.getArguments(), variables))
+                result.putAll(valuesResolver.getArgumentValues(fieldDef.arguments, field.arguments, variables))
                 field.selectionSet.selections.filterIsInstance<Field>().forEach { resolve(it) }
             }
             fields.forEach { resolve(it) }
@@ -550,6 +550,24 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                         executeUpdate(env, statement, params)
                     }
                     .build()
+
+            val mergeMutation = GraphQLFieldDefinition.newFieldDefinition()
+                    .name(handleCollisions(existing, "merge" + metaData.type))
+                    .description("Merge a ${metaData.type} entity")
+                    .type(GraphQLString)
+                    .argument(GraphQLArgument(idProperty.fieldName, graphQlInType(idProperty.type)))
+                    .argument(nonIdProperties.map { GraphQLArgument(it.fieldName, graphQlInType(it.type)) })
+                    .dataFetcher { env ->
+                        val params = mapOf<String, Any>(
+                                "id" to argumentValue(env, idProperty.fieldName),
+                                "properties" to toArguments(nonIdProperties, env))
+
+                        val statement = "MERGE (node:`${metaData.type}` {`${idProperty.fieldName}`:{id}}) SET node += {properties}"
+
+                        executeUpdate(env, statement, params)
+                    }
+                    .build()
+
             val deleteMutation = GraphQLFieldDefinition.newFieldDefinition()
                     .name(handleCollisions(existing,"delete" + metaData.type))
                     .description("Deletes a ${metaData.type} entity")
@@ -565,7 +583,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                     }
                     .build()
 
-            return listOf(createMutation, updateMutation, deleteMutation)
+            return listOf(createMutation, updateMutation, mergeMutation, deleteMutation)
         }
 
     }
