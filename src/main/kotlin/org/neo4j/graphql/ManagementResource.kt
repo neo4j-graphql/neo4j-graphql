@@ -174,7 +174,7 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
         val arguments = env.fieldDefinition.arguments
         val mapArgs = arguments.filter { it.type.inner().name == "AttributeInput" }.associate { it.name to argToMap(env.getArgument<List<Map<String,String>>>(it.name)) }
         val passedArgNames = arguments.map { it.name }.filter(env::containsArgument)
-        val args = env.arguments + mapArgs
+        val args = (env.arguments + mapArgs).filterKeys { passedArgNames.contains(it) }
         val result = env.getContext<GraphQLContext>().db.execute("CALL ${proc.name()}(${passedArgNames.map { "$" + it }.joinToString(",")})", args)
         return if (proc.isVoid) true else result.asSequence().map { it.mapValues { safeValue(it.value) } }.toList()
     }
