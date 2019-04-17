@@ -1,5 +1,6 @@
 package org.neo4j.graphql;
 
+import graphql.schema.GraphQLSchema;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -260,6 +261,10 @@ public class GraphQLResourceTest {
         } catch(RuntimeException e) {
             assertEquals(true, e.getMessage().contains("Error parsing IDL expected '{' got '<EOF>' line 1 column 11"));
         }
+        try (ResourceIterator<String> it = db.execute("CALL graphql.idl('type Person {name:String}')").columnAs("value")) {
+            assertEquals(true, it.next().startsWith("{Person=MetaData{type='Person', properties={name=PropertyInfo(fieldName=name, type=String"));
+        }
+        try (Result it = db.execute("CALL graphql.reset()")) { }
         try (ResourceIterator<String> it = db.execute("CALL graphql.idl('type Person {name:String}')").columnAs("value")) {
             assertEquals(true, it.next().startsWith("{Person=MetaData{type='Person', properties={name=PropertyInfo(fieldName=name, type=String"));
         }

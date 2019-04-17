@@ -16,6 +16,8 @@ class GraphSchemaScanner {
         internal val allTypes = LinkedHashMap<String, MetaData>()
         internal var schema : String? = null
 
+        val IDL_PROPERTY = "graphql.idl"
+        val IDL_UPDATE_PROPERTY = "graphql.idl.update"
         val DENSE_NODE = 50
 
         @JvmStatic fun from(db: GraphDatabaseService, label: Label): MetaData {
@@ -29,7 +31,10 @@ class GraphSchemaScanner {
             val metaDatas = IDLParser.parse(schema)
             val tx = db.beginTx()
             try {
-                graphProperties(db).setProperty("graphql.idl", schema)
+                graphProperties(db).let {
+                    it.setProperty(IDL_PROPERTY, schema)
+                    it.setProperty(IDL_UPDATE_PROPERTY, System.currentTimeMillis())
+                }
                 tx.success()
                 return metaDatas
             } finally {
@@ -39,8 +44,8 @@ class GraphSchemaScanner {
         }
 
         private fun graphProperties(db: GraphDatabaseService): GraphProperties {
-            val nodeManager = (db as (GraphDatabaseAPI)).getDependencyResolver().resolveDependency(EmbeddedProxySPI::class.java)
-            val props = nodeManager.newGraphPropertiesProxy();
+            val nodeManager = (db as (GraphDatabaseAPI)).dependencyResolver.resolveDependency(EmbeddedProxySPI::class.java)
+            val props = nodeManager.newGraphPropertiesProxy()
             return props
         }
 
@@ -48,7 +53,10 @@ class GraphSchemaScanner {
             val tx = db.beginTx()
             try {
                 val props = graphProperties(db)
-                if (props.hasProperty("graphql.idl")) props.removeProperty("graphql.idl")
+                if (props.hasProperty(IDL_PROPERTY)) {
+                    props.removeProperty(IDL_PROPERTY)
+                    props.setProperty(IDL_UPDATE_PROPERTY, System.currentTimeMillis())
+                }
                 tx.success()
             } finally {
                 tx.close()
@@ -60,7 +68,7 @@ class GraphSchemaScanner {
         fun readIdl(db: GraphDatabaseService) : String? {
             val tx = db.beginTx()
             try {
-                val schema = graphProperties(db).getProperty("graphql.idl", null) as String?
+                val schema = graphProperties(db).getProperty(IDL_PROPERTY, null) as String?
                 tx.success()
                 return schema
             } finally {
@@ -68,8 +76,19 @@ class GraphSchemaScanner {
             }
         }
 
+        fun readIdlUpdate(db: GraphDatabaseService) : Long {
+            val tx = db.beginTx()
+            try {
+                val update = graphProperties(db).getProperty(IDL_UPDATE_PROPERTY, 0L) as Long
+                tx.success()
+                return update
+            } finally {
+                tx.close()
+            }
+        }
+
         fun databaseSchema(db: GraphDatabaseService) {
-            allTypes.clear();
+            allTypes.clear()
             schema = readIdl(db)
             val idlMetaData = readIdlMetadata(db)
             if (idlMetaData != null) {
