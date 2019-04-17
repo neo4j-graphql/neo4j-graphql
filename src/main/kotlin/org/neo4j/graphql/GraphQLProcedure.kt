@@ -37,6 +37,11 @@ class GraphQLProcedure {
         return doExecute(variables, query, operation)
     }
 
+    @Procedure("graphql.reset", mode = Mode.READ)
+    fun reset() {
+        return GraphSchema.reset()
+    }
+
     private fun doExecute(variables: Map<String, Any>, query: String, operation: String?): Stream<GraphQLResult> {
         val ctx = GraphQLContext(db!!, log!!, variables)
         val execution = ExecutionInput.Builder()
@@ -193,7 +198,7 @@ class GraphQLProcedure {
             val node = nodes[n.type]!!
             n.relationships.values.map { rel ->
                 nodes[rel.label]?.let { labelNode ->
-                    val (start, end) = if (rel.out) node to labelNode!! else labelNode!! to node
+                    val (start, end) = if (rel.out) node to labelNode else labelNode to node
                     VirtualRelationship(start, rel.fieldName, mapOf("type" to rel.type, "multi" to rel.multi), end)
                 }
             }.filterNotNull()
