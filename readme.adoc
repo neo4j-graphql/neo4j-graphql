@@ -104,6 +104,10 @@ You should then be able to see your schema in the _Docs_ section of GraphiQL.
 
 This also gives you auto-completion, validation and hints when writing queries.
 
+With `graphql.reset()` you can trigger the reset of you schema.
+But it also updates automatically if changed on other cluster members.
+Latest after 10 seconds.
+
 To visualize your GraphQL schema in Neo4j Browser use: `call graphql.schema()`.
 
 image::{img}/graphql.schema.jpg[width=600]
@@ -183,6 +187,7 @@ Additionally *Mutations* for each type are created, which return update statisti
 e.g. for the `Movie` type:
 
 * `createMovie(title: ID!, released: Int) : String`
+* `mergeMovie(title: ID!, released: Int) : String`
 * `updateMovie(title: ID!, released: Int) : String`
 * `deleteMovie(title: ID!) : String`
 
