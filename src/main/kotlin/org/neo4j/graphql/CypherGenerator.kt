@@ -2,6 +2,8 @@ package org.neo4j.graphql
 
 import graphql.language.*
 import org.neo4j.kernel.internal.Version
+import org.neo4j.graphql.util.*
+import org.neo4j.graphql.util.inner
 
 abstract class CypherGenerator {
     companion object {

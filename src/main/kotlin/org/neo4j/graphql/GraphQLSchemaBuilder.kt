@@ -15,6 +15,8 @@ import org.neo4j.graphql.CypherGenerator.Companion.DEFAULT_CYPHER_VERSION
 import org.neo4j.graphql.CypherGenerator.Companion.formatAnyValue
 import org.neo4j.helpers.collection.Iterators
 import java.util.*
+import org.neo4j.graphql.util.*
+import org.neo4j.graphql.util.inner
 
 class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 

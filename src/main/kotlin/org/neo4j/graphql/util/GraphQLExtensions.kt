@@ -1,4 +1,4 @@
-package org.neo4j.graphql
+package org.neo4j.graphql.util
 
 import graphql.language.*
 import graphql.schema.GraphQLList
