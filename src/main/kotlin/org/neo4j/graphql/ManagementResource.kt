@@ -24,6 +24,7 @@ import javax.ws.rs.core.Context
 import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
+import org.neo4j.graphql.util.*
 
 /**
  * @author mh

@@ -4,6 +4,8 @@ import graphql.language.*
 import graphql.parser.Parser
 import graphql.parser.antlr.GraphqlParser
 import org.neo4j.graphql.MetaData.*
+import graphql.language.TypeDefinition
+import org.neo4j.graphql.util.*
 
 object IDLParser {
     fun parseMutations(input : String ) : List<FieldDefinition> {

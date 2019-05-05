@@ -1,6 +1,6 @@
 = Neo4j-GraphQL Extension
 :img: docs/img
-:branch: 3.3
+:branch: 3.4
 
 image::https://github.com/neo4j-graphql/graphql-community/raw/master/images/neo4j-graphql-logo.png[float=right,width=200]
 
@@ -304,6 +304,57 @@ type MutationType {
   @cypher(statement:"MATCH (p:Person {name:$user}),(m:Movie {title:$movie}) MERGE (p)-[r:RATED]->(m) SET r.rating=$rating RETURN r.rating")
 }
 ----
+
+=== New Neo4j-GraphQL-Java Integration
+
+Currently we're working on a https://github.com/neo4j-graphql/neo4j-graphql-java[independent transpiler (neo4j-graphql-java) of GraphQL to Cypher] which can also be used for your own GraphQL servers or middleware on the JVM.
+
+This takes a given GraphQL schema, augments it and then uses that schema to generate Cypher queries from incoming GraphQL queries.
+
+There are small examples of writing GraphQL servers in the repository, but we also wanted to make the new implementation available for testing.
+
+That's why we link:src/main/kotlin/GraphQLResourceExperimental.kt[integrated] the new transpiler at the URL: http://localhost:7474/graphql/experimental/ in this plugin, so that you can test it out.
+It uses the schema of the main implementation.
+
+Currently supported features are:
+
+* parse SDL schema
+* resolve query fields via result types
+* handle arguments as equality comparisons for top level and nested fields
+* handle relationships via @relation directive on schema fields
+* @relation directive on types for rich relationships (from, to fields for start & end node)
+* filter for top-level query-fields
+* handle first, offset arguments
+* argument types: string, int, float, array
+* request parameter support
+* parametrization for cypher query
+* aliases
+* inline and named fragments
+* auto-generate query fields for all objects
+* @cypher directive for fields to compute field values, support arguments
+* auto-generate mutation fields for all objects to create, update, delete
+* @cypher directive for top level queries and mutations, supports arguments
+
+For more details see the https://github.com/neo4j-graphql/neo4j-graphql-java/[readme of the transpiler repository].
+
+Here is a query example against the movie graph:
+
+[source,graphql]
+----
+{
+  person(born:1950) {
+    name, born
+    movies(first: 4) {
+      title
+      actors {
+        name
+      }
+    }
+  }
+}
+----
+
+image:docs/img/neo4j-graphql-java-experimental.jpg[width:800]
 
 === Procedures
 

@@ -1,4 +1,4 @@
-package org.neo4j.graphql
+package org.neo4j.graphql.util
 
 import graphql.Scalars
 import graphql.schema.GraphQLEnumType
@@ -40,7 +40,7 @@ enum class Operators(val suffix:String, val op:String, val not :Boolean = false)
 
         fun resolve(field: String, value: Any?) : Pair<String, Operators> {
             val fieldOperator = ops.find { field.endsWith("_" + it.suffix) }
-            val unaryOperator = if (value is UnaryOperator) unaryOperatorOf(field, value) else Operators.EQ
+            val unaryOperator = if (value is UnaryOperator) unaryOperatorOf(field, value) else EQ
             val op = fieldOperator ?: unaryOperator
             val name = if (op.suffix.isEmpty()) field else field.substring(0, field.length - op.suffix.length - 1)
             return name to op
@@ -55,8 +55,8 @@ enum class Operators(val suffix:String, val op:String, val not :Boolean = false)
         fun forType(type: GraphQLInputType) : List<Operators> =
                 if (type == Scalars.GraphQLBoolean) listOf(EQ, NEQ)
                 else if (type is GraphQLEnumType || type is GraphQLObjectType || type is GraphQLTypeReference) listOf(EQ, NEQ, IN, NIN)
-                else listOf(EQ, NEQ, IN, NIN,LT,LTE,GT,GTE) +
-                        if (type == Scalars.GraphQLString || type == Scalars.GraphQLID) listOf(C,NC, SW, NSW,EW,NEW) else emptyList()
+                else listOf(EQ, NEQ, IN, NIN, LT, LTE, GT, GTE) +
+                        if (type == Scalars.GraphQLString || type == Scalars.GraphQLID) listOf(C, NC, SW, NSW, EW, NEW) else emptyList()
 
     }
 
