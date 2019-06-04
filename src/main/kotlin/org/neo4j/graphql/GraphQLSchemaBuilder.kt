@@ -136,7 +136,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             val md = metaDatas.find { it.type == targetType }
             val cypher = fieldDefinition.cypher() ?: throw IllegalStateException("No @cypher annotation on field $fieldName")
 
-            val needNesting = !cypher.passThrough && md?.let { env.selectionSet.get().values.any { selections -> selections.any { md.hasRelationship(it.name) } } } ?: false
+            val needNesting = !cypher.passThrough && md?.let { env.selectionSet.get().values.any { selections -> selections.any { md.hasRelationship(it.name)  || md.cypherFor(it.name)!=null } } } ?: false
 
             val arguments = fieldDefinition.inputValueDefinitions.associate { arg -> arg.name to env.getArgument<Any>(arg.name) }
             val params = arguments // + mapOf("__params__" to arguments)

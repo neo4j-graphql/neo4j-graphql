@@ -98,12 +98,12 @@ class GraphQLProcedure {
     }
 
     @UserFunction("graphql.runSingle")
-    fun runSingle(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>) : Any {
+    fun runSingle(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>) : Any? {
         val result = db!!.execute(query, variables)
 
         val firstColumn = result.columns()[0]
 
-        return result.columnAs<Any>(firstColumn).next()!!
+        return result.columnAs<Any>(firstColumn).next()
     }
     @UserFunction("graphql.runMany")
     fun runMany(@Name("query") query: String, @Name("variables",defaultValue = "{}") variables : Map<String,Any>) : List<*> {

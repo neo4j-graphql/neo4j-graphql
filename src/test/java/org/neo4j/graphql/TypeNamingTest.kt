@@ -132,4 +132,51 @@ type QueryType {
         println(result)
         assertEquals(mapOf("Person" to mapOf("name" to "Jane")), result.getData())
     }
+    @Test
+    fun dynamicQueryNullableValue() {
+        db?.execute("CREATE (:Person {name:'Jane'}), (:Person {name:'John'})")?.close()
+        val schema = """
+type Person {
+    name: String
+    label: String! @cypher(statement: "RETURN toLower(this.name) as label")
+}
+schema {
+   query: QueryType
+}
+type QueryType {
+    Person(name:String) : Person @cypher(statement:"MATCH (p:Person {name:{name}}) RETURN p")
+}
+"""
+
+        GraphSchemaScanner.storeIdl(db!!, schema)
+        val graphQL = GraphSchema.getGraphQL(db!!)
+        val query = """query { Person(name:"Jane") {name, label} }"""
+        val result = graphQL.execute(query, GraphQLContext(db!!))
+        println(result)
+        assertEquals(mapOf("Person" to mapOf("name" to "Jane", "label" to "jane")), result.getData())
+    }
+
+    @Test
+    fun dynamicQueryNullValue() {
+        db?.execute("CREATE (:Person {name:'Jane'}), (:Person {name:'John'})")?.close()
+        val schema = """
+type Person {
+    name: String
+    nullable: String @cypher(statement: "RETURN null")
+}
+schema {
+   query: QueryType
+}
+type QueryType {
+    Person(name:String) : Person @cypher(statement:"MATCH (p:Person {name:{name}}) RETURN p")
+}
+"""
+
+        GraphSchemaScanner.storeIdl(db!!, schema)
+        val graphQL = GraphSchema.getGraphQL(db!!)
+        val query = """query { Person(name:"Jane") {name, nullable} }"""
+        val result = graphQL.execute(query, GraphQLContext(db!!))
+        println(result)
+        assertEquals(mapOf("Person" to mapOf("name" to "Jane", "nullable" to null)), result.getData())
+    }
 }
