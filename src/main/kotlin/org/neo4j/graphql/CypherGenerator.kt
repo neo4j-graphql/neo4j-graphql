@@ -30,7 +30,7 @@ abstract class CypherGenerator {
 
         private fun isParam(value: String) = value.startsWith("{") && value.endsWith("}")
 
-        fun formatValue(value: Value?): String =
+        fun formatValue(value: Value<*>?): String =
                 when (value) {
                     is VariableReference -> "{`${value.name}`}"
                 // todo turn into parameters  !!
@@ -198,7 +198,7 @@ class Cypher31Generator : CypherGenerator() {
                 selectionSet.selections.filterIsInstance<Field>().mapNotNull { projectField(it, md, variable, ctx) }
     }
 
-    fun projectFragments(md: MetaData, variable: String, selections: MutableList<Selection>, ctx: GeneratorContext): List<Pair<String, String>> {
+    fun projectFragments(md: MetaData, variable: String, selections: MutableList<Selection<*>>, ctx: GeneratorContext): List<Pair<String, String>> {
         return selections.filterIsInstance<InlineFragment>().flatMap {
             val fragmentTypeName = it.typeCondition.name
             val fragmentMetaData = GraphSchemaScanner.getMetaData(fragmentTypeName)!!
@@ -211,7 +211,7 @@ class Cypher31Generator : CypherGenerator() {
             }
         }
     }
-    fun projectNamedFragments(md: MetaData, variable: String, selections: MutableList<Selection>, ctx: GeneratorContext): List<Pair<String, String>> {
+    fun projectNamedFragments(md: MetaData, variable: String, selections: MutableList<Selection<*>>, ctx: GeneratorContext): List<Pair<String, String>> {
         return selections.filterIsInstance<FragmentSpread>().flatMap {
             ctx.fragment(it.name)?.let {
                 val fragmentTypeName = it.typeCondition.name
@@ -243,7 +243,7 @@ class Cypher31Generator : CypherGenerator() {
             val params = (mapOf("this" to "`$variable`") + arguments).entries
                     .joinToString(",", "{", "}") { "`${it.key}`:${it.value}" }
 
-            val prefix  = if (!cypherStatement!!.contains(Regex("this\\s*\\}?\\s+AS\\s+",RegexOption.IGNORE_CASE))) "WITH {this} AS this " else ""
+            val prefix  = if (!cypherStatement.contains(Regex("this\\s*\\}?\\s+AS\\s+",RegexOption.IGNORE_CASE))) "WITH {this} AS this " else ""
             val runType = if (expectMultipleValues) "Many" else "Single"
             val cypherFragment = "graphql.run${runType}('${prefix}${cypherStatement}', $params)"
 
@@ -399,7 +399,7 @@ class Cypher31Generator : CypherGenerator() {
             .map { if (it is VariableReference) "{${name}}" else valueAsString(it) }
             .firstOrNull()
 
-    private fun valueAsString(it: Value?): String? = when (it) {
+    private fun valueAsString(it: Value<*>?): String? = when (it) {
         is IntValue -> it.value.toString()
         is FloatValue -> it.value.toString()
         is StringValue -> "'" + it.value + "'"

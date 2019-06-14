@@ -12,25 +12,25 @@ object IDLParser {
         return parseSchemaType(input, "mutation")
     }
 
-    fun filterEnums(definitions: List<Definition>)
+    fun filterEnums(definitions: List<Definition<*>>)
             = definitions
             .filterIsInstance<EnumTypeDefinition>()
 
-    fun filterScalars(definitions: List<Definition>)
+    fun filterScalars(definitions: List<Definition<*>>)
             = definitions
             .filterIsInstance<ScalarTypeDefinition>()
 
     // todo directives
-    fun parseEnums(definitions: List<Definition>)
+    fun parseEnums(definitions: List<Definition<*>>)
             = definitions
             .filterIsInstance<EnumTypeDefinition>()
             .associate { it.name to it.enumValueDefinitions.map { it.name } }
 
-    fun filterInputTypes(definitions: List<Definition>)
+    fun filterInputTypes(definitions: List<Definition<*>>)
             = definitions
             .filterIsInstance<InputObjectTypeDefinition>()
 
-    fun parseInputTypes(definitions: List<Definition>)
+    fun parseInputTypes(definitions: List<Definition<*>>)
             = definitions
             .filterIsInstance<InputObjectTypeDefinition>()
             .associate { it.name to it.inputValueDefinitions}
@@ -45,15 +45,15 @@ object IDLParser {
                 definitions.filterIsInstance<SchemaDefinition>()
                         .flatMap {
                             it.operationTypeDefinitions.filter { it.name == schemaType }
-                                    .map { (it.type as TypeName).name }
+                                    .map { (it.typeName as TypeName).name }
                         }.firstOrNull()
         return definitions.filterIsInstance<ObjectTypeDefinition>().filter { it.name == mutationName }.flatMap { it.fieldDefinitions }
     }
 
-    private fun parseSchemaTypes(definitions: MutableList<Definition>) =
+    private fun parseSchemaTypes(definitions: MutableList<Definition<*>>) =
             definitions.filterIsInstance<SchemaDefinition>()
             .map {
-                it.operationTypeDefinitions.associate { it.name to (it.type as TypeName).name }
+                it.operationTypeDefinitions.associate { it.name to (it.typeName as TypeName).name }
             }.firstOrNull() ?: emptyMap()
 
     fun parse(input: String): Map<String,MetaData> {
@@ -81,7 +81,7 @@ object IDLParser {
         val parser = Parser()
         try {
             return parser.parseDocument(input)
-        } catch (e:Exception) {
+        } catch (e:Throwable) {
             val cause = e.cause
             when (cause) {
                 is org.antlr.v4.runtime.RecognitionException -> {
@@ -89,12 +89,12 @@ object IDLParser {
                     val expected = cause.expectedTokens.toString(GraphqlParser.VOCABULARY)
                     throw RuntimeException("Error parsing IDL expected $expected got '${token.text}' line ${token.line} column ${token.charPositionInLine}")
                 }
-                else -> throw e;
+                else -> throw e
             }
         }
     }
 
-    fun toMeta(definition: TypeDefinition, enumNames: Set<String> = emptySet(), scalarNames : Set<String> = emptySet()): MetaData {
+    fun toMeta(definition: TypeDefinition<*>, enumNames: Set<String> = emptySet(), scalarNames : Set<String> = emptySet()): MetaData {
         val metaData = MetaData(definition.name)
         metaData.description = definition.description()
         if (definition is ObjectTypeDefinition) {
@@ -152,7 +152,7 @@ object IDLParser {
 
     private fun directivesByName(child: FieldDefinition, directiveName: String) = child.directives.filter { it.name == directiveName }
 
-    private fun typeFromIDL(type: Type, enums: Set<String>, scalars: Set<String>, given: MetaData.PropertyType = PropertyType("String")): MetaData.PropertyType = when (type) {
+    private fun typeFromIDL(type: Type<*>, enums: Set<String>, scalars: Set<String>, given: MetaData.PropertyType = PropertyType("String")): MetaData.PropertyType = when (type) {
         is TypeName -> given.copy(name = type.name, enum = enums.contains(type.name), scalar = scalars.contains(type.name))
         is NonNullType -> typeFromIDL(type.type, enums,scalars, given.copy(nonNull = given.nonNull + 1))
         is ListType -> typeFromIDL(type.type, enums,scalars, given.copy(array = true))
@@ -161,5 +161,5 @@ object IDLParser {
         }
     }
 
-    fun parseDefintions(schema: String?) = if (schema==null) emptyList<Definition>() else Parser().parseDocument(schema).definitions
+    fun parseDefintions(schema: String?) = if (schema==null) emptyList<Definition<*>>() else Parser().parseDocument(schema).definitions
 }

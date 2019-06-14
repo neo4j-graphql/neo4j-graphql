@@ -1,7 +1,7 @@
 package org.neo4j.graphql
 
+import graphql.GraphQL
 import graphql.Scalars.*
-import graphql.execution.ExecutionTypeInfo
 import graphql.execution.ValuesResolver
 import graphql.introspection.Introspection
 import graphql.language.*
@@ -63,7 +63,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         }
     }
 
-    fun graphqlTypeFor(arg: Type, existingTypes: Map<String, GraphQLType>): GraphQLType =
+    fun graphqlTypeFor(arg: Type<*>, existingTypes: Map<String, GraphQLType>): GraphQLType =
             when (arg) {
                 is NonNullType -> GraphQLNonNull(graphqlTypeFor(arg.type, existingTypes))
                 is ListType -> GraphQLList(graphqlTypeFor(arg.type, existingTypes))
@@ -136,7 +136,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             val md = metaDatas.find { it.type == targetType }
             val cypher = fieldDefinition.cypher() ?: throw IllegalStateException("No @cypher annotation on field $fieldName")
 
-            val needNesting = !cypher.passThrough && md?.let { env.selectionSet.get().values.any { selections -> selections.any { md.hasRelationship(it.name)  || md.cypherFor(it.name)!=null } } } ?: false
+            val needNesting = !cypher.passThrough && md?.let { env.selectionSet.get().subFieldsList.any { selections -> selections.fields.any { md.hasRelationship(it.name)  || md.cypherFor(it.name)!=null } } } ?: false
 
             val arguments = fieldDefinition.inputValueDefinitions.associate { arg -> arg.name to env.getArgument<Any>(arg.name) }
             val params = arguments // + mapOf("__params__" to arguments)
@@ -202,7 +202,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
         builder = addRelationships(metaData, builder)
 
         builder = builder.typeResolver { env ->
-            val cypherResult = env.`object`
+            val cypherResult = env.getObject<Map<String,Any>>()
             val row = cypherResult as Map<String,Any>
             val allLabels = row.get("_labels") as List<String>?
             // we also have to add the interfaces to the mutation on create
@@ -325,17 +325,6 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     }
 
     companion object {
-        class GraphQLSchemaWithDirectives(queryType: GraphQLObjectType, mutationType: GraphQLObjectType, additionalTypes: Set<GraphQLType>, newDirectives : List<GraphQLDirective>)
-            : GraphQLSchema(queryType, mutationType, additionalTypes) {
-
-            val myDirectives : List<GraphQLDirective>
-            init {
-                this.myDirectives = newDirectives + super.getDirectives()
-            }
-            override fun getDirectives(): List<GraphQLDirective> {
-                return myDirectives
-            }
-        }
 
         @JvmStatic fun buildSchema(db: GraphDatabaseService): GraphQLSchema {
             GraphSchemaScanner.databaseSchema(db)
@@ -344,21 +333,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
             return GraphQLSchemaBuilder(GraphSchemaScanner.allMetaDatas()).buildSchema()
         }
 
-        fun resolveParameters(schema: GraphQLSchema, fields: List<Field>, variables: Map<String, Any>, fieldTypeInfo: ExecutionTypeInfo) : Map<String,Any> {
-            val valuesResolver = ValuesResolver()
-            val result = mutableMapOf<String,Any>()
-            fun resolve(field : Field) : Unit {
-                val parentType = fieldTypeInfo.castType(GraphQLObjectType::class.java)
-                val fieldDef = schema.fieldVisibility.getFieldDefinition(parentType, field.name)
-
-                result.putAll(valuesResolver.getArgumentValues(fieldDef.arguments, field.arguments, variables))
-                field.selectionSet.selections.filterIsInstance<Field>().forEach { resolve(it) }
-            }
-            fields.forEach { resolve(it) }
-            return result
-        }
-
-        private fun graphQLDirectives() = listOf<GraphQLDirective>(
+        private fun graphQLDirectives() = setOf(
                 newFieldDirective("relation", "Relationship"),
                 newFieldDirective("defaultValue", "default value"),
                 newFieldDirective("isUnique", "field is unique in type"),
@@ -424,20 +399,22 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
 
         val allTypes = objectTypes + interfaceTypes + enums + inputTypes
 
-        val schema = GraphQLSchema.Builder().mutation(mutationType).query(queryType).build(allTypes.values.toSet()) // interfaces seem to be quite tricky
-
-        return GraphQLSchemaWithDirectives(schema.queryType, schema.mutationType, schema.additionalTypes, graphQLDirectives())
+        return GraphQLSchema.newSchema()
+                .query(queryType)
+                .mutation(mutationType)
+                .additionalTypes(allTypes.values.toSet())
+                .additionalDirectives(graphQLDirectives()).build()
     }
 
-    fun enumsFromDefinitions(definitions: List<Definition>) = IDLParser.filterEnums(definitions).associate { e ->
+    fun enumsFromDefinitions(definitions: List<Definition<*>>) = IDLParser.filterEnums(definitions).associate { e ->
         e.name to GraphQLEnumType(e.name, e.description() ?: "Enum for ${e.name}",
                 e.enumValueDefinitions.map { ev -> GraphQLEnumValueDefinition(ev.name, ev.description() ?: "Value for ${ev.name}", ev.name) })
     }
 
-    fun scalarsFromDefinitions(definitions: List<Definition>) = IDLParser.filterScalars(definitions).associate {
-        it.name to GraphQLScalarType(it.name, it.description() ?: "Scalar ${it.name}", NoOpCoercing, it)}
+    fun scalarsFromDefinitions(definitions: List<Definition<*>>) = IDLParser.filterScalars(definitions).associate {
+        it.name to GraphQLScalarType(it.name, it.description() ?: "Scalar ${it.name}",  NoOpCoercing,it.directives.filterIsInstance<GraphQLDirective>(), it)}
 
-    fun inputTypesFromDefinitions(definitions: List<Definition>, inputTypes: Map<String, GraphQLType> = emptyMap()) =
+    fun inputTypesFromDefinitions(definitions: List<Definition<*>>, inputTypes: Map<String, GraphQLType> = emptyMap()) =
             IDLParser.filterInputTypes(definitions).associate { input ->
                 input.name to GraphQLInputObjectType.newInputObject().name(input.name).description(input.description() ?: "Input Type " + input.name).fields(
                         input.inputValueDefinitions.map { field ->
@@ -505,7 +482,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
     }
 
     fun argumentValue(env:DataFetchingEnvironment, name: String) =
-            env.getArgument<Any>(name).let { v -> if (v is Value) v.extract() else v }
+            env.getArgument<Any>(name).let { v -> if (v is Value<*>) v.extract() else v }
 
     fun toArguments(props: Iterable<MetaData.PropertyInfo>, env: DataFetchingEnvironment) : Map<String,Any?> {
         val propNames = props.map { it.fieldName }.toSet()
@@ -670,7 +647,7 @@ class GraphQLSchemaBuilder(val metaDatas: Collection<MetaData>) {
                 })
     }
 
-    private fun filterParams(parameters: Map<String, Any>) = parameters.filterKeys { it != "orderBy" && it != "filter" }.filterNot { it.value is Value }
+    private fun filterParams(parameters: Map<String, Any>) = parameters.filterKeys { it != "orderBy" && it != "filter" }.filterNot { it.value is Value<*> }
 
     private fun applyDirectivesToStatement(generator: CypherGenerator, query: String, directives: Map<String, Directive>) :String {
         val parts = mutableListOf<String>()

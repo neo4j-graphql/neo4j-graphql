@@ -21,7 +21,7 @@ class Cypher31GeneratorTest {
 
         val generator = Cypher31Generator()
 
-        val field = Field("Person", SelectionSet(listOf<Selection>(Field("name"))))
+        val field = Field("Person", SelectionSet(listOf<Selection<*>>(Field("name"))))
 
         val query = generator.generateQueryForField(field)
 
@@ -53,7 +53,7 @@ RETURN graphql.labels(`person`) AS `_labels`,
 
         val generator = Cypher31Generator()
 
-        val field = Field("people", SelectionSet(listOf<Selection>(Field("name"))))
+        val field = Field("people", SelectionSet(listOf<Selection<*>>(Field("name"))))
 
         val query = generator.generateQueryForField(field, queryType)
 
@@ -78,7 +78,7 @@ RETURN graphql.labels(`person`) AS `_labels`,
 
         val generator = Cypher31Generator()
 
-        val field = Field("Person", SelectionSet(listOf<Selection>(Field("name"))))
+        val field = Field("Person", SelectionSet(listOf<Selection<*>>(Field("name"))))
 
         val query = generator.generateQueryForField(field)
 
@@ -103,7 +103,7 @@ RETURN graphql.labels(`person`) AS `_labels`,
         val generator = Cypher31Generator()
 
         val name = Field("name" )
-        val field = Field("Person", listOf(Argument("name", StringValue("Michael Hunger"))), SelectionSet(listOf<Selection>(name)))
+        val field = Field("Person", listOf(Argument("name", StringValue("Michael Hunger"))), SelectionSet(listOf<Selection<*>>(name)))
 
         val query = generator.generateQueryForField(field)
 
@@ -129,7 +129,7 @@ RETURN graphql.labels(`person`) AS `_labels`,
         val generator = Cypher31Generator()
 
         val name = Field("name" )
-        val field = Field("Person", listOf(Argument("orderBy", EnumValue("name_asc"))), SelectionSet(listOf<Selection>(name)))
+        val field = Field("Person", listOf(Argument("orderBy", EnumValue("name_asc"))), SelectionSet(listOf<Selection<*>>(name)))
 
         val query = generator.generateQueryForField(field)
 
@@ -155,7 +155,7 @@ ORDER BY `name` asc""",  query)
         val generator = Cypher31Generator()
 
         val name = Field("name" )
-        val field = Field("Person", listOf(Argument("orderBy", EnumValue("born_desc"))), SelectionSet(listOf<Selection>(name)))
+        val field = Field("Person", listOf(Argument("orderBy", EnumValue("born_desc"))), SelectionSet(listOf<Selection<*>>(name)))
 
         val query = generator.generateQueryForField(field)
 
@@ -181,7 +181,7 @@ ORDER BY `person`.`born` desc""",  query)
 
         val generator = Cypher31Generator()
 
-        val selectionSet = SelectionSet(listOf<Selection>(Field("name"), Field("born")))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(Field("name"), Field("born")))
         val arguments = listOf(
                 Argument("names", ArrayValue(listOf(StringValue("Michael Hunger"), StringValue("Will Lyon")))),
                 Argument("born", IntValue(BigInteger.valueOf(1960))))
@@ -218,7 +218,7 @@ RETURN graphql.labels(`person`) AS `_labels`,
 
         val generator = Cypher31Generator()
 
-        val selectionSet = SelectionSet(listOf<Selection>(Field("name"), Field("born"), Field("movies", SelectionSet(listOf(Field("title"))))))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(Field("name"), Field("born"), Field("movies", SelectionSet(listOf(Field("title"))))))
 
         val field = Field("Person", selectionSet)
 
@@ -249,7 +249,7 @@ RETURN graphql.labels(`person`) AS `_labels`,
 
         val generator = Cypher31Generator()
 
-        val selectionSet = SelectionSet(listOf<Selection>(Field("name"), Field("numberOfOscars")))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(Field("name"), Field("numberOfOscars")))
 
         val field = Field("Actor", selectionSet)
 
@@ -278,8 +278,8 @@ RETURN graphql.labels(`actor`) AS `_labels`,
 
         val generator = Cypher31Generator()
 
-        val subSelectionSet = SelectionSet(listOf<Selection>(Field("name")))
-        val selectionSet = SelectionSet(listOf<Selection>(Field("name"), Field("friend",subSelectionSet)))
+        val subSelectionSet = SelectionSet(listOf<Selection<*>>(Field("name")))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(Field("name"), Field("friend",subSelectionSet)))
 
         val field = Field("Actor", selectionSet)
 
@@ -315,7 +315,7 @@ head([ (`actor`)-[:`friend`]->(`actor_friend`:`Person`)  | `actor_friend` {`_lab
             name, numberOfOscars
          }}
          */
-        val selectionSet = SelectionSet(listOf<Selection>(InlineFragment(TypeName("Actor"), SelectionSet(listOf(Field("name"), Field("numberOfOscars"))))))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(InlineFragment(TypeName("Actor"), SelectionSet(listOf(Field("name"), Field("numberOfOscars"))))))
 
         val field = Field("Person", selectionSet)
 
@@ -347,7 +347,7 @@ RETURN graphql.labels(`person`) AS `_labels`,
 
         val generator = Cypher31Generator()
 
-        val selectionSet = SelectionSet(listOf<Selection>(Field("score")))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(Field("score")))
 
         val field = Field("Person", selectionSet)
 
@@ -374,7 +374,7 @@ graphql.runSingle('WITH {this} AS this RETURN 2', {`this`:`person`}) AS `score`"
 
         val generator = Cypher31Generator()
 
-        val selectionSet = SelectionSet(listOf<Selection>(Field("score",listOf(Argument("x", VariableReference("v"))))))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(Field("score",listOf(Argument("x", VariableReference("v"))))))
 
         val field = Field("Person", selectionSet)
 
@@ -402,7 +402,7 @@ graphql.runSingle('WITH {this} AS this RETURN {x}', {`this`:`person`,`x`:{`v`}})
 
         val generator = Cypher31Generator()
 
-        val selectionSet = SelectionSet(listOf<Selection>(Field("scores"), Field("scores2")))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(Field("scores"), Field("scores2")))
 
         val field = Field("Person", selectionSet)
 
@@ -430,7 +430,7 @@ graphql.runMany('WITH {this} AS this RETURN range(0,5)', {`this`:`person`}) AS `
 
         val generator = Cypher31Generator()
 
-        val selectionSet = SelectionSet(listOf<Selection>(Field("bestFriend", SelectionSet(listOf(Field("name"), Field("born"))))))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(Field("bestFriend", SelectionSet(listOf(Field("name"), Field("born"))))))
 
         val field = Field("Person", selectionSet)
 
@@ -457,7 +457,7 @@ head([ x IN graphql.runMany('WITH {this} AS this RETURN this', {`this`:`person`}
 
         val generator = Cypher31Generator()
 
-        val selectionSet = SelectionSet(listOf<Selection>(Field("colleagues", SelectionSet(listOf(Field("name"), Field("born"))))))
+        val selectionSet = SelectionSet(listOf<Selection<*>>(Field("colleagues", SelectionSet(listOf(Field("name"), Field("born"))))))
 
         val field = Field("Person", selectionSet)
 
