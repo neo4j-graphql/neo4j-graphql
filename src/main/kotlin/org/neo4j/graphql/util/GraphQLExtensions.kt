@@ -5,7 +5,7 @@ import graphql.schema.GraphQLList
 import graphql.schema.GraphQLNonNull
 import graphql.schema.GraphQLType
 
-fun Value.extract(): Any =
+fun Value<*>.extract(): Any =
         when (this) {
             is ObjectValue -> this.objectFields.associate { it.name to it.value.extract() }
             is IntValue -> this.value.toLong()
@@ -19,7 +19,7 @@ fun Value.extract(): Any =
             else -> throw IllegalArgumentException("Unknown Value $this ${this.javaClass}")
         }
 
-fun Value.cypherValue(): String =
+fun Value<*>.cypherValue(): String =
         when (this) {
             is ObjectValue -> this.objectFields.map { "`${it.name}` : ${it.value.cypherValue()}" }.joinToString(",","{","}")
             is IntValue -> this.value.toLong().toString()
@@ -45,9 +45,9 @@ fun FieldDefinition.cypher() : CypherDefinition ?=
                     (it.getArgument("passThrough")?.value?.extract() ?: false) as Boolean)
         }
 
-fun Node.description() : String? = this.comments.let {  if (it.isEmpty()) null else it.map { it.content }.joinToString(" ").trim() }
+fun Node<*>.description() : String? = this.comments.let {  if (it.isEmpty()) null else it.map { it.content }.joinToString(" ").trim() }
 
-fun Type.inner() : String = when (this) {
+fun Type<*>.inner() : String = when (this) {
     is ListType -> this.type.inner()
     is NonNullType -> this.type.inner()
     is TypeName -> this.name

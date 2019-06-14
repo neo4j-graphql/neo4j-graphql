@@ -3,6 +3,7 @@ package org.neo4j.graphql
 import org.junit.Test
 
 import org.junit.Assert.*
+import org.junit.Ignore
 
 /**
  * @author mh
@@ -13,6 +14,7 @@ class IntrospectionTest {
     // works:
     // curl -i -X POST  -H accept:"*/*" -H content-type:application/json -d '{"query":"{ \ntwitter { \nuser (identifier: name, identity: \"clayallsopp\") { \nname \n} \n} \n}","variables":null}' https://www.graphqlhub.com/graphql
     @Test
+    @Ignore
     fun load() {
         val query = "{ \ntwitter { \nuser (identifier: name, identity: \"clayallsopp\") { \nname \n} \n} \n}"
         val metaData = Introspection().postRequest("https://www.graphqlhub.com/graphql", emptyMap(),mapOf("query" to query, "variables" to emptyMap<String,Any>()))

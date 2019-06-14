@@ -49,7 +49,7 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
     val schema = procedureSchema(filter("read"),filter("write"))
 
     private fun filter(type:String = "read") : (ProcedureSignature)->Boolean {
-        val params = (db as GraphDatabaseAPI).dependencyResolver.resolveDependency(Config::class.java).getRaw()
+        val params = (db as GraphDatabaseAPI).dependencyResolver.resolveDependency(Config::class.java).raw
         val filter = params["graphql.admin.procedures."+type] ?: ""
         if (filter.isEmpty()) return { false }
         // val re = filter.replace(",","|").replace("[?{}[]().]","\\\\$0").replace("*",".+").toRegex()
@@ -145,18 +145,20 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
     }
 
     private fun attributeTypes(): Attributes {
-        val types = GraphQLEnumType("Type","Neo4j Types", CypherTypes.values().map { it.name.let { GraphQLEnumValueDefinition(it,it,it)} })
+        val types = GraphQLEnumType.newEnum().name("Type").description("Neo4j Types")
+                .values( CypherTypes.values().map { it.name.let { GraphQLEnumValueDefinition(it,it,it)} })
+                .build()
 
         val attribute = GraphQLObjectType.newObject().name("Attribute")
                 .field{ it.name("key").type(Scalars.GraphQLString)}
                 .field{ it.name("value").type(Scalars.GraphQLString)}
                 .field{ it.name("type").type(types)} // todo enum
-                .build();
+                .build()
         val attributeInput = GraphQLInputObjectType.newInputObject().name("AttributeInput")
                 .field{ it.name("key").type(Scalars.GraphQLString)}
                 .field{ it.name("value").type(Scalars.GraphQLString)}
                 .field{ it.name("type").type(types).defaultValue("String")}
-                .build();
+                .build()
 
         return Attributes(types, attribute, attributeInput)
     }
@@ -176,7 +178,8 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
         val mapArgs = arguments.filter { it.type.inner().name == "AttributeInput" }.associate { it.name to argToMap(env.getArgument<List<Map<String,String>>>(it.name)) }
         val passedArgNames = arguments.map { it.name }.filter(env::containsArgument)
         val args = (env.arguments + mapArgs).filterKeys { passedArgNames.contains(it) }
-        val result = env.getContext<GraphQLContext>().db.execute("CALL ${proc.name()}(${passedArgNames.map { "$" + it }.joinToString(",")})", args)
+        val argNamesInProcOrder = proc.inputSignature().filter { passedArgNames.contains(it.name()) }.map { it.name() }
+        val result = env.getContext<GraphQLContext>().db.execute("CALL ${proc.name()}(${argNamesInProcOrder.map { "$" + it }.joinToString(",")})", args)
         return if (proc.isVoid) true else result.asSequence().map { it.mapValues { safeValue(it.value) } }.toList()
     }
 
@@ -279,7 +282,7 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
             try {
                 val query = params["query"] as String
                 val variables = getVariables(params)
-                if (log.isDebugEnabled()) log.debug("Executing {} with {}", query, variables)
+                if (log.isDebugEnabled) log.debug("Executing {} with {}", query, variables)
 
                 val ctx = GraphQLContext(db, log, variables)
                 val graphQL = GraphQL.newGraphQL(schema).build() // queryExecutionStrategy()
