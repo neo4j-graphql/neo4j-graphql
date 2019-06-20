@@ -31,9 +31,13 @@ class ScalarTest {
 
     val schema = """
 scalar Date
-type Movie  {
+type Movie {
   title: String!
   released: Date
+}
+type Actor  {
+  name: String!
+  born: Long
 }
 """
 
@@ -90,6 +94,12 @@ type Movie  {
         assertEquals(mapOf("Movie" to listOf(mapOf("title" to "Forrest Gump", "released" to 1994L))), result.getData(), result.errors.toString())
         result = graphQL!!.execute("""{ Movie(released:1994) { title, released } }""", ctx)
         assertEquals(mapOf("Movie" to listOf(mapOf("title" to "Forrest Gump", "released" to 1994L))), result.getData(), result.errors.toString())
+    }
+    @Test
+    fun findActor() {
+        db!!.execute("CREATE (:Actor {name:'Keanu Reeves', born:1994})").close()
+        var result = graphQL!!.execute("""{ Actor(name:"Keanu Reeves") { name, born } }""", ctx)
+        assertEquals(mapOf("Actor" to listOf(mapOf("name" to "Keanu Reeves", "born" to 1994L))), result.getData(), result.errors.toString())
     }
 
     @Test
