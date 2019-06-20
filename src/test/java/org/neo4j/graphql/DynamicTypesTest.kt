@@ -52,6 +52,37 @@ class DynamicTypesTest {
         assertEquals(mapOf("people" to listOf(mapOf("name" to "Jane","_id" to 0L),mapOf("name" to "John","_id" to 1L))),result.getData())
     }
 
+
+    @Test
+    fun dynamicFieldArg() {
+        val schema = """
+        type Person {
+           name: String
+           arg(foo:String): String @cypher(statement:"return {foo}")
+        }
+        """
+
+        GraphSchemaScanner.storeIdl(db!!, schema)
+        val graphQL = GraphSchema.getGraphQL(db!!)
+        val result = graphQL.execute("""{ Person { name, arg(foo:"Joe") }}""", GraphQLContext(db!!))
+        assertEquals(mapOf("Person" to listOf(mapOf("name" to "Jane","arg" to "Joe"),mapOf("name" to "John","arg" to "Joe"))),result.getData())
+    }
+    @Test
+    fun dynamicFieldArgParameter() {
+        val schema = """
+        type Person {
+           name: String
+           arg(foo:String): String @cypher(statement:"return {foo}")
+        }
+        """
+
+        GraphSchemaScanner.storeIdl(db!!, schema)
+        val graphQL = GraphSchema.getGraphQL(db!!)
+        val result = graphQL.execute("query(\$a:String) { Person { name, arg(foo:\$a) }}", GraphQLContext(db!!,parameters = mapOf("a" to "Joe")))
+        println(result)
+        assertEquals(mapOf("Person" to listOf(mapOf("name" to "Jane","arg" to "Joe"),mapOf("name" to "John","arg" to "Joe"))),result.getData())
+    }
+
     @Test
     fun dynamicQueryTypeAccessNestedAttributes() {
         val schema = """

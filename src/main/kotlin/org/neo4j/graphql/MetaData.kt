@@ -67,7 +67,7 @@ class MetaData(label: String) {
         override fun toString(): String = (if (array) "[$name${(if (nonNull>1) "!" else "")}]" else name) + (if (nonNull>0) "!" else "")
 
         companion object {
-            val basicTypes = setOf("String","Boolean","Float","Int","Number","ID")
+            val basicTypes = setOf("String","Boolean","Float","Int","Number","ID","Long")
 
             fun typeName(type: Class<*>): String {
                 if (type.isArray) return typeName(type.componentType)

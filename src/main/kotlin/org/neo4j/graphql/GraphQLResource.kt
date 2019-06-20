@@ -1,7 +1,6 @@
 package org.neo4j.graphql
 
 import graphql.ExecutionInput
-import graphql.GraphQL
 import graphql.schema.idl.SchemaPrinter
 import org.codehaus.jackson.map.ObjectMapper
 import org.neo4j.graphdb.GraphDatabaseService
@@ -14,17 +13,16 @@ import javax.ws.rs.core.Context
 import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
-import kotlin.streams.toList
 
 /**
  * @author mh
  * @since 30.10.16
  */
-@Path("/experimental")
+@Path("")
 class GraphQLResource(@Context val provider: LogProvider, @Context val db: GraphDatabaseService) {
     val log: Log
     init {
-        log = provider.getLog(GraphQLResource::class.java)
+        log = provider.getLog(GraphQLResourceExperimental::class.java)
     }
 
     companion object {
@@ -50,26 +48,43 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
         return executeQuery(parseMap(body))
     }
 
+    @Path("/idl")
+    @POST
+    fun storeIdl(schema: String): Response {
+        try {
+            val text = if (schema.trim().startsWith('{')) {
+                parseMap(schema).get("query")?.toString() ?: throw IllegalArgumentException("Can't read schema as JSON despite starting with '{'")
+            } else {
+                if (schema.trim().let { it.startsWith('"') && it.endsWith('"') }) schema.trim('"', ' ', '\t', '\n') else schema
+            }
+            val metaDatas = GraphSchemaScanner.storeIdl(db, text)
+            return Response.ok().entity(OBJECT_MAPPER.writeValueAsString(metaDatas)).build()
+        } catch(e: Exception) {
+            return Response.serverError().entity(OBJECT_MAPPER.writeValueAsString(mapOf("error" to e.message,"trace" to e.stackTraceAsString()))).build()
+        }
+    }
+
+    @Path("/idl")
+    @DELETE
+    fun deleteIdl(): Response {
+        GraphSchemaScanner.deleteIdl(db)
+        return Response.ok().build() // todo JSON
+    }
+
+    @Path("/idl")
+    @GET
+    fun getIdl(): Response {
+        val schema = GraphQLSchemaBuilder.buildSchema(db!!)
+        val printed = SchemaPrinter().print(schema)
+        return Response.ok().entity(printed).build() // todo JSON
+    }
+
     private fun executeQuery(params: Map<String, Any>): Response {
         val query = params["query"] as String
         val variables = getVariables(params)
         if (log.isDebugEnabled()) log.debug("Executing {} with {}", query, variables)
         val tx = db.beginTx()
         try {
-            val schemaIdl = GraphSchemaScanner.readIdl(db)!!
-            val transpilerCtx = Translator.Context(topLevelWhere = false)
-            val schema = SchemaBuilder.buildSchema(schemaIdl, transpilerCtx)
-
-            val result : Any =
-            if (query.contains("__schema")) {
-                GraphQL.newGraphQL(schema).build().execute(query)
-            } else {
-                val queries = Translator(schema).translate(query, variables, transpilerCtx)
-                // todo return query-key/alias
-                val results = queries.flatMap { cypher -> db.execute(cypher.query, cypher.params).stream().toList() }
-                linkedMapOf("data" to results)
-            }
-/*
             val ctx = GraphQLContext(db, log, variables)
             val graphQL = GraphSchema.getGraphQL(db)
             val execution = ExecutionInput.Builder()
@@ -77,6 +92,10 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
             params.get("operationName")?.let { execution.operationName(it.toString()) }
             val executionResult = graphQL.execute(execution.build())
 
+            val result = linkedMapOf("data" to executionResult.getData<Any>())
+            if (ctx.backLog.isNotEmpty()) {
+                result["extensions"]=ctx.backLog
+            }
             if (executionResult.errors.isNotEmpty()) {
                 log.warn("Errors: {}", executionResult.errors)
                 result.put("errors", executionResult.errors)
@@ -84,8 +103,6 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
             } else {
                 tx.success()
             }
-*/
-            tx.success()
             return Response.ok().entity(formatMap(result)).build()
         } finally {
             tx.close()
@@ -102,7 +119,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
         }
     }
 
-    private fun formatMap(result: Any) = OBJECT_MAPPER.writeValueAsString(result)
+    private fun formatMap(result: Map<String, Any>) = OBJECT_MAPPER.writeValueAsString(result)
 
     @Suppress("UNCHECKED_CAST")
     private fun parseMap(value: String?): Map<String, Any> =
