@@ -2,7 +2,6 @@ package org.neo4j.graphql
 
 import graphql.ExecutionInput
 import graphql.schema.idl.SchemaPrinter
-import org.codehaus.jackson.map.ObjectMapper
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.logging.Log
 import org.neo4j.logging.LogProvider
@@ -26,7 +25,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val db: Graph
     }
 
     companion object {
-        val OBJECT_MAPPER: ObjectMapper = ObjectMapper()
+        val OBJECT_MAPPER = com.fasterxml.jackson.databind.ObjectMapper()
     }
 
     @Path("")

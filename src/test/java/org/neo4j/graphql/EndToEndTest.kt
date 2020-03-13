@@ -2,7 +2,6 @@ package org.neo4j.graphql
 
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertNull
-import org.codehaus.jackson.map.ObjectMapper
 import org.junit.*
 import org.neo4j.harness.ServerControls
 import org.neo4j.harness.TestServerBuilders
@@ -328,7 +327,7 @@ type MapsCreated {
     private fun executeQuery(query: String): Map<String, Map<String, Any>> {
         val queryResponse = HTTP.POST(serverURI!!.toString(), mapOf("query" to query))
 
-        println(ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(queryResponse.content()))
+        println(com.fasterxml.jackson.databind.ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(queryResponse.content()))
 
         return queryResponse.content<Map<String, Map<String, List<Map<*, *>>>>>()
     }

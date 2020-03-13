@@ -4,7 +4,6 @@ import graphql.ExecutionInput
 import graphql.GraphQL
 import graphql.Scalars
 import graphql.schema.*
-import org.codehaus.jackson.map.ObjectMapper
 import org.neo4j.cypher.internal.compiler.v3_1.CartesianPoint
 import org.neo4j.cypher.internal.compiler.v3_1.GeographicPoint
 import org.neo4j.graphdb.GraphDatabaseService
@@ -251,7 +250,7 @@ class ManagementResource(@Context val provider: LogProvider, @Context val db: Gr
     private fun fieldName(parts: Array<String>) = parts.mapIndexed { i, s -> if (i> 0) s.capitalize() else s }.joinToString("")
 
     companion object {
-        val OBJECT_MAPPER: ObjectMapper = ObjectMapper()
+        val OBJECT_MAPPER = com.fasterxml.jackson.databind.ObjectMapper()
     }
 
     @Path("")

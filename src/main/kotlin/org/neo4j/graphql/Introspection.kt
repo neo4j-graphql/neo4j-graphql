@@ -1,8 +1,7 @@
 package org.neo4j.graphql
 
-import org.codehaus.jackson.JsonFactory
-import org.codehaus.jackson.JsonGenerator
-import org.codehaus.jackson.map.ObjectMapper
+import com.fasterxml.jackson.core.JsonFactory
+import com.fasterxml.jackson.core.JsonGenerator
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -62,7 +61,7 @@ class Introspection {
     }
 
     companion object {
-        val MAPPER = ObjectMapper(JsonFactory().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, true))
+        val MAPPER = com.fasterxml.jackson.databind.ObjectMapper(JsonFactory().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, true))
         val INTROSPECTION =
         """
 query IntrospectionQuery {
