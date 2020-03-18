@@ -4,6 +4,9 @@
 
 image::https://github.com/neo4j-graphql/graphql-community/raw/master/images/neo4j-graphql-logo.png[float=right,width=200]
 
+[NOTE]
+The plugin is considered end-of-life. It will not be updated for Neo4j 4.0, we recommend to move a middleware based solution using neo4j-graphql-js or neo4j-graphql-java. After a lot of feedback we think separating the GraphQL API from the core database is the better architectural setup.
+
 This is a GraphQL-Endpoint extension for Neo4j.
 It is part of the https://grandstack.io[GRANDstack^]
 
