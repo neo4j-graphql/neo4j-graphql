@@ -3,7 +3,9 @@ package org.neo4j.graphql
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertNull
 import org.codehaus.jackson.map.ObjectMapper
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
 import org.neo4j.harness.ServerControls
 import org.neo4j.harness.TestServerBuilders
 import org.neo4j.test.server.HTTP

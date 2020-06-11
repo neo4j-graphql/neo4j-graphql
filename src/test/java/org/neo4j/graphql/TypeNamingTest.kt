@@ -38,7 +38,7 @@ class TypeNamingTest {
     @Test @Ignore("Bug introduce BOTH relationship handling for generated graphs, esp in mergeRelationships")
     fun duplicatePropertyRelationshipBoth() {
         db?.execute("CREATE (:Person {name:'Jane'})-[:KNOWS]->(:Person {name:'John'})")?.close()
-        val graphQL = GraphSchema.getGraphQL(db!!)
+        val graphQL = SchemaStorage.getGraphQL(db!!)
 
         val query = """query { Person { name, _knows { name } } }"""
         val result = graphQL.execute(query, GraphQLContext(db!!))
@@ -47,7 +47,7 @@ class TypeNamingTest {
     @Test
     fun duplicatePropertyRelationship() {
         db?.execute("CREATE (:Person {knows:'Jane'})-[:knows]->(:Friend {name:'John'}),(:Person {knows:'Alex'})")?.close()
-        val graphQL = GraphSchema.getGraphQL(db!!)
+        val graphQL = SchemaStorage.getGraphQL(db!!)
 
         val query = """query { Person { knows, _knows { name } } }"""
         val result = graphQL.execute(query, GraphQLContext(db!!))
@@ -85,7 +85,7 @@ type QueryType {
 }"""
 
         GraphSchemaScanner.storeIdl(db!!, schema)
-        val graphQL = GraphSchema.getGraphQL(db!!)
+        val graphQL = SchemaStorage.getGraphQL(db!!)
         val query = """query { OrderPosition { amount } }"""
         val result = graphQL.execute(query, GraphQLContext(db!!))
         assertEquals(mapOf("OrderPosition" to emptyList<Long>()), result.getData())
@@ -105,7 +105,7 @@ type MutationType {
 """
 
         GraphSchemaScanner.storeIdl(db!!, schema)
-        val graphQL = GraphSchema.getGraphQL(db!!)
+        val graphQL = SchemaStorage.getGraphQL(db!!)
         val query = """mutation { createPerson(name:"Jane") {name} }"""
         val result = graphQL.execute(query, GraphQLContext(db!!))
         assertEquals(mapOf("createPerson" to mapOf("name" to "TestJane")), result.getData())
@@ -126,7 +126,7 @@ type QueryType {
 """
 
         GraphSchemaScanner.storeIdl(db!!, schema)
-        val graphQL = GraphSchema.getGraphQL(db!!)
+        val graphQL = SchemaStorage.getGraphQL(db!!)
         val query = """query { Person(name:"Jane") {name} }"""
         val result = graphQL.execute(query, GraphQLContext(db!!))
         println(result)
@@ -149,7 +149,7 @@ type QueryType {
 """
 
         GraphSchemaScanner.storeIdl(db!!, schema)
-        val graphQL = GraphSchema.getGraphQL(db!!)
+        val graphQL = SchemaStorage.getGraphQL(db!!)
         val query = """query { Person(name:"Jane") {name, label} }"""
         val result = graphQL.execute(query, GraphQLContext(db!!))
         println(result)
@@ -173,7 +173,7 @@ type QueryType {
 """
 
         GraphSchemaScanner.storeIdl(db!!, schema)
-        val graphQL = GraphSchema.getGraphQL(db!!)
+        val graphQL = SchemaStorage.getGraphQL(db!!)
         val query = """query { Person(name:"Jane") {name, nullable} }"""
         val result = graphQL.execute(query, GraphQLContext(db!!))
         println(result)

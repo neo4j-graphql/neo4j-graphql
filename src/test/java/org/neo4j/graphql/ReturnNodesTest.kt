@@ -33,7 +33,7 @@ class ReturnNodesTest {
 
         ctx = GraphQLContext(db)
         GraphSchemaScanner.storeIdl(db, schema)
-        graphQL = GraphSchema.getGraphQL(db)
+        graphQL = SchemaStorage.getGraphQL(db)
     }
 
     val data = """

@@ -51,7 +51,7 @@ type Company {
 
         val ctx = GraphQLContext(db!!)
         GraphSchemaScanner.storeIdl(db!!, schema)
-        val graphQL = GraphSchema.getGraphQL(db!!)
+        val graphQL = SchemaStorage.getGraphQL(db!!)
 
         fun assertResult(query:String, expected:Any) {
             val result = graphQL.execute(query, ctx)

@@ -1,13 +1,11 @@
 package org.neo4j.graphql;
 
-import graphql.schema.GraphQLSchema;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.harness.ServerControls;
-import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.test.server.HTTP;
 
 import java.net.URL;
@@ -28,7 +26,7 @@ public class GraphQLResourceTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        neo4j = TestServerBuilders
+        neo4j = TestServerBuilder
                 .newInProcessBuilder()
                 .withExtension("/graphql", GraphQLResource.class)
                 .withProcedure(GraphQLProcedure.class)
