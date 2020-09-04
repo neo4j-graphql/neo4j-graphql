@@ -59,21 +59,25 @@ type Mutation {
     @Test
     fun createDirector() {
         assertResult("""mutation { d: createDirector(id:"123", name:"Lilly Wachowski" born:1967) { id, name, born}}""",
-        mapOf("d" to
-                mapOf("id" to "123", "name" to "Lilly Wachowski", "born" to 1967L)))
+                mapOf("d" to
+                        mapOf("id" to "123", "name" to "Lilly Wachowski", "born" to 1967L)))
+                
     }
     @Test
     fun createMovie() {
         assertResult("""mutation { m: createMovie(title:"Forrest Gump", released:1994) {title, released} }""",
-        mapOf("m" to mapOf("title" to "Forrest Gump", "released" to 1994L)))
+                mapOf("m" to mapOf("title" to "Forrest Gump", "released" to 1994L)))
+                
     }
     @Test
     fun mergeMovie() {
         assertResult("""mutation { m: mergeMovie(title:"Forrest Gump", released:1994) { released } }""",
-        mapOf("m" to mapOf("released" to 1994L)))
+                mapOf("m" to mapOf("released" to 1994L)))
+                
 
         assertResult("""mutation { m: mergeMovie(title:"Forrest Gump", released:1995) { released }}""",
-        mapOf("m" to mapOf("released" to 1995L)))
+                mapOf("m" to mapOf("released" to 1995L)))
+                
     }
 
     @Test
@@ -86,6 +90,7 @@ type Mutation {
                 mapOf("m" to "Nodes created: 1\nProperties set: 2\nLabels added: 1\n",
                 "a" to "Nodes created: 1\nProperties set: 2\nLabels added: 1\n",
                 "cast" to "Relationships created: 1\n"))
+                
     }
     @Test
     @Ignore("https://github.com/neo4j-graphql/neo4j-graphql-java/issues/85")
@@ -93,5 +98,6 @@ type Mutation {
         execute("CREATE (:Movie {title:'Forrest Gump'}),(:Person {name:'Michael'})")
         assertResult("""mutation { r: rateMovie(movie:"Forrest Gump", user:"Michael", rating: 5) }""",
                 mapOf("r" to 5L))
+                
     }
 }

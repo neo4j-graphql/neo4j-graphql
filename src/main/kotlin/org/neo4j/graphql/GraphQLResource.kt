@@ -61,9 +61,9 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val dbms: Dat
             SchemaStorage.updateSchema(dbms,dbName,text)
             // TODO parse test
             // OBJECT_MAPPER.writeValueAsString(schema)
-            return Response.ok().entity(schema).build()
+            return Response.ok().entity(OBJECT_MAPPER.writeValueAsString(mapOf("data" to schema))).build()
         } catch(e: Exception) {
-            return Response.serverError().entity(GraphQLResource.OBJECT_MAPPER.writeValueAsString(mapOf("error" to e.message,"trace" to e.stackTraceAsString()))).build()
+            return Response.serverError().entity(OBJECT_MAPPER.writeValueAsString(mapOf("errors" to e.message,"trace" to e.stackTraceAsString()))).build()
         }
     }
 
@@ -117,7 +117,7 @@ class GraphQLResource(@Context val provider: LogProvider, @Context val dbms: Dat
             } catch (e: Exception) {
                 log.warn("Errors: {}", e)
                 tx.rollback()
-                mapOf("errors" to e.message as Any)
+                mapOf("errors" to e.message as Any, "trace" to e.stackTraceAsString())
             }
 // TODO Errors, metadata
 /*

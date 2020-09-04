@@ -42,7 +42,7 @@ type Actor  {
     fun updateMovie() {
         createMovieData()
         assertResult("""mutation { m: updateMovie(title:"Forrest Gump", released:1995) { released } }""",
-                        mapOf("m" to mapOf("released" to 1995L)))
+                mapOf("m" to mapOf("released" to 1995L)))
     }
 
     @Test
@@ -50,36 +50,35 @@ type Actor  {
     fun updateMovieNoProperty() {
         createMovieData()
         assertResult("""mutation { m: updateMovie(title:"Forrest Gump") { released }}""",
-        mapOf("m" to mapOf("released" to 1994L)))
+                mapOf("m" to mapOf("released" to 1994L)))
     }
     @Test
     fun updateMovieNullProperty() {
         createMovieData()
         assertResult("""mutation { m: updateMovie(title:"Forrest Gump", released:null) { released }}""",
-        mapOf("m" to
-                mapOf("released" to null)))
+                mapOf("m" to mapOf("released" to null)))
     }
 
     @Test
     fun findMovie() {
         createMovieData()
             assertResult("""{ movie(title:"Forrest Gump") { title, released } }""",
-        mapOf("movie" to listOf(mapOf("title" to "Forrest Gump", "released" to 1994L))))
+                    mapOf("movie" to listOf(mapOf("title" to "Forrest Gump", "released" to 1994L))))
         assertResult("""{ movie(released:1994) { title, released } }""",
-        mapOf("movie" to listOf(mapOf("title" to "Forrest Gump", "released" to 1994L))))
+                mapOf("movie" to listOf(mapOf("title" to "Forrest Gump", "released" to 1994L))))
     }
     @Test
     fun findActor() {
         execute("CREATE (:Actor {name:'Keanu Reeves', born:1994})")
         assertResult("""{ actor(name:"Keanu Reeves") { name, born } }""",
-        mapOf("actor" to listOf(mapOf("name" to "Keanu Reeves", "born" to 1994L))))
+                mapOf("actor" to listOf(mapOf("name" to "Keanu Reeves", "born" to 1994L))))
     }
 
     @Test
     fun findMovieFilter() {
         createMovieData()
         assertResult("""{ movie(filter:{released_gte:1994}) { title, released } }""",
-        mapOf("movie" to listOf(mapOf("title" to "Forrest Gump", "released" to 1994L))))
+                mapOf("movie" to listOf(mapOf("title" to "Forrest Gump", "released" to 1994L))))
     }
     private fun createMovieData() {
         execute("CREATE (:Movie {title:'Forrest Gump', released:1994})")

@@ -5,6 +5,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.neo4j.graphdb.GraphDatabaseService
+import org.neo4j.graphql.TestUtil.execute
 import org.neo4j.test.TestGraphDatabaseFactory
 
 /**
@@ -13,25 +14,24 @@ import org.neo4j.test.TestGraphDatabaseFactory
  * @since 05.05.17
  */
 class SchemaStorageTest {
-    private var db: GraphDatabaseService? = null
 
     @Before
     @Throws(Exception::class)
     fun setUp() {
-        db = TestGraphDatabaseFactory().newImpermanentDatabase()
-        db!!.execute("CREATE (:Person {name:'Joe'})").close()
+
+        execute("CREATE (:Person {name:'Joe'})")
     }
 
     @After
     @Throws(Exception::class)
     fun tearDown() {
-        db!!.shutdown()
+        TestUtil.tearDown()
     }
 
     @Test
     fun resetOnCreateProperty() {
-        val graphQL = SchemaStorage.getGraphQL(db!!)
-        db!!.execute("CREATE (:Person {age:42})").close()
+        val graphQL = SchemaStorage.schemaProperties(db!!)
+        execute("CREATE (:Person {age:42})")
         Assert.assertNotSame(graphQL, SchemaStorage.getGraphQL(db!!))
     }
 

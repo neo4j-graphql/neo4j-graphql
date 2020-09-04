@@ -1,15 +1,11 @@
 package org.neo4j.graphql
 
-import graphql.GraphQL
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.kernel.impl.proc.Procedures
-import org.neo4j.kernel.internal.GraphDatabaseAPI
-import org.neo4j.test.TestGraphDatabaseFactory
-import kotlin.test.assertEquals
+import org.neo4j.graphql.TestUtil.assertResult
+import org.neo4j.graphql.TestUtil.execute
 
 /**
  * @author mh
@@ -17,24 +13,12 @@ import kotlin.test.assertEquals
  * @since 05.05.17
  */
 class FilterTest {
-    private var db: GraphDatabaseService? = null
-    private lateinit var ctx: GraphQLContext
-    private var graphQL: GraphQL? = null
-
 
     @Before
     @Throws(Exception::class)
     fun setUp() {
-        db = TestGraphDatabaseFactory().newImpermanentDatabase()
-        (db as GraphDatabaseAPI).dependencyResolver.resolveDependency(Procedures::class.java).let {
-            it.registerFunction(GraphQLProcedure::class.java)
-            it.registerProcedure(GraphQLProcedure::class.java)
-        }
-        db?.execute("CREATE (c:Company {name:'ACME'}) WITH c UNWIND [{id:'jane',name:'Jane', age:38, gender:'female',fun:true, height:1.75},{id:'joe',name:'Joe', age:42, gender:'male',fun:false, height:1.85}] AS props CREATE (p:Person)-[:WORKS_AT]->(c) SET p = props")?.close()
-
-        ctx = GraphQLContext(db!!)
-        GraphSchemaScanner.storeIdl(db!!, schema)
-        graphQL = SchemaStorage.getGraphQL(db!!)
+        execute("CREATE (c:Company {name:'ACME'}) WITH c UNWIND [{id:'jane',name:'Jane', age:38, gender:'female',fun:true, height:1.75},{id:'joe',name:'Joe', age:42, gender:'male',fun:false, height:1.85}] AS props CREATE (p:Person)-[:WORKS_AT]->(c) SET p = props")
+        TestUtil.setup(schema)
     }
 
     val schema = """
@@ -46,7 +30,7 @@ type Person {
     height: Float
     fun: Boolean
     gender: Gender
-    company: Company @relation(name:"WORKS_AT")
+    company: company @relation(name:"WORKS_AT")
 }
 type Company {
     name: String
@@ -57,75 +41,68 @@ type Company {
     @After
     @Throws(Exception::class)
     fun tearDown() {
-        db?.shutdown()
+        TestUtil.tearDown()
     }
 
     val jane = mapOf("p" to listOf(mapOf("name" to "Jane")))
     val joe = mapOf("p" to listOf(mapOf("name" to "Joe")))
 
     fun assertFilter(filter: String, expected: String) {
-        assertResult("""{ p: Person(filter: { $filter }) { name }}""", mapOf("p" to listOf(mapOf("name" to expected))))
-    }
-
-    private fun assertResult(query: String, expected: Any, params: Map<String,Any> = emptyMap()) {
-        val ctx2 = GraphQLContext(ctx.db, ctx.log, params)
-        val result = graphQL!!.execute(query, ctx2, params)
-        if (result.errors.isNotEmpty()) println(result.errors)
-        assertEquals(expected, result.getData())
+        assertResult("""{ p: person(filter: { $filter }) { name }}""", mapOf("p" to listOf(mapOf("name" to expected))))
     }
 
     @Test
     fun singleRelation() {
-        assertResult("""{ p: Person(filter: { company : { name : "ACME" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "Jane"),mapOf("name" to "Joe"))))
-        assertResult("""{ p: Person(filter: { company_not : { name : "ACME" } }) { name }}""", mapOf("p" to emptyList<Map<String,Any>>()))
+        assertResult("""{ p: person(filter: { company : { name : "ACME" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "Jane"),mapOf("name" to "Joe"))))
+        assertResult("""{ p: person(filter: { company_not : { name : "ACME" } }) { name }}""", mapOf("p" to emptyList<Map<String,Any>>()))
     }
 
     @Test
     fun multiRelation() {
-        db?.execute("CREATE (c:Company {name:'ACME2'}) WITH c UNWIND [{id:'jill',name:'Jill', age:32, gender:'female',fun:true, height:1.65}] AS props CREATE (p:Person)-[:WORKS_AT]->(c) SET p = props")?.close()
+        execute("CREATE (c:Company {name:'ACME2'}) WITH c UNWIND [{id:'jill',name:'Jill', age:32, gender:'female',fun:true, height:1.65}] AS props CREATE (p:Person)-[:WORKS_AT]->(c) SET p = props")
 
-        assertResult("""{ p: Company(filter: { employees : { name_in : ["Jane","Joe"] } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
-        assertResult("""{ p: Company(filter: { employees_some : { name : "Jane" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
-        assertResult("""{ p: Company(filter: { employees_every : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
-        assertResult("""{ p: Company(filter: { employees_some : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
-        assertResult("""{ p: Company(filter: { employees_none : { name : "Jane" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
-        assertResult("""{ p: Company(filter: { employees_none : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
-        assertResult("""{ p: Company(filter: { employees_single : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
+        assertResult("""{ p: company(filter: { employees : { name_in : ["Jane","Joe"] } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
+        assertResult("""{ p: company(filter: { employees_some : { name : "Jane" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
+        assertResult("""{ p: company(filter: { employees_every : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
+        assertResult("""{ p: company(filter: { employees_some : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
+        assertResult("""{ p: company(filter: { employees_none : { name : "Jane" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
+        assertResult("""{ p: company(filter: { employees_none : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME"))))
+        assertResult("""{ p: company(filter: { employees_single : { name : "Jill" } }) { name }}""", mapOf("p" to listOf(mapOf("name" to "ACME2"))))
     }
 
     @Test
     fun parameterFilter() {
         val params = mapOf("filter" to mapOf("name" to "Jane"))
-        val query = """query filterQuery(${"$"}filter: _PersonFilter) { p: Person(filter: ${"$"}filter) { name }}"""
-        assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))), params)
+        val query = """query filterQuery(${"$"}filter: _PersonFilter) { p: person(filter: ${"$"}filter) { name }}"""
+        assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))),params)
     }
 
     @Test
     fun nestedFilterParam() {
         val params = mapOf("name" to "Jane")
-        val query = """query filterQuery(${"$"}name: String) { p: Person(filter: {name : ${"$"}name}) { name }}"""
-        assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))), params)
+        val query = """query filterQuery(${"$"}name: String) { p: person(filter: {name : ${"$"}name}) { name }}"""
+        assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))),params)
     }
 
     @Test
     fun parameterRelationFilter() {
         val params = mapOf("filter" to mapOf("AND" to mapOf("name" to "Jane", "company" to mapOf("name_ends_with" to "ME"))))
-        val query = """query filterQuery(${"$"}filter: _PersonFilter) { p: Person(filter: ${"$"}filter) { name }}"""
-        assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))), params)
+        val query = """query filterQuery(${"$"}filter: _PersonFilter) { p: person(filter: ${"$"}filter) { name }}"""
+        assertResult(query, mapOf("p" to listOf(mapOf("name" to "Jane"))),params)
     }
 
     @Test
     fun fieldFilter() {
-        assertResult("""{ p: Company { employees(filter: { name: "Jane" }) { name }}}""", mapOf("p" to listOf(mapOf("employees" to listOf(mapOf("name" to "Jane"))))))
-        assertResult("""{ p: Company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}""", mapOf("p" to listOf(mapOf("employees" to listOf(mapOf("name" to "Joe"), mapOf("name" to "Jane"))))))
+        assertResult("""{ p: company { employees(filter: { name: "Jane" }) { name }}}""", mapOf("p" to listOf(mapOf("employees" to listOf(mapOf("name" to "Jane"))))))
+        assertResult("""{ p: company { employees(filter: { OR: [{ name: "Jane" },{name:"Joe"}]}) { name }}}""", mapOf("p" to listOf(mapOf("employees" to listOf(mapOf("name" to "Joe"), mapOf("name" to "Jane"))))))
     }
 
     @Test
     @Ignore("Null handling for filter input type fields")
     fun filtersOnNullField() {
-        db?.execute("MATCH (p:Person { id: 'joe'})-[r:WORKS_AT]-(:Company) DELETE r")?.close()
-        assertResult("{ p: Person(filter: { company: null }) { name }}", joe)
-        assertResult("{ p: Person(filter: { company_not: null }) { name }}", jane)
+        execute("MATCH (p:Person { id: 'joe'})-[r:WORKS_AT]-(:Company) DELETE r")
+        assertResult("{ p: person(filter: { company: null }) { name }}", joe)
+        assertResult("{ p: person(filter: { company_not: null }) { name }}", jane)
     }
     @Test
     fun stringFilter() {

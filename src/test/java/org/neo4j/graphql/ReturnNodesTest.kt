@@ -1,14 +1,10 @@
 package org.neo4j.graphql
 
-import graphql.GraphQL
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.kernel.impl.proc.Procedures
-import org.neo4j.kernel.internal.GraphDatabaseAPI
-import org.neo4j.test.TestGraphDatabaseFactory
-import kotlin.test.assertEquals
+import org.neo4j.graphql.TestUtil.assertResult
+import org.neo4j.graphql.TestUtil.execute
 
 /**
  * @author mh
@@ -16,24 +12,12 @@ import kotlin.test.assertEquals
  * @since 05.05.17
  */
 class ReturnNodesTest {
-    private lateinit var db: GraphDatabaseService
-    private lateinit var ctx: GraphQLContext
-    private var graphQL: GraphQL? = null
-
 
     @Before
     @Throws(Exception::class)
     fun setUp() {
-        db = TestGraphDatabaseFactory().newImpermanentDatabase()
-        (db as GraphDatabaseAPI).dependencyResolver.resolveDependency(Procedures::class.java).let {
-            it.registerFunction(GraphQLProcedure::class.java)
-            it.registerProcedure(GraphQLProcedure::class.java)
-        }
-        db.execute(data)?.close()
-
-        ctx = GraphQLContext(db)
-        GraphSchemaScanner.storeIdl(db, schema)
-        graphQL = SchemaStorage.getGraphQL(db)
+        execute(data)
+        TestUtil.setup(schema)
     }
 
     val data = """
@@ -66,10 +50,10 @@ type Edge {
 }
 
 schema {
-    query: QueryType
+    query: Query
 }
 
-type QueryType {
+type Query {
     shortestPath(fromSubNode: String!, toSubNode: String!): [Node] @cypher(statement:"MATCH (from:Node)-[:HasSubNode]-(:SubNode {name: ${"$"}fromSubNode}), (to:Node)-[:HasSubNode]-(:SubNode {name: ${"$"}toSubNode}) match p = shortestPath((from)-[*]->(to)) UNWIND nodes(p) as n RETURN distinct n")
 }
 """
@@ -77,14 +61,7 @@ type QueryType {
     @After
     @Throws(Exception::class)
     fun tearDown() {
-        db.shutdown()
-    }
-
-    private fun assertResult(query: String, expected: Any, params: Map<String,Any> = emptyMap()) {
-        val ctx2 = GraphQLContext(ctx.db, ctx.log, params)
-        val result = graphQL!!.execute(query, ctx2, params)
-        if (result.errors.isNotEmpty()) println(result.errors)
-        assertEquals(expected, result.getData())
+        TestUtil.tearDown()
     }
 
     @Test
