@@ -1,6 +1,6 @@
 = Neo4j-GraphQL Extension
 :img: docs/img
-:branch: 3.5
+:branch: 4.0
 
 image::https://github.com/neo4j-graphql/graphql-community/raw/master/images/neo4j-graphql-logo.png[float=right,width=200]
 
@@ -484,7 +484,7 @@ Otherwise, we assume if you return object-types that you will return the appropr
 
 == Advanced Usage
 
-The extension works with Neo4j 3.x, the code on this branch is for *{branch}*.
+The extension works with Neo4j 4.x, the code on this branch is for *{branch}*.
 
 Please consult the https://neo4j.com/docs/operations-manual/current/configuration/file-locations/[Neo4j documentation^] for file locations for the other editions on the different operating systems.
 
