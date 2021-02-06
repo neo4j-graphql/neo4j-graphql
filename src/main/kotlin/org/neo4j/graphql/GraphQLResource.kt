@@ -1,6 +1,5 @@
 package org.neo4j.graphql
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import graphql.DeferredExecutionResultImpl
 import graphql.GraphqlErrorBuilder
 import org.neo4j.dbms.api.DatabaseManagementService
@@ -20,16 +19,12 @@ import javax.ws.rs.core.Response
  */
 @Path("/{db}")
 class GraphQLResource(
-        @Context val provider: LogProvider,
-        @Context val dbms: DatabaseManagementService,
-        @Context val resourceContext: ResourceContext,
-        @PathParam("db") val dbName: String
+    @Context val provider: LogProvider,
+    @Context val dbms: DatabaseManagementService,
+    @Context val resourceContext: ResourceContext,
+    @PathParam("db") val dbName: String
 ) {
     private val log: Log = provider.getLog(GraphQLResource::class.java)
-
-    companion object {
-        val OBJECT_MAPPER: ObjectMapper = ObjectMapper()
-    }
 
     @Path("/idl")
     fun getIdlResource(): GraphQLSchemaResource = resourceContext.getResource(GraphQLSchemaResource::class.java)
@@ -40,18 +35,18 @@ class GraphQLResource(
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     fun get(
-            @QueryParam("query") query: String?,
-            @QueryParam("variables") variableParam: String?
+        @QueryParam("query") query: String?,
+        @QueryParam("variables") variables: String?
     ): Response {
         if (query == null) return Response.noContent().build()
-        return executeQuery(mapOf("query" to query, "variables" to (variableParam ?: emptyMap<String, Any>())))
+        return executeQuery(GraphQLRequest(query, variables))
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun executeOperation(body: String): Response {
-        return executeQuery(parseMap(body))
+    fun executeOperation(request: GraphQLRequest): Response {
+        return executeQuery(request)
     }
 
     private fun Throwable.stackTraceAsString(): String {
@@ -61,46 +56,32 @@ class GraphQLResource(
     }
 
 
-    private fun executeQuery(params: Map<String, Any>): Response {
-        val query = params["query"] as String
-        val variables = getVariables(params)
+    private fun executeQuery(request: GraphQLRequest): Response {
         if (log.isDebugEnabled) {
-            log.debug("Executing {} with {}", query, variables)
+            log.debug("Executing {} with {}", request.query, request.variables)
         }
         return try {
-            dbms.executeGraphQl(dbName, query, variables)
-                    ?.let { Response.ok(it, MediaType.APPLICATION_JSON_TYPE).build() }
-                    ?: return Response.status(Response.Status.PRECONDITION_REQUIRED)
-                            .entity("No Schema available for $dbName")
-                            .build()
+            dbms.executeGraphQl(dbName, request.query, request.variables)
+                ?.let { Response.ok(it, MediaType.APPLICATION_JSON_TYPE).build() }
+                ?: return Response.status(Response.Status.PRECONDITION_REQUIRED)
+                    .entity("No Schema available for $dbName")
+                    .build()
         } catch (e: Exception) {
             log.warn("Errors: {}", e)
             Response.serverError()
-                    .entity(DeferredExecutionResultImpl.newDeferredExecutionResult().addErrors(listOf(GraphqlErrorBuilder
-                            .newError()
-                            .message(e.message)
-                            .extensions(mapOf("trace" to e.stackTraceAsString()))
-                            .build())).build())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build()
+                .entity(
+                    DeferredExecutionResultImpl.newDeferredExecutionResult().addErrors(
+                        listOf(
+                            GraphqlErrorBuilder
+                                .newError()
+                                .message(e.message)
+                                .extensions(mapOf("trace" to e.stackTraceAsString()))
+                                .build()
+                        )
+                    ).build()
+                )
+                .type(MediaType.APPLICATION_JSON)
+                .build()
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun getVariables(requestBody: Map<String, Any?>): Map<String, Any> {
-        return when (val varParam = requestBody["variables"]) {
-            is String -> parseMap(varParam)
-            is Map<*, *> -> varParam as Map<String, Any>
-            else -> emptyMap()
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun parseMap(value: String?): Map<String, Any> =
-            if (value == null || value.isNullOrBlank() || value == "null") emptyMap()
-            else {
-                val v = value.trim('"', ' ', '\t', '\n', '\r')
-                OBJECT_MAPPER.readValue(v, Map::class.java) as Map<String, Any>
-            }
-
 }

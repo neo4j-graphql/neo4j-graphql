@@ -1,5 +1,6 @@
 package org.neo4j.graphql
 
+import graphql.DeferredExecutionResultImpl
 import graphql.DeferredExecutionResultImpl.newDeferredExecutionResult
 import graphql.GraphqlErrorBuilder
 import graphql.schema.idl.SchemaPrinter
@@ -12,10 +13,25 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 class GraphQLSchemaResource(
-        @Context val provider: LogProvider,
-        @Context val dbms: DatabaseManagementService,
-        @Suppress("UnresolvedRestParam") @PathParam("db") val dbName: String
+    @Context val provider: LogProvider,
+    @Context val dbms: DatabaseManagementService,
+    @Suppress("UnresolvedRestParam") @PathParam("db") val dbName: String
 ) {
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun createSchemaViaGraphQL(request: GraphQLRequest): Response {
+        createSchemaFromIdl(request.query)
+        return Response.ok()
+            .entity(
+                DeferredExecutionResultImpl.newExecutionResult()
+                    .extensions(mapOf("graphql" to "schema created successfully"))
+                    .build()
+            )
+            .type(MediaType.APPLICATION_JSON)
+            .build()
+    }
 
     @POST
     @Consumes(APPLICATION_GRAPHQL)
@@ -23,21 +39,27 @@ class GraphQLSchemaResource(
         return try {
             val augmentedSchema = SchemaStorage.updateSchema(dbms, dbName, schema)
             return Response.ok(SCHEMA_PRINTER.print(augmentedSchema), APPLICATION_GRAPHQL_TYPE)
-                    .build()
+                .build()
         } catch (e: SchemaProblem) {
             Response.status(Response.Status.BAD_REQUEST)
-                    .entity(newDeferredExecutionResult().addErrors(e.errors).build())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build()
+                .entity(newDeferredExecutionResult().addErrors(e.errors).build())
+                .type(MediaType.APPLICATION_JSON)
+                .build()
         } catch (e: Exception) {
             Response.serverError()
-                    .entity(newDeferredExecutionResult().addErrors(listOf(GraphqlErrorBuilder
-                            .newError()
-                            .message(e.message)
-                            .extensions(mapOf("trace" to e.stackTraceAsString()))
-                            .build())).build())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build()
+                .entity(
+                    newDeferredExecutionResult().addErrors(
+                        listOf(
+                            GraphqlErrorBuilder
+                                .newError()
+                                .message(e.message)
+                                .extensions(mapOf("trace" to e.stackTraceAsString()))
+                                .build()
+                        )
+                    ).build()
+                )
+                .type(MediaType.APPLICATION_JSON)
+                .build()
         }
     }
 
@@ -55,7 +77,7 @@ class GraphQLSchemaResource(
     fun getAugmentedSchema(): Response {
         return SchemaStorage.getAugmentedSchema(dbms, dbName)?.let { augmentedSchema ->
             return Response.ok(SCHEMA_PRINTER.print(augmentedSchema), APPLICATION_GRAPHQL_TYPE)
-                    .build()
+                .build()
         } ?: Response.status(Response.Status.NOT_FOUND).build()
     }
 
@@ -68,10 +90,12 @@ class GraphQLSchemaResource(
     companion object {
         val APPLICATION_GRAPHQL_TYPE = MediaType("application", "graphql")
         const val APPLICATION_GRAPHQL = "application/graphql"
-        val SCHEMA_PRINTER = SchemaPrinter(SchemaPrinter.Options.defaultOptions()
+        val SCHEMA_PRINTER = SchemaPrinter(
+            SchemaPrinter.Options.defaultOptions()
                 .descriptionsAsHashComments(true)
                 .includeIntrospectionTypes(true)
                 .includeSchemaDefinition(true)
-                .useAstDefinitions(true))
+                .useAstDefinitions(true)
+        )
     }
 }

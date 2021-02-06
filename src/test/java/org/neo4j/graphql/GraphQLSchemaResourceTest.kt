@@ -35,6 +35,13 @@ class GraphQLSchemaResourceTest : BaseTest() {
     }
 
     @Test
+    fun testCreateSchemaViaGraphQL() {
+        val idl = "type Person {name:String}"
+        val response = HTTP.POST(resourceUri.toString(), mapOf("query" to idl))
+        Assertions.assertThat(response).extracting { it.status() }.isEqualTo(200)
+    }
+
+    @Test
     fun getSchemaNotFound() {
         val response = getResource("idl")
         Assertions.assertThat(response).extracting { it.statusCode() }.isEqualTo(404)
@@ -70,16 +77,16 @@ class GraphQLSchemaResourceTest : BaseTest() {
     private fun assertResponse(response: HttpResponse<*>, statusCode: Int, contentType: String) {
         Assertions.assertThat(response).extracting { it.statusCode() }.isEqualTo(statusCode)
         Assertions.assertThat(response)
-                .extracting { it.headers() }
-                .extracting { it.firstValue(HttpHeaderNames.CONTENT_TYPE.toString()).orElse(null) }
-                .isEqualTo(contentType)
+            .extracting { it.headers() }
+            .extracting { it.firstValue(HttpHeaderNames.CONTENT_TYPE.toString()).orElse(null) }
+            .isEqualTo(contentType)
     }
 
     fun sendGraphQl(idl: String): HttpResponse<String> {
         val request = HttpRequest.newBuilder(resourceUri)
-                .POST(HttpRequest.BodyPublishers.ofString(idl))
-                .setHeader("Content-Type", "application/graphql")
-                .build()
+            .POST(HttpRequest.BodyPublishers.ofString(idl))
+            .setHeader("Content-Type", "application/graphql")
+            .build()
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString())
     }
 
@@ -95,7 +102,10 @@ class GraphQLSchemaResourceTest : BaseTest() {
         @BeforeClass
         @JvmStatic
         fun setUpResource() {
-            resourceUri = URL(neo4j.httpURI().toURL(), "graphql/" + neo4j.defaultDatabaseService().databaseName() + "/idl").toURI()
+            resourceUri = URL(
+                neo4j.httpURI().toURL(),
+                "graphql/" + neo4j.defaultDatabaseService().databaseName() + "/idl"
+            ).toURI()
             httpClient = HTTP.newClient()
         }
     }
