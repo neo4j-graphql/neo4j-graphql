@@ -76,5 +76,5 @@ object SchemaStorage {
 
     @Throws(SchemaProblem::class)
     private fun augmentSchema(schema: String) =
-        SchemaBuilder.buildSchema(schema, SchemaConfig(capitalizeQueryFields = false))
+        SchemaBuilder.buildSchema(schema, SchemaConfig(capitalizeQueryFields = true))
 }
