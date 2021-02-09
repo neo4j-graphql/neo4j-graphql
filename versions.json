@@ -1,680 +1,1654 @@
 [
     {
-        "neo4j": "3.5.21",
+        "neo4j": "3.5.26",
+        "neo4jVersion": "3.5.26",
         "version": "3.5.21.5",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
+    },
+    {
+        "neo4j": "3.5.25",
+        "neo4jVersion": "3.5.25",
+        "version": "3.5.21.5",
+        "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
+    },
+    {
+        "neo4j": "3.5.24",
+        "neo4jVersion": "3.5.24",
+        "version": "3.5.21.5",
+        "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
+    },
+    {
+        "neo4j": "3.5.23",
+        "neo4jVersion": "3.5.23",
+        "version": "3.5.21.5",
+        "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
+    },
+    {
+        "neo4j": "3.5.22",
+        "neo4jVersion": "3.5.22",
+        "version": "3.5.21.5",
+        "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
+    },
+    {
+        "neo4j": "3.5.21",
+        "neo4jVersion": "3.5.21",
+        "version": "3.5.21.5",
+        "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.21.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.21.5/neo4j-graphql-3.5.21.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.20",
+        "neo4jVersion": "3.5.20",
         "version": "3.5.15.5",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.19",
+        "neo4jVersion": "3.5.19",
         "version": "3.5.15.5",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.18",
+        "neo4jVersion": "3.5.18",
         "version": "3.5.15.5",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.17",
+        "neo4jVersion": "3.5.17",
         "version": "3.5.15.5",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.16",
+        "neo4jVersion": "3.5.16",
         "version": "3.5.15.5",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.15",
+        "neo4jVersion": "3.5.15",
         "version": "3.5.15.5",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.15.5",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.15.5/neo4j-graphql-3.5.15.5.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.14",
+        "neo4jVersion": "3.5.14",
         "version": "3.5.0.4",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.13",
+        "neo4jVersion": "3.5.13",
         "version": "3.5.0.4",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.12",
+        "neo4jVersion": "3.5.12",
         "version": "3.5.0.4",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.11",
+        "neo4jVersion": "3.5.11",
         "version": "3.5.0.4",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.10",
+        "neo4jVersion": "3.5.10",
         "version": "3.5.0.4",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.9",
+        "neo4jVersion": "3.5.9",
         "version": "3.5.0.4",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.8",
+        "neo4jVersion": "3.5.8",
         "version": "3.5.0.4",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.7",
+        "neo4jVersion": "3.5.7",
         "version": "3.5.0.4",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.6",
+        "neo4jVersion": "3.5.6",
         "version": "3.5.0.4",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.4",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.4/neo4j-graphql-3.5.0.4.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.5",
+        "neo4jVersion": "3.5.5",
         "version": "3.5.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.3/neo4j-graphql-3.5.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.3/neo4j-graphql-3.5.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.3/neo4j-graphql-3.5.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.4",
+        "neo4jVersion": "3.5.4",
         "version": "3.5.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.3/neo4j-graphql-3.5.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.3/neo4j-graphql-3.5.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.3/neo4j-graphql-3.5.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.3",
+        "neo4jVersion": "3.5.3",
         "version": "3.5.0.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.2",
+        "neo4jVersion": "3.5.2",
         "version": "3.5.0.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.1",
+        "neo4jVersion": "3.5.1",
         "version": "3.5.0.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0",
+        "neo4jVersion": "3.5.0",
         "version": "3.5.0.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.2/neo4j-graphql-3.5.0.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-rc01",
+        "neo4jVersion": "3.5.0-rc01",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-beta03",
+        "neo4jVersion": "3.5.0-beta03",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-beta02",
+        "neo4jVersion": "3.5.0-beta02",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-beta01",
+        "neo4jVersion": "3.5.0-beta01",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-alpha09",
+        "neo4jVersion": "3.5.0-alpha09",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-alpha08",
+        "neo4jVersion": "3.5.0-alpha08",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-alpha07",
+        "neo4jVersion": "3.5.0-alpha07",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-alpha06",
+        "neo4jVersion": "3.5.0-alpha06",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-alpha05",
+        "neo4jVersion": "3.5.0-alpha05",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-alpha04",
+        "neo4jVersion": "3.5.0-alpha04",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-alpha03",
+        "neo4jVersion": "3.5.0-alpha03",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-alpha02",
+        "neo4jVersion": "3.5.0-alpha02",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.5.0-alpha01",
+        "neo4jVersion": "3.5.0-alpha01",
         "version": "3.5.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.5.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.5.0.0/neo4j-graphql-3.5.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.18",
+        "neo4jVersion": "3.4.18",
         "version": "3.4.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.17",
+        "neo4jVersion": "3.4.17",
         "version": "3.4.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.16",
+        "neo4jVersion": "3.4.16",
         "version": "3.4.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.15",
+        "neo4jVersion": "3.4.15",
         "version": "3.4.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.14",
+        "neo4jVersion": "3.4.14",
         "version": "3.4.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.13",
+        "neo4jVersion": "3.4.13",
         "version": "3.4.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.12",
+        "neo4jVersion": "3.4.12",
         "version": "3.4.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.3/neo4j-graphql-3.4.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.11",
+        "neo4jVersion": "3.4.11",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.10",
+        "neo4jVersion": "3.4.10",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.9",
+        "neo4jVersion": "3.4.9",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.8",
+        "neo4jVersion": "3.4.8",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.7",
+        "neo4jVersion": "3.4.7",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.6",
+        "neo4jVersion": "3.4.6",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.5",
+        "neo4jVersion": "3.4.5",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.4",
+        "neo4jVersion": "3.4.4",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.3",
+        "neo4jVersion": "3.4.3",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.1",
+        "neo4jVersion": "3.4.1",
         "version": "3.4.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.1/neo4j-graphql-3.4.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0",
+        "neo4jVersion": "3.4.0",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-rc02",
+        "neo4jVersion": "3.4.0-rc02",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-rc01",
+        "neo4jVersion": "3.4.0-rc01",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-beta02",
+        "neo4jVersion": "3.4.0-beta02",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-beta01",
+        "neo4jVersion": "3.4.0-beta01",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha10",
+        "neo4jVersion": "3.4.0-alpha10",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha09",
+        "neo4jVersion": "3.4.0-alpha09",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha08",
+        "neo4jVersion": "3.4.0-alpha08",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha07",
+        "neo4jVersion": "3.4.0-alpha07",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha06",
+        "neo4jVersion": "3.4.0-alpha06",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha05",
+        "neo4jVersion": "3.4.0-alpha05",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha04",
+        "neo4jVersion": "3.4.0-alpha04",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha03",
+        "neo4jVersion": "3.4.0-alpha03",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha02",
+        "neo4jVersion": "3.4.0-alpha02",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.4.0-alpha01",
+        "neo4jVersion": "3.4.0-alpha01",
         "version": "3.4.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.4.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.4.0.0/neo4j-graphql-3.4.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.9",
+        "neo4jVersion": "3.3.9",
         "version": "3.3.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.8",
+        "neo4jVersion": "3.3.8",
         "version": "3.3.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.7",
+        "neo4jVersion": "3.3.7",
         "version": "3.3.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.6",
+        "neo4jVersion": "3.3.6",
         "version": "3.3.0.3",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.3",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.3",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.3/neo4j-graphql-3.3.0.3.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.5",
+        "neo4jVersion": "3.3.5",
         "version": "3.3.0.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.2/neo4j-graphql-3.3.0.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.2/neo4j-graphql-3.3.0.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.2/neo4j-graphql-3.3.0.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.4",
+        "neo4jVersion": "3.3.4",
         "version": "3.3.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.1/neo4j-graphql-3.3.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.1/neo4j-graphql-3.3.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.1/neo4j-graphql-3.3.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.3",
+        "neo4jVersion": "3.3.3",
         "version": "3.3.0.1",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.1",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.1/neo4j-graphql-3.3.0.1.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.1/neo4j-graphql-3.3.0.1.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.1/neo4j-graphql-3.3.0.1.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.2",
+        "neo4jVersion": "3.3.2",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.1",
+        "neo4jVersion": "3.3.1",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0",
+        "neo4jVersion": "3.3.0",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-rc1",
+        "neo4jVersion": "3.3.0-rc1",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-beta02",
+        "neo4jVersion": "3.3.0-beta02",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-beta01",
+        "neo4jVersion": "3.3.0-beta01",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-alpha07",
+        "neo4jVersion": "3.3.0-alpha07",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-alpha06",
+        "neo4jVersion": "3.3.0-alpha06",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-alpha05",
+        "neo4jVersion": "3.3.0-alpha05",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-alpha04",
+        "neo4jVersion": "3.3.0-alpha04",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-alpha03",
+        "neo4jVersion": "3.3.0-alpha03",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-alpha02",
+        "neo4jVersion": "3.3.0-alpha02",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.3.0-alpha01",
+        "neo4jVersion": "3.3.0-alpha01",
         "version": "3.3.0.0",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.3.0.0",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.3.0.0/neo4j-graphql-3.3.0.0.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.14",
+        "neo4jVersion": "3.2.14",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.13",
+        "neo4jVersion": "3.2.13",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.12",
+        "neo4jVersion": "3.2.12",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.11",
+        "neo4jVersion": "3.2.11",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.10",
+        "neo4jVersion": "3.2.10",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.9",
+        "neo4jVersion": "3.2.9",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.8",
+        "neo4jVersion": "3.2.8",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.7",
+        "neo4jVersion": "3.2.7",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.6",
+        "neo4jVersion": "3.2.6",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.5",
+        "neo4jVersion": "3.2.5",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.4",
+        "neo4jVersion": "3.2.4",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.3",
+        "neo4jVersion": "3.2.3",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.2",
+        "neo4jVersion": "3.2.2",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.1",
+        "neo4jVersion": "3.2.1",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0",
+        "neo4jVersion": "3.2.0",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-rc3",
+        "neo4jVersion": "3.2.0-rc3",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-rc2",
+        "neo4jVersion": "3.2.0-rc2",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-rc1",
+        "neo4jVersion": "3.2.0-rc1",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-alpha08",
+        "neo4jVersion": "3.2.0-alpha08",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-alpha07",
+        "neo4jVersion": "3.2.0-alpha07",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-alpha06",
+        "neo4jVersion": "3.2.0-alpha06",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-alpha05",
+        "neo4jVersion": "3.2.0-alpha05",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-alpha04",
+        "neo4jVersion": "3.2.0-alpha04",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-alpha03",
+        "neo4jVersion": "3.2.0-alpha03",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-alpha02",
+        "neo4jVersion": "3.2.0-alpha02",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     },
     {
         "neo4j": "3.2.0-alpha01",
+        "neo4jVersion": "3.2.0-alpha01",
         "version": "3.2.8.2",
         "url": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
-        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar"
+        "homepageUrl": "http://github.com/neo4j-graphql/neo4j-graphql/releases/3.2.8.2",
+        "jar": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "downloadUrl": "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/3.2.8.2/neo4j-graphql-3.2.8.2.jar",
+        "config": {
+            "+:dbms.security.procedures.unrestricted": [
+                "graphql.*"
+            ]
+        }
     }
 ]

@@ -89,9 +89,20 @@ task versions {
             graphQlVersion = neo4jToGraphQL[matchingNeo4jVersion]==null ? firstGraphQLVersion : neo4jToGraphQL[matchingNeo4jVersion]
         }
         if (graphQlVersion != null) {
-            def version = [ neo4j : neo4jRelease, version : graphQlVersion, 
+            def version = [ neo4j : neo4jRelease,
+                            neo4jVersion : neo4jRelease,
+                            version : graphQlVersion,
                             url : "http://github.com/neo4j-graphql/neo4j-graphql/releases/" + graphQlVersion,
-                            jar: "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/${graphQlVersion}/neo4j-graphql-${graphQlVersion}.jar" ]
+                            homepageUrl : "http://github.com/neo4j-graphql/neo4j-graphql/releases/" + graphQlVersion,
+                            jar: "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/${graphQlVersion}/neo4j-graphql-${graphQlVersion}.jar",
+                            downloadUrl: "https://github.com/neo4j-graphql/neo4j-graphql/releases/download/${graphQlVersion}/neo4j-graphql-${graphQlVersion}.jar"
+            ]
+
+            version["config"] = [
+                    "+:dbms.security.procedures.unrestricted": ["graphql.*"]
+            ]
+
+
             versions.add(version)
         }
     }
