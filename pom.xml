@@ -19,9 +19,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
-        <kotlin.version>1.3.41</kotlin.version>
+        <kotlin.version>1.3.72</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
-        <neo4j.version>4.0.5</neo4j.version>
+        <neo4j.version>4.2.3</neo4j.version>
     </properties>
 
     <organization>
@@ -35,6 +35,11 @@
             <name>Michael Hunger</name>
             <email>michael@neo4j.com</email>
         </developer>
+        <developer>
+            <id>Andy2003</id>
+            <name>Andreas Berger</name>
+            <email>andreas@berger-ecommerce.com</email>
+        </developer>
     </developers>
 
     <scm>
@@ -42,7 +47,6 @@
         <developerConnection>scm:git:git@github.com:neo4j-contrib/neo4j-graphql.git</developerConnection>
         <url>git@github.com:neo4j-contrib/neo4j-graphql.git</url>
     </scm>
-
 
     <dependencies>
         <dependency>
@@ -54,7 +58,8 @@
         <dependency>
             <groupId>org.neo4j.procedure</groupId>
             <artifactId>apoc</artifactId>
-            <version>4.0.0.13</version>
+            <version>4.2.0.1</version>
+            <classifier>all</classifier>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -76,14 +81,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java</artifactId>
-            <version>12.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-graphql-java</artifactId>
-            <version>1.0.0</version>
+            <version>1.2.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -95,6 +95,18 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-test-junit</artifactId>
             <version>${kotlin.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.17.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.skyscreamer</groupId>
+            <artifactId>jsonassert</artifactId>
+            <version>1.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
