@@ -10,7 +10,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -24,7 +25,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -38,7 +40,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -52,7 +55,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -66,7 +70,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -80,7 +85,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -94,7 +100,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -108,7 +115,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -122,7 +130,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -136,7 +145,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -150,7 +160,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -164,7 +175,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -178,7 +190,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -192,7 +205,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -206,7 +220,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -220,7 +235,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -234,7 +250,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -248,7 +265,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -262,7 +280,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -276,7 +295,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -290,7 +310,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -304,7 +325,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -318,7 +340,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -332,7 +355,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -346,7 +370,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -360,7 +385,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -374,7 +400,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -388,7 +415,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -402,7 +430,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -416,7 +445,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -430,7 +460,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -444,7 +475,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -458,7 +490,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -472,7 +505,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -486,7 +520,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -500,7 +535,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -514,7 +550,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -528,7 +565,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -542,7 +580,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -556,7 +595,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -570,7 +610,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -584,7 +625,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -598,7 +640,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -612,7 +655,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -626,7 +670,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -640,7 +685,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -654,7 +700,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -668,7 +715,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -682,7 +730,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -696,7 +745,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -710,7 +760,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -724,7 +775,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -738,7 +790,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -752,7 +805,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -766,7 +820,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -780,7 +835,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -794,7 +850,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -808,7 +865,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -822,7 +880,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -836,7 +895,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -850,7 +910,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -864,7 +925,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -878,7 +940,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -892,7 +955,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -906,7 +970,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -920,7 +985,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -934,7 +1000,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -948,7 +1015,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -962,7 +1030,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -976,7 +1045,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -990,7 +1060,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1004,7 +1075,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1018,7 +1090,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1032,7 +1105,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1046,7 +1120,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1060,7 +1135,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1074,7 +1150,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1088,7 +1165,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1102,7 +1180,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1116,7 +1195,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1130,7 +1210,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1144,7 +1225,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1158,7 +1240,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1172,7 +1255,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1186,7 +1270,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1200,7 +1285,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1214,7 +1300,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1228,7 +1315,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1242,7 +1330,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1256,7 +1345,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1270,7 +1360,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1284,7 +1375,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1298,7 +1390,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1312,7 +1405,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1326,7 +1420,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1340,7 +1435,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1354,7 +1450,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1368,7 +1465,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1382,7 +1480,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1396,7 +1495,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1410,7 +1510,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1424,7 +1525,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1438,7 +1540,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1452,7 +1555,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1466,7 +1570,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1480,7 +1585,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1494,7 +1600,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1508,7 +1615,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1522,7 +1630,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1536,7 +1645,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1550,7 +1660,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1564,7 +1675,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1578,7 +1690,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1592,7 +1705,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1606,7 +1720,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1620,7 +1735,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1634,7 +1750,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     },
     {
@@ -1648,7 +1765,8 @@
         "config": {
             "+:dbms.security.procedures.unrestricted": [
                 "graphql.*"
-            ]
+            ],
+            "+:dbms.unmanaged_extension_classes": ["org.neo4j.graphql=/graphql"]
         }
     }
 ]
